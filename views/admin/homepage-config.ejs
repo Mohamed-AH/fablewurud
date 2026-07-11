@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= adminLocale === 'ar' ? 'إعدادات الصفحة الرئيسية' : 'Homepage Configuration' %> - <%= t('admin_title') %></title>
+  <style>
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    [dir="rtl"] .page-header {
+      flex-direction: row-reverse;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 600;
+      color: #1A5F5A;
+    }
+
+    .back-link {
+      color: #1A5F5A;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .config-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      max-width: 600px;
+    }
+
+    .config-section {
+      margin-bottom: 28px;
+    }
+
+    .config-section h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1A5F5A;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+
+    [dir="rtl"] .toggle-row {
+      flex-direction: row-reverse;
+    }
+
+    .toggle-row:last-child {
+      border-bottom: none;
+    }
+
+    .toggle-info {
+      flex: 1;
+    }
+
+    .toggle-info .toggle-title {
+      font-weight: 500;
+      font-size: 15px;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .toggle-info .toggle-desc {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      border-radius: 26px;
+      transition: .3s;
+    }
+
+    .toggle-slider::before {
+      content: "";
+      position: absolute;
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .3s;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #1A5F5A;
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(22px);
+    }
+
+    .btn-save {
+      background: #1A5F5A;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+
+    .btn-save:hover {
+      background: #155450;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .layout-preview {
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .layout-preview h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1A5F5A;
+      margin-bottom: 10px;
+    }
+
+    .layout-item {
+      padding: 6px 12px;
+      margin: 4px 0;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    [dir="rtl"] .layout-item {
+      flex-direction: row-reverse;
+    }
+
+    .layout-item.active {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .layout-item.inactive {
+      background: #f8d7da;
+      color: #721c24;
+      text-decoration: line-through;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'sections' }) %>
+
+  <main class="admin-container">
+    <div class="page-header">
+      <h2 class="page-title"><%= adminLocale === 'ar' ? 'إعدادات الصفحة الرئيسية' : 'Homepage Configuration' %></h2>
+      <a href="/admin/sections" class="back-link"><%= adminLocale === 'ar' ? '← العودة للأقسام' : '← Back to Sections' %></a>
+    </div>
+
+    <% if (success) { %>
+      <div class="alert alert-success">
+        <%= adminLocale === 'ar' ? 'تم حفظ الإعدادات بنجاح!' : 'Settings saved successfully!' %>
+      </div>
+    <% } %>
+
+    <% if (error) { %>
+      <div class="alert alert-danger">
+        <%= adminLocale === 'ar' ? 'فشل في حفظ الإعدادات.' : 'Failed to save settings.' %>
+      </div>
+    <% } %>
+
+    <div class="layout-preview">
+      <h4><%= adminLocale === 'ar' ? 'ترتيب الصفحة الرئيسية' : 'Homepage Layout Order' %></h4>
+      <div class="layout-item active">1. <%= adminLocale === 'ar' ? 'القسم الرئيسي (Hero)' : 'Hero Section' %></div>
+      <div class="layout-item <%= settings.showSchedule !== false ? 'active' : 'inactive' %>" id="preview-schedule">2. <%= adminLocale === 'ar' ? 'جدول الدروس الأسبوعي' : 'Weekly Schedule' %></div>
+      <div class="layout-item active">3. <%= adminLocale === 'ar' ? 'أقسام السلاسل (مميز، جارية، مكتملة...)' : 'Series Sections (Featured, Active, Completed...)' %></div>
+      <div class="layout-item <%= settings.showSeriesTab !== false ? 'active' : 'inactive' %>" id="preview-series">4a. <%= adminLocale === 'ar' ? 'تبويب السلاسل' : 'Series Tab' %></div>
+      <div class="layout-item <%= settings.showStandaloneTab !== false ? 'active' : 'inactive' %>" id="preview-standalone">4b. <%= adminLocale === 'ar' ? 'تبويب المحاضرات المنفردة' : 'Standalone Tab' %></div>
+      <div class="layout-item <%= settings.showKhutbasTab !== false ? 'active' : 'inactive' %>" id="preview-khutbas">4c. <%= adminLocale === 'ar' ? 'تبويب الخطب' : 'Khutbas Tab' %></div>
+    </div>
+
+    <div class="config-card">
+      <form method="POST" action="/admin/homepage-config">
+
+        <div class="config-section">
+          <h3><%= adminLocale === 'ar' ? 'أقسام الصفحة' : 'Page Sections' %></h3>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-title"><%= adminLocale === 'ar' ? 'جدول الدروس الأسبوعي' : 'Weekly Schedule' %></div>
+              <div class="toggle-desc"><%= adminLocale === 'ar' ? 'عرض جدول الدروس في الصفحة الرئيسية' : 'Show weekly class schedule on homepage' %></div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="showSchedule" <%= settings.showSchedule !== false ? 'checked' : '' %> onchange="updatePreview('schedule', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-title"><%= adminLocale === 'ar' ? 'تصميم الجدول' : 'Schedule Layout' %></div>
+              <div class="toggle-desc"><%= adminLocale === 'ar' ? 'اختر بين التصميم الجديد (بطاقات) أو الكلاسيكي (جدول)' : 'Choose between new (cards) or classic (table) layout' %></div>
+            </div>
+            <select name="scheduleLayout" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; min-width: 140px;">
+              <option value="cards" <%= (settings.scheduleLayout || 'cards') === 'cards' ? 'selected' : '' %>><%= adminLocale === 'ar' ? '🃏 بطاقات (جديد)' : '🃏 Cards (New)' %></option>
+              <option value="table" <%= settings.scheduleLayout === 'table' ? 'selected' : '' %>><%= adminLocale === 'ar' ? '📊 جدول (كلاسيكي)' : '📊 Table (Classic)' %></option>
+            </select>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h3><%= adminLocale === 'ar' ? 'التبويبات' : 'Content Tabs' %></h3>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-title"><%= adminLocale === 'ar' ? 'تبويب السلاسل' : 'Series Tab' %></div>
+              <div class="toggle-desc"><%= adminLocale === 'ar' ? 'قائمة جميع السلاسل مع محاضراتها' : 'List all series with their lectures' %></div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="showSeriesTab" <%= settings.showSeriesTab !== false ? 'checked' : '' %> onchange="updatePreview('series', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-title"><%= adminLocale === 'ar' ? 'تبويب المحاضرات المنفردة' : 'Standalone Tab' %></div>
+              <div class="toggle-desc"><%= adminLocale === 'ar' ? 'المحاضرات التي لا تنتمي لسلسلة' : 'Lectures not belonging to a series' %></div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="showStandaloneTab" <%= settings.showStandaloneTab !== false ? 'checked' : '' %> onchange="updatePreview('standalone', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-title"><%= adminLocale === 'ar' ? 'تبويب الخطب' : 'Khutbas Tab' %></div>
+              <div class="toggle-desc"><%= adminLocale === 'ar' ? 'خطب الجمعة وسلاسل الخطب' : 'Friday sermons and sermon series' %></div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="showKhutbasTab" <%= settings.showKhutbasTab !== false ? 'checked' : '' %> onchange="updatePreview('khutbas', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h3><%= adminLocale === 'ar' ? 'إحصائيات صفحة السلسلة' : 'Series Page Stats' %></h3>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-title"><%= adminLocale === 'ar' ? 'الحد الأدنى لعرض الاستماعات' : 'Min Plays to Show' %></div>
+              <div class="toggle-desc"><%= adminLocale === 'ar' ? 'إخفاء عدد الاستماعات إذا كان أقل من هذا الرقم' : 'Hide play count if below this number' %></div>
+            </div>
+            <input type="number" name="minPlaysToShow" value="<%= seriesStatsSettings.minPlaysToShow || 100 %>" min="0" max="10000" style="width: 80px; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-title"><%= adminLocale === 'ar' ? 'عرض مدة المحتوى' : 'Show Duration' %></div>
+              <div class="toggle-desc"><%= adminLocale === 'ar' ? 'عرض إجمالي ساعات المحتوى في صفحة السلسلة' : 'Show total content hours on series page' %></div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="showDuration" <%= seriesStatsSettings.showDuration ? 'checked' : '' %>>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-save"><%= adminLocale === 'ar' ? 'حفظ الإعدادات' : 'Save Settings' %></button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    function updatePreview(section, isActive) {
+      const el = document.getElementById('preview-' + section);
+      if (el) {
+        el.classList.toggle('active', isActive);
+        el.classList.toggle('inactive', !isActive);
+      }
+    }
+  </script>
+</body>
+</html>

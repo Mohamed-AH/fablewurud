@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('admin_dashboard') %> - <%= t('admin_title') %></title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <% if (adminIsRTL) { %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <% } %>
+</head>
+<body>
+  <header class="admin-header">
+    <h1>🎙️ <%= t('admin_title') %></h1>
+    <nav class="admin-nav">
+      <a href="/admin/dashboard" class="active"><%= t('admin_dashboard') %></a>
+      <a href="/admin/upload"><%= t('admin_upload') %></a>
+      <a href="/admin/manage"><%= t('admin_manage') %></a>
+      <a href="/admin/schedule"><%= t('admin_schedule') %></a>
+      <a href="/admin/analytics"><%= t('admin_analytics') %></a>
+    </nav>
+    <div class="admin-user-section">
+      <div class="lang-toggle">
+        <a href="?lang=en" class="<%= adminLocale === 'en' ? 'active' : '' %>">EN</a>
+        <a href="?lang=ar" class="<%= adminLocale === 'ar' ? 'active' : '' %>">عربي</a>
+      </div>
+      <div class="user-info">
+        <% if (user.profilePhoto) { %>
+          <img src="<%= user.profilePhoto %>" alt="<%= user.displayName %>" class="user-photo">
+        <% } %>
+        <span><%= user.displayName %></span>
+        <a href="/auth/logout" class="logout-btn"><%= t('admin_logout') %></a>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3><%= t('admin_total_lectures') %></h3>
+        <div class="value"><%= stats.totalLectures %></div>
+      </div>
+      <div class="stat-card">
+        <h3><%= t('admin_published') %></h3>
+        <div class="value"><%= stats.publishedLectures %></div>
+      </div>
+      <div class="stat-card">
+        <h3><%= t('admin_total_plays') %></h3>
+        <div class="value"><%= stats.totalPlays.toLocaleString() %></div>
+      </div>
+      <div class="stat-card">
+        <h3><%= t('admin_total_downloads') %></h3>
+        <div class="value"><%= stats.totalDownloads.toLocaleString() %></div>
+      </div>
+      <div class="stat-card">
+        <h3><%= t('admin_total_sheikhs') %></h3>
+        <div class="value"><%= stats.totalSheikhs %></div>
+      </div>
+      <div class="stat-card">
+        <h3><%= t('admin_total_series') %></h3>
+        <div class="value"><%= stats.totalSeries %></div>
+      </div>
+      <div class="stat-card">
+        <h3><%= t('admin_total_articles') %></h3>
+        <div class="value"><%= stats.totalArticles %></div>
+      </div>
+    </div>
+
+    <section class="admin-section">
+      <h2><%= t('admin_manage_quick_actions') %></h2>
+      <div class="quick-actions-grid">
+        <a href="/admin/articles/new" class="quick-action-btn">
+          <span class="icon">✍️</span>
+          <span><%= t('admin_articles_add') %></span>
+        </a>
+        <a href="/admin/articles" class="quick-action-btn">
+          <span class="icon">📝</span>
+          <span><%= t('admin_articles_manage') %></span>
+        </a>
+        <a href="/admin/series/new" class="quick-action-btn">
+          <span class="icon">📚</span>
+          <span><%= t('admin_series_add') %></span>
+        </a>
+        <a href="/admin/lectures" class="quick-action-btn">
+          <span class="icon">🎙️</span>
+          <span><%= t('admin_lectures') %></span>
+        </a>
+        <% if (user && user.role === 'admin') { %>
+          <a href="/admin/article-editors" class="quick-action-btn">
+            <span class="icon">👥</span>
+            <span><%= t('admin_article_editors') || 'Article Editors' %></span>
+          </a>
+        <% } %>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <h2><%= t('admin_recent_lectures') %></h2>
+      <% if (recentLectures.length > 0) { %>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th><%= t('admin_th_title_ar') %></th>
+              <th><%= t('admin_th_sheikh') %></th>
+              <th><%= t('admin_th_series') %></th>
+              <th><%= t('admin_th_status') %></th>
+              <th><%= t('admin_th_plays') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recentLectures.forEach(lecture => { %>
+              <tr>
+                <td><%= lecture.titleArabic %></td>
+                <td><%= lecture.sheikhId?.nameArabic || '-' %></td>
+                <td><%= lecture.seriesId?.titleArabic || '-' %></td>
+                <td>
+                  <% if (lecture.published) { %>
+                    <span class="badge badge-success"><%= t('admin_status_published') %></span>
+                  <% } else { %>
+                    <span class="badge badge-warning"><%= t('admin_status_draft') %></span>
+                  <% } %>
+                </td>
+                <td><%= lecture.playCount %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } else { %>
+        <div class="empty-state">
+          <p><%= t('admin_no_lectures') %></p>
+        </div>
+      <% } %>
+    </section>
+  </main>
+</body>
+</html>

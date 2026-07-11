@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= t('admin_users') %> - <%= t('admin_title') %></title>
+  <style>
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    [dir="rtl"] .page-header {
+      flex-direction: row-reverse;
+    }
+
+    .page-title {
+      font-size: 28px;
+      color: #2C3E35;
+    }
+
+    .info-box {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .info-box p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #856404;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    [dir="rtl"] .user-info {
+      flex-direction: row-reverse;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .user-avatar-placeholder {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #1A5F5A;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .user-details {
+      flex: 1;
+    }
+
+    .user-name {
+      font-weight: 600;
+      color: #2C3E35;
+      margin-bottom: 2px;
+    }
+
+    .user-email {
+      font-size: 13px;
+      color: #6c757d;
+    }
+
+    .badge-admin {
+      background: #1A5F5A;
+      color: white;
+    }
+
+    .badge-editor {
+      background: #17a2b8;
+      color: white;
+    }
+
+    .badge-active {
+      background: #28a745;
+      color: white;
+    }
+
+    .badge-inactive {
+      background: #dc3545;
+      color: white;
+    }
+
+    .badge-you {
+      background: #ffc107;
+      color: #000;
+    }
+
+    [dir="rtl"] .badge-you {
+      margin-right: 8px;
+    }
+
+    [dir="ltr"] .badge-you {
+      margin-left: 8px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    [dir="rtl"] .actions {
+      flex-direction: row-reverse;
+    }
+
+    .message {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .add-form {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    .add-form.show {
+      display: block;
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'users' }) %>
+
+  <main class="admin-container">
+    <div id="message" class="message"></div>
+
+    <div class="page-header">
+      <h2 class="page-title"><%= t('admin_users') %> (<%= users.length %>)</h2>
+      <button onclick="showAddEditorForm()" class="btn btn-primary">+ <%= adminLocale === 'ar' ? 'إضافة محرر' : 'Add Editor' %></button>
+    </div>
+
+    <!-- Add Editor Form (hidden by default) -->
+    <div id="addEditorForm" class="add-form">
+      <h3 style="margin-bottom: 16px; color: #2C3E35;"><%= adminLocale === 'ar' ? '➕ إضافة محرر جديد' : '➕ Add New Editor' %></h3>
+      <form onsubmit="addEditor(event)">
+        <div class="form-group">
+          <label><%= adminLocale === 'ar' ? 'البريد الإلكتروني' : 'Email Address' %> *</label>
+          <input
+            type="email"
+            id="newEditorEmail"
+            placeholder="editor@example.com"
+            required
+            class="form-control"
+          >
+          <small style="color: #6c757d; display: block; margin-top: 4px;">
+            <%= adminLocale === 'ar' ? 'سيحتاج المحرر لتسجيل الدخول باستخدام Google OAuth بهذا البريد' : 'The editor will need to login with Google OAuth using this email address' %>
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label><%= adminLocale === 'ar' ? 'الاسم المعروض' : 'Display Name' %> *</label>
+          <input
+            type="text"
+            id="newEditorName"
+            placeholder="<%= adminLocale === 'ar' ? 'اسم المحرر' : 'Editor Name' %>"
+            required
+            class="form-control"
+          >
+        </div>
+
+        <div class="form-group">
+          <label><%= adminLocale === 'ar' ? 'الدور' : 'Role' %> *</label>
+          <select id="newEditorRole" class="form-control">
+            <option value="editor"><%= adminLocale === 'ar' ? '✏️ محرر (إدارة المحتوى فقط)' : '✏️ Editor (Content management only)' %></option>
+            <option value="admin"><%= adminLocale === 'ar' ? '👑 مشرف (صلاحيات كاملة)' : '👑 Admin (Full access)' %></option>
+          </select>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary"><%= adminLocale === 'ar' ? '✅ إضافة المستخدم' : '✅ Add User' %></button>
+          <button type="button" onclick="hideAddEditorForm()" class="btn btn-outline"><%= adminLocale === 'ar' ? '❌ إلغاء' : '❌ Cancel' %></button>
+        </div>
+      </form>
+    </div>
+
+    <div class="info-box">
+      <p><strong><%= adminLocale === 'ar' ? '📌 صلاحيات الأدوار:' : '📌 Role Permissions:' %></strong></p>
+      <p><strong><%= adminLocale === 'ar' ? 'مشرف:' : 'Admin:' %></strong> <%= adminLocale === 'ar' ? 'صلاحيات كاملة بما فيها إدارة المستخدمين والمحتوى والإعدادات' : 'Full access including user management, content management, and system settings' %></p>
+      <p><strong><%= adminLocale === 'ar' ? 'محرر:' : 'Editor:' %></strong> <%= adminLocale === 'ar' ? 'إدارة المحتوى فقط (المحاضرات، السلاسل، الشيوخ) - لا يمكنه إدارة المستخدمين أو الإعدادات' : 'Content management only (lectures, series, sheikhs) - cannot manage users or settings' %></p>
+    </div>
+
+    <div class="card">
+      <% if (users && users.length > 0) { %>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th><%= adminLocale === 'ar' ? 'المستخدم' : 'User' %></th>
+              <th><%= adminLocale === 'ar' ? 'الدور' : 'Role' %></th>
+              <th><%= t('admin_th_status') %></th>
+              <th><%= adminLocale === 'ar' ? 'آخر دخول' : 'Last Login' %></th>
+              <th><%= t('admin_th_actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach(u => { %>
+              <tr>
+                <td>
+                  <div class="user-info">
+                    <% if (u.profilePhoto) { %>
+                      <img src="<%= u.profilePhoto %>" alt="<%= u.displayName %>" class="user-avatar">
+                    <% } else { %>
+                      <div class="user-avatar-placeholder">
+                        <%= u.displayName ? u.displayName.charAt(0).toUpperCase() : 'U' %>
+                      </div>
+                    <% } %>
+                    <div class="user-details">
+                      <div class="user-name">
+                        <%= u.displayName || (adminLocale === 'ar' ? 'غير معروف' : 'Unknown') %>
+                        <% if (u._id.toString() === user._id.toString()) { %>
+                          <span class="badge badge-you"><%= adminLocale === 'ar' ? 'أنت' : 'YOU' %></span>
+                        <% } %>
+                      </div>
+                      <div class="user-email"><%= u.email %></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <% if (u._id.toString() === user._id.toString()) { %>
+                    <span class="badge badge-<%= u.role %>"><%= u.role === 'admin' ? (adminLocale === 'ar' ? '👑 مشرف' : '👑 Admin') : (adminLocale === 'ar' ? '✏️ محرر' : '✏️ Editor') %></span>
+                  <% } else { %>
+                    <select onchange="updateRole('<%= u._id %>', this.value)" class="form-control" style="width: auto;">
+                      <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>><%= adminLocale === 'ar' ? '👑 مشرف' : '👑 Admin' %></option>
+                      <option value="editor" <%= u.role === 'editor' ? 'selected' : '' %>><%= adminLocale === 'ar' ? '✏️ محرر' : '✏️ Editor' %></option>
+                    </select>
+                  <% } %>
+                </td>
+                <td>
+                  <span class="badge badge-<%= u.isActive ? 'active' : 'inactive' %>">
+                    <%= u.isActive ? (adminLocale === 'ar' ? '✅ نشط' : '✅ Active') : (adminLocale === 'ar' ? '❌ غير نشط' : '❌ Inactive') %>
+                  </span>
+                </td>
+                <td style="font-size: 13px; color: #6c757d;">
+                  <%= u.lastLogin ? new Date(u.lastLogin).toLocaleDateString(adminLocale === 'ar' ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : (adminLocale === 'ar' ? 'أبداً' : 'Never') %>
+                </td>
+                <td>
+                  <% if (u._id.toString() !== user._id.toString()) { %>
+                    <div class="actions">
+                      <button
+                        onclick="toggleActive('<%= u._id %>', <%= u.isActive %>)"
+                        class="btn <%= u.isActive ? 'btn-danger' : 'btn-success' %>"
+                        style="font-size: 12px; padding: 6px 10px;"
+                      >
+                        <%= u.isActive ? (adminLocale === 'ar' ? 'تعطيل' : 'Deactivate') : (adminLocale === 'ar' ? 'تفعيل' : 'Activate') %>
+                      </button>
+                      <button
+                        onclick="deleteUser('<%= u._id %>', '<%= u.email %>')"
+                        class="btn btn-danger"
+                        style="font-size: 12px; padding: 6px 10px; background: #721c24;"
+                      >
+                        <%= adminLocale === 'ar' ? 'حذف' : 'Delete' %>
+                      </button>
+                    </div>
+                  <% } else { %>
+                    <span style="color: #6c757d; font-size: 13px;"><%= adminLocale === 'ar' ? 'أنت' : 'You' %></span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } else { %>
+        <div class="empty-state">
+          <h3><%= adminLocale === 'ar' ? 'لم يتم العثور على مستخدمين' : 'No users found' %></h3>
+        </div>
+      <% } %>
+    </div>
+  </main>
+
+  <script>
+    const msgs = {
+      fillFields: '<%= adminLocale === "ar" ? "❌ يرجى ملء جميع الحقول المطلوبة" : "❌ Please fill in all required fields" %>',
+      editorAdded: '<%= adminLocale === "ar" ? "✅ تمت إضافة المحرر بنجاح! يمكنه الآن تسجيل الدخول عبر Google OAuth." : "✅ Editor added successfully! They can now login with Google OAuth." %>',
+      errorPrefix: '<%= adminLocale === "ar" ? "❌ خطأ: " : "❌ Error: " %>',
+      errorAdding: '<%= adminLocale === "ar" ? "❌ خطأ في إضافة المحرر" : "❌ Error adding editor" %>',
+      confirmRole: '<%= adminLocale === "ar" ? "هل أنت متأكد من تغيير دور هذا المستخدم إلى" : "Are you sure you want to change this users role to" %>',
+      roleUpdated: '<%= adminLocale === "ar" ? "✅ تم تحديث الدور إلى" : "✅ Role updated to" %>',
+      errorUpdating: '<%= adminLocale === "ar" ? "❌ خطأ في تحديث الدور" : "❌ Error updating role" %>',
+      confirmDeactivate: '<%= adminLocale === "ar" ? "هل أنت متأكد من تعطيل هذا المستخدم؟" : "Are you sure you want to deactivate this user?" %>',
+      confirmActivate: '<%= adminLocale === "ar" ? "هل أنت متأكد من تفعيل هذا المستخدم؟" : "Are you sure you want to activate this user?" %>',
+      userDeactivated: '<%= adminLocale === "ar" ? "✅ تم تعطيل المستخدم بنجاح" : "✅ User deactivated successfully" %>',
+      userActivated: '<%= adminLocale === "ar" ? "✅ تم تفعيل المستخدم بنجاح" : "✅ User activated successfully" %>',
+      errorToggling: '<%= adminLocale === "ar" ? "❌ خطأ في تغيير الحالة" : "❌ Error toggling active status" %>',
+      confirmDelete: '<%= adminLocale === "ar" ? "هل أنت متأكد من حذف هذا المستخدم نهائياً؟ لا يمكن التراجع!" : "Permanently delete this user? This cannot be undone!" %>',
+      userDeleted: '<%= adminLocale === "ar" ? "✅ تم حذف المستخدم نهائياً" : "✅ User permanently deleted" %>',
+      errorDeleting: '<%= adminLocale === "ar" ? "❌ خطأ في حذف المستخدم" : "❌ Error deleting user" %>'
+    };
+
+    function showMessage(text, type) {
+      const msg = document.getElementById('message');
+      msg.textContent = text;
+      msg.className = `message show ${type}`;
+
+      setTimeout(() => {
+        msg.className = 'message';
+      }, 5000);
+    }
+
+    function showAddEditorForm() {
+      document.getElementById('addEditorForm').classList.add('show');
+      document.getElementById('newEditorEmail').focus();
+    }
+
+    function hideAddEditorForm() {
+      document.getElementById('addEditorForm').classList.remove('show');
+      document.getElementById('newEditorEmail').value = '';
+      document.getElementById('newEditorName').value = '';
+      document.getElementById('newEditorRole').value = 'editor';
+    }
+
+    function addEditor(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('newEditorEmail').value;
+      const displayName = document.getElementById('newEditorName').value;
+      const role = document.getElementById('newEditorRole').value;
+
+      if (!email || !displayName) {
+        showMessage(msgs.fillFields, 'error');
+        return;
+      }
+
+      fetch('/admin/users/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, displayName, role })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          showMessage(msgs.editorAdded, 'success');
+          hideAddEditorForm();
+          setTimeout(() => window.location.reload(), 2000);
+        } else {
+          showMessage(msgs.errorPrefix + data.message, 'error');
+        }
+      })
+      .catch(err => {
+        console.error('Add editor error:', err);
+        showMessage(msgs.errorAdding, 'error');
+      });
+    }
+
+    function updateRole(userId, newRole) {
+      if (!confirm(msgs.confirmRole + ' ' + newRole + '?')) {
+        window.location.reload();
+        return;
+      }
+
+      fetch(`/admin/users/${userId}/role`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ role: newRole })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          showMessage(msgs.roleUpdated + ' ' + newRole, 'success');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showMessage(msgs.errorPrefix + data.message, 'error');
+          window.location.reload();
+        }
+      })
+      .catch(err => {
+        console.error('Update role error:', err);
+        showMessage(msgs.errorUpdating, 'error');
+        window.location.reload();
+      });
+    }
+
+    function toggleActive(userId, currentlyActive) {
+      const confirmMsg = currentlyActive ? msgs.confirmDeactivate : msgs.confirmActivate;
+      if (!confirm(confirmMsg)) {
+        return;
+      }
+
+      fetch(`/admin/users/${userId}/toggle-active`, {
+        method: 'POST'
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          showMessage(currentlyActive ? msgs.userDeactivated : msgs.userActivated, 'success');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showMessage(msgs.errorPrefix + data.message, 'error');
+        }
+      })
+      .catch(err => {
+        console.error('Toggle active error:', err);
+        showMessage(msgs.errorToggling, 'error');
+      });
+    }
+
+    function deleteUser(userId, email) {
+      if (!confirm(msgs.confirmDelete + '\n\n' + email)) {
+        return;
+      }
+
+      fetch(`/admin/users/${userId}/delete`, {
+        method: 'POST'
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          showMessage(msgs.userDeleted, 'success');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showMessage(msgs.errorPrefix + data.message, 'error');
+        }
+      })
+      .catch(err => {
+        console.error('Delete user error:', err);
+        showMessage(msgs.errorDeleting, 'error');
+      });
+    }
+  </script>
+</body>
+</html>

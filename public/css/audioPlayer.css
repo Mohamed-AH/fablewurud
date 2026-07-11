@@ -1,0 +1,946 @@
+/**
+ * Audio Player Styles
+ * Matches design: brown background, gold accents
+ */
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+.audio-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, #3D2815 0%, #2C1810 100%);
+  border-top: 2px solid #C49A3C;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+  transition: transform 0.3s ease, bottom 0.3s ease;
+}
+
+.audio-player.hidden {
+  transform: translateY(100%);
+  pointer-events: none;
+}
+
+/* ============================================
+   DESKTOP LAYOUT (Default)
+   ============================================ */
+
+.player-container {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 32px;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 14px 32px;
+}
+
+/* Close button - hidden on desktop */
+.close-btn {
+  display: none;
+}
+
+/* LEFT: Action Buttons */
+.player-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-btn {
+  width: 44px;
+  height: 44px;
+  background: rgba(193, 154, 107, 0.15);
+  border: 1px solid rgba(193, 154, 107, 0.3);
+  border-radius: 10px;
+  color: #C49A3C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  background: rgba(193, 154, 107, 0.25);
+  border-color: #C49A3C;
+  color: #DEC99A;
+}
+
+.action-btn svg,
+.action-btn i {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+
+/* Speed button shows text */
+#speedLabel {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-cairo), system-ui, sans-serif;
+}
+
+/* Speed menu */
+.speed-control {
+  position: relative;
+}
+
+.speed-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2C1810;
+  border: 2px solid #C49A3C;
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  min-width: 80px;
+  z-index: 100;
+}
+
+.speed-menu.hidden {
+  display: none;
+}
+
+.speed-option {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  color: #C49A3C;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.speed-option:hover {
+  background: rgba(193, 154, 107, 0.2);
+}
+
+.speed-option.active {
+  background: #C49A3C;
+  color: #2C1810;
+}
+
+/* Volume Control */
+.volume-control {
+  position: relative;
+}
+
+.volume-popup {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2C1810;
+  border: 2px solid #C49A3C;
+  border-radius: 10px;
+  padding: 16px 12px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.volume-popup.hidden {
+  display: none;
+}
+
+.volume-slider {
+  width: 100px;
+  height: 6px;
+  background: rgba(193, 154, 107, 0.2);
+  border-radius: 3px;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-track {
+  height: 6px;
+  background: rgba(193, 154, 107, 0.2);
+  border-radius: 3px;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #C49A3C;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  background: #DEC99A;
+}
+
+.volume-slider::-moz-range-track {
+  height: 6px;
+  background: rgba(193, 154, 107, 0.2);
+  border-radius: 3px;
+  border: none;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #C49A3C;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.volume-slider::-moz-range-thumb:hover {
+  background: #DEC99A;
+}
+
+.volume-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #C49A3C;
+  font-family: var(--font-cairo), system-ui, sans-serif;
+}
+
+/* CENTER: Info + Progress */
+.player-center {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.player-info {
+  text-align: center;
+}
+
+.lecture-title {
+  font-family: var(--font-cairo), 'Cairo', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #FAF7F2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.sheikh-name {
+  font-family: var(--font-cairo), 'Cairo', sans-serif;
+  font-size: 13px;
+  color: #C49A3C;
+  margin-top: 2px;
+}
+
+/* Progress Row */
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.time-stamp {
+  font-size: 13px;
+  font-weight: 600;
+  color: #C49A3C;
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+  font-family: var(--font-cairo), system-ui, sans-serif;
+}
+
+.time-stamp:first-child {
+  text-align: right;
+}
+
+.time-stamp:last-child {
+  text-align: left;
+}
+
+/* Progress Bar */
+.progress-container {
+  flex: 1;
+  height: 28px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  touch-action: none;
+}
+
+.progress-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: rgba(193, 154, 107, 0.2);
+  border-radius: 3px;
+}
+
+.progress-bar {
+  height: 6px;
+  background: linear-gradient(90deg, #C49A3C 0%, #DEC99A 100%);
+  border-radius: 3px;
+  width: 0%;
+  position: relative;
+  z-index: 1;
+  transition: width 0.1s linear;
+}
+
+.progress-container:hover .progress-track,
+.progress-container:hover .progress-bar {
+  height: 8px;
+}
+
+.progress-handle {
+  position: absolute;
+  right: -7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  background: #FAF7F2;
+  border: 2px solid #C49A3C;
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+.progress-container:hover .progress-handle {
+  opacity: 1;
+}
+
+.progress-container.dragging .progress-handle {
+  opacity: 1;
+  cursor: grabbing;
+  transform: translateY(-50%) scale(1.2);
+  background: #C49A3C;
+  border-color: #FAF7F2;
+}
+
+/* Prevent text selection while dragging */
+body.audio-seeking {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grabbing !important;
+}
+
+/* RIGHT: Playback Controls */
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skip-btn {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 2px solid #C49A3C;
+  border-radius: 50%;
+  color: #C49A3C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skip-btn:hover {
+  background: rgba(196, 154, 60, 0.15);
+  color: #DEC99A;
+  border-color: #DEC99A;
+}
+
+.skip-btn svg,
+.skip-btn i {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.5;
+}
+
+.play-btn {
+  width: 56px;
+  height: 56px;
+  background: #C49A3C;
+  border: none;
+  border-radius: 50%;
+  color: #2C1810;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(196, 154, 60, 0.4);
+  transition: all 0.2s ease;
+}
+
+.play-btn:hover {
+  background: #DEC99A;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(196, 154, 60, 0.5);
+}
+
+.play-btn:active {
+  transform: scale(0.98);
+}
+
+.play-btn svg,
+.play-btn i {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.5;
+  margin-left: 2px; /* Visual centering for play icon */
+}
+
+/* Pause icon doesn't need offset */
+.play-btn i[data-lucide="pause"] {
+  margin-left: 0;
+}
+
+/* Mini Player - Hidden on Desktop */
+.mini-player {
+  display: none;
+}
+
+/* ============================================
+   TABLET LAYOUT (1024px)
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .player-container {
+    gap: 24px;
+    padding: 14px 24px;
+  }
+
+  .action-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .action-btn svg,
+  .action-btn i {
+    width: 18px;
+    height: 18px;
+  }
+
+  .lecture-title {
+    font-size: 16px;
+  }
+
+  .play-btn {
+    width: 52px;
+    height: 52px;
+  }
+
+  .play-btn svg,
+  .play-btn i {
+    width: 22px;
+    height: 22px;
+  }
+
+  .skip-btn {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+/* ============================================
+   MOBILE LAYOUT (768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+  .audio-player {
+    padding-bottom: 64px; /* Space for bottom nav */
+  }
+
+  .audio-player.minimized {
+    padding-bottom: 0;
+  }
+
+  .player-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 20px 20px;
+    position: relative;
+  }
+
+  /* Close button - visible on mobile, top left */
+  .close-btn {
+    display: flex;
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    width: 32px;
+    height: 32px;
+    background: rgba(193, 154, 107, 0.15);
+    border: none;
+    border-radius: 50%;
+    color: #C49A3C;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+  }
+
+  .close-btn:hover,
+  .close-btn:active {
+    background: rgba(193, 154, 107, 0.3);
+  }
+
+  .close-btn svg,
+  .close-btn i {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.5;
+  }
+
+  /* Player info - centered at top */
+  .player-center {
+    order: 1;
+    padding-top: 24px; /* Space for close button */
+  }
+
+  .player-info {
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .lecture-title {
+    font-size: 16px;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .sheikh-name {
+    display: none; /* Hidden on mobile per design */
+  }
+
+  /* Playback controls - centered */
+  .player-controls {
+    order: 2;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .play-btn {
+    width: 64px;
+    height: 64px;
+  }
+
+  .play-btn svg,
+  .play-btn i {
+    width: 28px;
+    height: 28px;
+  }
+
+  .skip-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .skip-btn svg,
+  .skip-btn i {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Progress row */
+  .progress-row {
+    order: 3;
+    gap: 12px;
+  }
+
+  .time-stamp {
+    font-size: 12px;
+    min-width: 48px;
+  }
+
+  /* Action buttons - 2x2 grid */
+  .player-actions {
+    order: 4;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    max-width: 280px;
+    margin: 8px auto 0;
+  }
+
+  .action-btn {
+    width: 100%;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .action-btn svg,
+  .action-btn i {
+    width: 22px;
+    height: 22px;
+  }
+
+  #speedLabel {
+    font-size: 16px;
+  }
+
+  /* Speed menu position */
+  .speed-menu {
+    position: fixed;
+    bottom: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 120px;
+  }
+
+  /* Volume popup position */
+  .volume-popup {
+    position: fixed;
+    bottom: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px 16px;
+  }
+
+  .volume-slider {
+    width: 140px;
+  }
+
+  .volume-value {
+    font-size: 14px;
+  }
+
+  /* ============================================
+     MINI PLAYER (Mobile Only)
+     ============================================ */
+
+  .mini-player {
+    display: none;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    cursor: pointer;
+  }
+
+  .audio-player.minimized .mini-player {
+    display: flex;
+  }
+
+  .audio-player.minimized .player-container {
+    display: none;
+  }
+
+  .audio-player.minimized {
+    bottom: 64px; /* Above bottom nav */
+    padding-bottom: 0;
+    border-top-width: 2px;
+  }
+
+  .mini-play-btn {
+    width: 40px;
+    height: 40px;
+    background: #C49A3C;
+    border: none;
+    border-radius: 50%;
+    color: #2C1810;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .mini-play-btn:active {
+    transform: scale(0.95);
+  }
+
+  .mini-play-btn svg,
+  .mini-play-btn i {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.5;
+    margin-left: 2px;
+  }
+
+  .mini-play-btn i[data-lucide="pause"] {
+    margin-left: 0;
+  }
+
+  .mini-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: right;
+  }
+
+  .mini-title {
+    font-family: var(--font-cairo), 'Cairo', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #FAF7F2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mini-time {
+    font-size: 12px;
+    color: #C49A3C;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ============================================
+   SMALL PHONES (480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+  .player-container {
+    padding: 14px 16px 18px;
+    gap: 14px;
+  }
+
+  .close-btn {
+    top: 10px;
+    left: 12px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .close-btn svg,
+  .close-btn i {
+    width: 16px;
+    height: 16px;
+  }
+
+  .player-center {
+    padding-top: 20px;
+  }
+
+  .lecture-title {
+    font-size: 15px;
+  }
+
+  .player-controls {
+    gap: 16px;
+  }
+
+  .play-btn {
+    width: 56px;
+    height: 56px;
+  }
+
+  .play-btn svg,
+  .play-btn i {
+    width: 24px;
+    height: 24px;
+  }
+
+  .skip-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .skip-btn svg,
+  .skip-btn i {
+    width: 20px;
+    height: 20px;
+  }
+
+  .progress-row {
+    gap: 10px;
+  }
+
+  .time-stamp {
+    font-size: 11px;
+    min-width: 42px;
+  }
+
+  .player-actions {
+    gap: 10px;
+    max-width: 260px;
+  }
+
+  .action-btn {
+    height: 44px;
+  }
+
+  .action-btn svg,
+  .action-btn i {
+    width: 20px;
+    height: 20px;
+  }
+
+  #speedLabel {
+    font-size: 15px;
+  }
+
+  /* Mini player */
+  .mini-play-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mini-play-btn svg,
+  .mini-play-btn i {
+    width: 16px;
+    height: 16px;
+  }
+
+  .mini-title {
+    font-size: 13px;
+  }
+
+  .mini-time {
+    font-size: 11px;
+  }
+}
+
+/* ============================================
+   VERY SMALL PHONES (360px)
+   ============================================ */
+
+@media (max-width: 360px) {
+  .player-container {
+    padding: 12px 14px 16px;
+    gap: 12px;
+  }
+
+  .lecture-title {
+    font-size: 14px;
+  }
+
+  .play-btn {
+    width: 52px;
+    height: 52px;
+  }
+
+  .play-btn svg,
+  .play-btn i {
+    width: 22px;
+    height: 22px;
+  }
+
+  .skip-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .skip-btn svg,
+  .skip-btn i {
+    width: 18px;
+    height: 18px;
+  }
+
+  .player-actions {
+    gap: 8px;
+    max-width: 240px;
+  }
+
+  .action-btn {
+    height: 42px;
+  }
+
+  .action-btn svg,
+  .action-btn i {
+    width: 18px;
+    height: 18px;
+  }
+
+  #speedLabel {
+    font-size: 14px;
+  }
+}
+
+/* ============================================
+   RTL SUPPORT
+   ============================================ */
+
+html[dir="rtl"] .player-container {
+  direction: rtl;
+}
+
+html[dir="rtl"] .time-stamp:first-child {
+  text-align: left;
+}
+
+html[dir="rtl"] .time-stamp:last-child {
+  text-align: right;
+}
+
+html[dir="rtl"] .progress-bar {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+html[dir="rtl"] .progress-handle {
+  right: auto;
+  left: -7px;
+}
+
+html[dir="rtl"] .play-btn svg,
+html[dir="rtl"] .play-btn i {
+  margin-left: 0;
+  margin-right: 2px;
+}
+
+html[dir="rtl"] .play-btn i[data-lucide="pause"] {
+  margin-right: 0;
+}
+
+html[dir="rtl"] .mini-play-btn svg,
+html[dir="rtl"] .mini-play-btn i {
+  margin-left: 0;
+  margin-right: 2px;
+}
+
+html[dir="rtl"] .mini-play-btn i[data-lucide="pause"] {
+  margin-right: 0;
+}
+
+@media (max-width: 768px) {
+  html[dir="rtl"] .close-btn {
+    left: auto;
+    right: 16px;
+  }
+
+  html[dir="rtl"] .mini-info {
+    text-align: left;
+  }
+
+  html[dir="rtl"] .speed-menu {
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (max-width: 480px) {
+  html[dir="rtl"] .close-btn {
+    right: 12px;
+  }
+}

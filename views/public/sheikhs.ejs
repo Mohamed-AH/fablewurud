@@ -1,0 +1,167 @@
+<style>
+  .page-header {
+    background: linear-gradient(135deg, var(--primary-brown) 0%, var(--sage) 100%);
+    padding: 48px 0;
+    margin-bottom: 40px;
+    border-bottom: 3px solid var(--accent-gold);
+  }
+
+  .page-title {
+    font-size: 36px;
+    font-family: var(--font-arabic-display);
+    color: var(--cream);
+    margin-bottom: 8px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .page-subtitle {
+    color: var(--cream);
+    font-size: 16px;
+    opacity: 0.9;
+  }
+
+  .sheikhs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 60px;
+  }
+
+  .sheikh-card {
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 24px;
+    text-decoration: none;
+    transition: all 0.3s;
+    border: 2px solid var(--accent-amber);
+    display: flex;
+    gap: 16px;
+    box-shadow: 0 4px 12px var(--shadow-warm);
+  }
+
+  .sheikh-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px var(--shadow-warm);
+    border-color: var(--accent-gold);
+  }
+
+  .sheikh-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .sheikh-avatar svg {
+    color: var(--primary-dark);
+    opacity: 0.8;
+  }
+
+  .sheikh-info {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .sheikh-name {
+    font-family: var(--font-arabic-display);
+    font-size: 22px;
+    color: var(--primary-dark);
+    margin-bottom: 4px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .sheikh-honorific {
+    color: var(--accent-gold);
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .sheikh-name-en {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-style: italic;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-secondary);
+  }
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  @media (max-width: 768px) {
+    .page-header {
+      padding: 32px 0;
+    }
+
+    .page-title {
+      font-size: 28px;
+    }
+
+    .sheikhs-grid {
+      grid-template-columns: 1fr;
+      padding: 0 8px;
+    }
+
+    .sheikh-card {
+      padding: 16px;
+    }
+
+    .sheikh-name {
+      font-size: 18px;
+    }
+
+    .sheikh-name-en {
+      font-size: 13px;
+    }
+  }
+</style>
+
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title">الشيوخ</h1>
+    <p class="page-subtitle">تصفح جميع الشيوخ والمحاضرين</p>
+  </div>
+</div>
+
+<div class="container">
+  <% if (sheikhs && sheikhs.length > 0) { %>
+    <div class="sheikhs-grid">
+      <% sheikhs.forEach(sheikh => { %>
+        <a href="/sheikhs/<%= sheikh.slug ? encodeURIComponent(sheikh.slug) : sheikh._id %>" class="sheikh-card">
+          <div class="sheikh-avatar">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div class="sheikh-info">
+            <h3 class="sheikh-name"><%= sheikh.nameArabic %></h3>
+            <% if (sheikh.honorific) { %>
+              <p class="sheikh-honorific"><%= sheikh.honorific %></p>
+            <% } %>
+            <% if (sheikh.nameEnglish) { %>
+              <p class="sheikh-name-en"><%= sheikh.nameEnglish %></p>
+            <% } %>
+          </div>
+        </a>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <div class="empty-state">
+      <div class="empty-icon">👤</div>
+      <h3>لا يوجد شيوخ حالياً</h3>
+    </div>
+  <% } %>
+</div>

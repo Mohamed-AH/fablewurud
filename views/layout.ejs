@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="<%= locale %>" dir="<%= isRTL ? 'rtl' : 'ltr' %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - <%= locale === 'ar' ? 'موقع الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %></title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : (locale === 'ar' ? 'الموقع الرسمي للشيخ حسن بن محمد الدغريري - تلميذ الشيخ أحمد النجمي والشيخ زيد المدخلي. دروس ومحاضرات في العقيدة والفقه والتفسير من جامع الورود بجدة. أكثر من 30 عاماً من الأرشفة والتعليم.' : 'Official site of Sheikh Hasan bin Mohammed Dhaghriri - student of Sheikh Ahmad al-Najmi and Sheikh Zaid al-Madkhali. Islamic lectures on Aqeedah, Fiqh, and Tafsir from Masjid al-Wurud in Jeddah.') %>">
+  <meta name="keywords" content="<%= typeof metaKeywords !== 'undefined' ? metaKeywords : (locale === 'ar' ? 'الشيخ حسن الدغريري, حسن بن محمد الدغريري, تلميذ الشيخ أحمد النجمي, جامع الورود جدة, المنهج السلفي, علماء جازان, صامطة, الدغارير, شرح كتاب التوحيد, شرح عمدة الأحكام, دروس العقيدة, محاضرات إسلامية' : 'Sheikh Hasan Dhaghriri, Islamic lectures, Salafi scholars, Jeddah, Saudi Arabia, Aqeedah, Fiqh, Tafsir') %>">
+  <meta name="author" content="<%= locale === 'ar' ? 'الشيخ حسن بن محمد الدغريري' : 'Sheikh Hasan bin Mohammed Dhaghriri' %>">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://rasmihassan.com<%= typeof canonicalPath !== 'undefined' ? canonicalPath : (typeof currentPath !== 'undefined' ? currentPath : '') %>">
+
+  <!-- Hreflang tags for internationalization -->
+  <link rel="alternate" hreflang="ar" href="https://rasmihassan.com<%= typeof currentPath !== 'undefined' ? currentPath : '' %>?lang=ar">
+  <link rel="alternate" hreflang="en" href="https://rasmihassan.com<%= typeof currentPath !== 'undefined' ? currentPath : '' %>?lang=en">
+  <link rel="alternate" hreflang="x-default" href="https://rasmihassan.com<%= typeof currentPath !== 'undefined' ? currentPath : '' %>">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="<%= typeof ogType !== 'undefined' ? ogType : 'website' %>">
+  <meta property="og:url" content="https://rasmihassan.com<%= typeof canonicalPath !== 'undefined' ? canonicalPath : (typeof currentPath !== 'undefined' ? currentPath : '') %>">
+  <meta property="og:title" content="<%= title %> - <%= locale === 'ar' ? 'موقع الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>">
+  <meta property="og:description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : (locale === 'ar' ? 'الموقع الرسمي للشيخ حسن بن محمد الدغريري - دروس ومحاضرات في العقيدة والفقه من جامع الورود بجدة' : 'Official site of Sheikh Hasan Dhaghriri - Islamic lectures from Jeddah') %>">
+  <meta property="og:locale" content="<%= locale === 'ar' ? 'ar_SA' : 'en_US' %>">
+  <meta property="og:site_name" content="<%= locale === 'ar' ? 'موقع الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>">
+  <% if (typeof publishedTime !== 'undefined' && publishedTime) { %>
+  <meta property="article:published_time" content="<%= publishedTime %>">
+  <% } %>
+  <% if (typeof modifiedTime !== 'undefined' && modifiedTime) { %>
+  <meta property="article:modified_time" content="<%= modifiedTime %>">
+  <% } %>
+  <% if (typeof ogType !== 'undefined' && ogType === 'article') { %>
+  <meta property="article:author" content="<%= locale === 'ar' ? 'الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>">
+  <% } %>
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="<%= title %> - <%= locale === 'ar' ? 'موقع الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>">
+  <meta name="twitter:description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : (locale === 'ar' ? 'الموقع الرسمي للشيخ حسن بن محمد الدغريري - دروس ومحاضرات إسلامية' : 'Official site of Sheikh Hasan Dhaghriri - Islamic lectures') %>">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://rasmihassan.com/#website",
+        "url": "https://rasmihassan.com",
+        "name": "<%= locale === 'ar' ? 'موقع الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>",
+        "description": "<%= locale === 'ar' ? 'الموقع الرسمي للشيخ حسن بن محمد الدغريري' : 'Official website of Sheikh Hasan Dhaghriri' %>",
+        "inLanguage": ["ar", "en"],
+        "publisher": {
+          "@id": "https://rasmihassan.com/#person"
+        }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://rasmihassan.com/#person",
+        "name": "<%= locale === 'ar' ? 'الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>",
+        "alternateName": ["حسن الدغريري", "حسن بن محمد الدغريري", "الشيخ حسن الدغيري", "Hasan Dhaghriri"],
+        "description": "<%= locale === 'ar' ? 'عالم وداعية سلفي، تلميذ الشيخ أحمد النجمي والشيخ زيد المدخلي، يلقي دروسه في جامع الورود بجدة' : 'Islamic scholar and preacher, student of Sheikh Ahmad al-Najmi and Sheikh Zaid al-Madkhali' %>",
+        "url": "https://rasmihassan.com",
+        "sameAs": [
+          "https://t.me/daririhasan"
+        ],
+        "jobTitle": "<%= locale === 'ar' ? 'عالم وداعية' : 'Islamic Scholar' %>",
+        "worksFor": {
+          "@type": "Mosque",
+          "name": "<%= locale === 'ar' ? 'جامع الورود' : 'Masjid Al-Wurud' %>",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "<%= locale === 'ar' ? 'جدة' : 'Jeddah' %>",
+            "addressCountry": "SA"
+          }
+        },
+        "knowsAbout": ["العقيدة", "الفقه", "التفسير", "الحديث", "Aqeedah", "Fiqh", "Tafsir", "Hadith"]
+      }
+    ]
+  }
+  </script>
+  <% if (typeof article !== 'undefined' && article && typeof ogType !== 'undefined' && ogType === 'article') { %>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "<%= article.title.replace(/"/g, '\\"') %>",
+    "description": "<%= (article.summary || article.title).replace(/"/g, '\\"').substring(0, 200) %>",
+    "datePublished": "<%= article.publishedAt ? new Date(article.publishedAt).toISOString() : '' %>",
+    <% if (article.updatedAt) { %>"dateModified": "<%= new Date(article.updatedAt).toISOString() %>",<% } %>
+    "author": {
+      "@type": "Person",
+      "@id": "https://rasmihassan.com/#person",
+      "name": "<%= locale === 'ar' ? 'الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "<%= locale === 'ar' ? 'موقع الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>",
+      "url": "https://rasmihassan.com"
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://rasmihassan.com<%= typeof canonicalPath !== 'undefined' ? canonicalPath : '' %>"
+    },
+    "inLanguage": "ar"
+  }
+  </script>
+  <% } %>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="/favicon.svg">
+
+  <!-- DNS Prefetch for external resources -->
+  <link rel="dns-prefetch" href="https://objectstorage.me-jeddah-1.oraclecloud.com">
+
+  <!-- Google Fonts: Cairo (modern Arabic font from design system) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Self-hosted Arabic fonts (Scheherazade New for display, Noto Naskh Arabic for body) -->
+  <link rel="preload" href="/fonts/ScheherazadeNew-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/ScheherazadeNew-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/NotoNaskhArabic-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/NotoNaskhArabic-700.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face{font-family:'Scheherazade New';src:url('/fonts/ScheherazadeNew-400.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+    @font-face{font-family:'Scheherazade New';src:url('/fonts/ScheherazadeNew-700.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap}
+    @font-face{font-family:'Noto Naskh Arabic';src:url('/fonts/NotoNaskhArabic-400.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+    @font-face{font-family:'Noto Naskh Arabic';src:url('/fonts/NotoNaskhArabic-700.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap}
+  </style>
+
+  <!-- CSS: audioPlayer loaded async (not needed for initial paint) -->
+  <link rel="stylesheet" href="/css/audioPlayer.css<%= typeof v !== 'undefined' ? v : '' %>" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/audioPlayer.css<%= typeof v !== 'undefined' ? v : '' %>"></noscript>
+
+  <!-- Non-critical CSS loaded asynchronously -->
+  <link rel="preload" href="/css/main.css<%= typeof v !== 'undefined' ? v : '' %>" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/css/main.css<%= typeof v !== 'undefined' ? v : '' %>"></noscript>
+
+  <!-- Critical inline CSS for above-the-fold content (minimized for performance) -->
+  <style>
+    :root{--primary-dark:#2C1810;--primary-brown:#5C4033;--accent-gold:#C19A6B;--accent-amber:#D4A574;--cream:#F5EBE0;--paper:#FAF7F2;--sage:#8B9D83;--text-primary:#2C1810;--text-secondary:#5C4033;--text-muted:#8B7355;--border-light:#E8DCC8;--shadow-warm:rgba(92,64,51,0.15);--font-cairo:'Cairo','Noto Naskh Arabic',sans-serif;--font-arabic-display:'Cairo','Scheherazade New',serif;--font-arabic-body:'Cairo','Noto Naskh Arabic',sans-serif;--space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;--space-2xl:48px;--space-3xl:64px}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:var(--font-arabic-body);background:var(--paper);color:var(--text-primary);line-height:1.9;direction:rtl;padding-bottom:140px}
+    html[dir="ltr"] body{direction:ltr;text-align:left}
+    h1,h2,h3,h4,h5,h6{font-family:var(--font-arabic-display);font-weight:700}
+    .container{max-width:1280px;margin:0 auto;padding:0 24px}@media(max-width:480px){.container{padding:0 16px}}@media(max-width:360px){.container{padding:0 12px}}
+    .header{background:linear-gradient(135deg,#2C1810 0%,#3D2419 100%);border-bottom:3px solid #C19A6B;position:sticky;top:0;z-index:1000;box-shadow:0 4px 12px var(--shadow-warm);height:68px;display:flex;align-items:center}
+    .header-content{max-width:1200px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;width:100%}
+    .logo{display:flex;align-items:center;font-family:var(--font-arabic-display);font-size:22px;font-weight:700;color:#FAF7F2;text-decoration:none;text-shadow:2px 2px 4px rgba(0,0,0,0.3);letter-spacing:0.5px;line-height:1.3}
+    .logo-text{display:block}
+    .header-actions{display:flex;gap:var(--space-md);align-items:center}
+    .nav-desktop{display:flex;gap:var(--space-lg);align-items:center}
+    .nav-link{color:var(--cream);text-decoration:none;font-size:15px;font-weight:500;padding:8px 4px;position:relative;transition:color 0.3s ease}
+    #langToggle{background:transparent;color:#FAF7F2;border:2px solid #C19A6B;padding:8px 20px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease}
+    main{min-height:calc(100vh - 300px);padding:0}
+    .hamburger-btn{display:none;flex-direction:column;justify-content:center;align-items:center;width:44px;height:44px;background:rgba(193,154,107,0.15);border:2px solid var(--accent-gold);border-radius:8px;cursor:pointer;padding:10px;gap:5px;z-index:1002}
+    .hamburger-line{display:block;width:22px;height:3px;background:var(--accent-gold);border-radius:2px;transition:all 0.3s ease}
+    .mobile-nav{position:fixed;top:0;right:-100%;width:280px;height:100vh;background:linear-gradient(180deg,#2C1810 0%,#3D2419 100%);z-index:1001;transition:right 0.3s ease;padding-top:80px;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
+    .mobile-nav.active{right:0}
+    .mobile-nav-backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:1000;opacity:0;visibility:hidden;transition:all 0.3s ease}
+    .mobile-nav-backdrop.active{opacity:1;visibility:visible}
+    @media(max-width:768px){.header{height:auto;min-height:56px}.header-content{padding:12px 16px;gap:8px}.logo{display:block;font-size:15px;flex:1;min-width:0;line-height:1.4}.logo-text{display:block}.nav-desktop{display:none}.hamburger-btn{display:flex}.header-actions{flex-shrink:0;gap:var(--space-sm)}#langToggle{padding:6px 14px;font-size:13px}}@media(max-width:400px){.logo{font-size:14px}.header-content{padding:10px 12px}#langToggle{padding:5px 10px;font-size:12px}}
+    @media(min-width:769px){.mobile-nav,.hamburger-btn{display:none!important}}
+    .site-notice{position:sticky;top:0;z-index:1003;background:var(--cream);border-bottom:1px solid var(--border-light);padding:12px 24px;text-align:center;font-size:15px;line-height:1.7;color:var(--text-primary)}
+    .site-notice a{color:var(--primary-brown);font-weight:600;text-decoration:underline;text-underline-offset:2px;transition:color 0.2s ease}
+    .site-notice a:hover{color:var(--accent-gold)}
+    @media(max-width:480px){.site-notice{padding:10px 16px;font-size:14px}}
+    /* Maintenance Mode Overlay */
+    .maintenance-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);display:flex;align-items:center;justify-content:center;padding:20px}
+    .maintenance-content{text-align:center;max-width:600px;color:#fff}
+    .maintenance-icon{font-size:64px;margin-bottom:24px;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+    .maintenance-title{font-size:32px;font-weight:700;color:#f0c14b;margin-bottom:16px}
+    .maintenance-message{font-size:18px;color:#ccc;line-height:1.8;margin-bottom:32px}
+    .maintenance-telegram{display:inline-flex;align-items:center;gap:10px;background:#0088cc;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;transition:transform 0.2s,box-shadow 0.2s}
+    .maintenance-telegram:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,136,204,0.3)}
+    .maintenance-telegram svg{width:24px;height:24px;fill:currentColor}
+    [dir="rtl"] .maintenance-telegram{flex-direction:row-reverse}
+    @media(max-width:480px){.maintenance-title{font-size:24px}.maintenance-message{font-size:16px}.maintenance-telegram{padding:12px 20px;font-size:14px}}
+  </style>
+</head>
+<body>
+  <!-- Maintenance Mode Overlay (exempt admin and auth routes) -->
+  <% if (typeof maintenanceMode !== 'undefined' && maintenanceMode.enabled && !(currentPath && (currentPath.startsWith('/admin') || currentPath.startsWith('/auth')))) { %>
+  <div class="maintenance-overlay" dir="<%= isRTL ? 'rtl' : 'ltr' %>">
+    <div class="maintenance-content">
+      <div class="maintenance-icon">🔧</div>
+      <h1 class="maintenance-title"><%= locale === 'ar' ? maintenanceMode.titleAr : maintenanceMode.titleEn %></h1>
+      <p class="maintenance-message"><%= locale === 'ar' ? maintenanceMode.messageAr : maintenanceMode.messageEn %></p>
+      <% if (maintenanceMode.telegramUrl) { %>
+      <a href="<%= maintenanceMode.telegramUrl %>" target="_blank" rel="noopener noreferrer" class="maintenance-telegram">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+        <span><%= locale === 'ar' ? maintenanceMode.telegramTextAr : maintenanceMode.telegramTextEn %></span>
+      </a>
+      <% } %>
+    </div>
+  </div>
+  <% } else { %>
+  <!-- Site Notice Banner -->
+  <% if (typeof noticeBanner !== 'undefined' && noticeBanner.enabled) { %>
+  <div class="site-notice" role="alert">
+    <%= locale === 'ar' ? noticeBanner.messageAr : noticeBanner.messageEn %>
+    <% if (noticeBanner.linkUrl) { %>
+      <a href="<%= noticeBanner.linkUrl %>" target="_blank" rel="noopener noreferrer"><%= locale === 'ar' ? noticeBanner.linkTextAr : noticeBanner.linkTextEn %></a>.
+    <% } %>
+  </div>
+  <% } %>
+  <%- include('partials/header') %>
+
+  <main>
+    <%- body %>
+  </main>
+
+  <%- include('partials/footer') %>
+
+  <%- include('partials/contactModal') %>
+
+  <%- include('partials/audioPlayer') %>
+
+  <%- include('partials/bottomNav') %>
+
+  <!-- Admin Button (shown only if user is authenticated) - styles in main.css -->
+  <% if (typeof user !== 'undefined' && user) { %>
+    <a href="/admin/dashboard" class="admin-fab" title="Admin Panel">⚙️</a>
+  <% } %>
+
+  <!-- Mobile Nav Backdrop -->
+  <div id="mobileNavBackdrop" class="mobile-nav-backdrop"></div>
+
+  <script src="/js/audioPlayer.min.js<%= typeof v !== 'undefined' ? v : '' %>" defer></script>
+  <script src="/js/share.js<%= typeof v !== 'undefined' ? v : '' %>" defer></script>
+  <script>
+    // Language Toggle Functionality
+    (function() {
+      const langToggle = document.getElementById('langToggle');
+      const langText = document.getElementById('langText');
+
+      if (langToggle) {
+        langToggle.addEventListener('click', function() {
+          const currentLocale = '<%= locale %>';
+          const newLocale = currentLocale === 'ar' ? 'en' : 'ar';
+
+          // Set cookie for 1 year
+          document.cookie = `locale=${newLocale}; path=/; max-age=${60 * 60 * 24 * 365}`;
+
+          // Reload page with new locale
+          const url = new URL(window.location.href);
+          url.searchParams.set('lang', newLocale);
+          window.location.href = url.toString();
+        });
+      }
+    })();
+
+    // Mobile Navigation Toggle
+    (function() {
+      const menuToggle = document.getElementById('menuToggle');
+      const mobileNav = document.getElementById('mobileNav');
+      const backdrop = document.getElementById('mobileNavBackdrop');
+
+      if (menuToggle && mobileNav && backdrop) {
+        function toggleMenu() {
+          const isOpen = mobileNav.classList.contains('active');
+          menuToggle.classList.toggle('active', !isOpen);
+          mobileNav.classList.toggle('active', !isOpen);
+          backdrop.classList.toggle('active', !isOpen);
+          menuToggle.setAttribute('aria-expanded', !isOpen);
+          document.body.style.overflow = !isOpen ? 'hidden' : '';
+        }
+
+        function closeMenu() {
+          menuToggle.classList.remove('active');
+          mobileNav.classList.remove('active');
+          backdrop.classList.remove('active');
+          menuToggle.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
+        }
+
+        menuToggle.addEventListener('click', toggleMenu);
+        backdrop.addEventListener('click', closeMenu);
+
+        // Close menu when clicking a link
+        mobileNav.querySelectorAll('.mobile-nav-link').forEach(link => {
+          link.addEventListener('click', closeMenu);
+        });
+
+        // Close menu on escape key
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && mobileNav.classList.contains('active')) {
+            closeMenu();
+          }
+        });
+
+        // Close menu on window resize to desktop
+        window.addEventListener('resize', function() {
+          if (window.innerWidth > 768 && mobileNav.classList.contains('active')) {
+            closeMenu();
+          }
+        });
+      }
+    })();
+  </script>
+
+  <!-- Lucide Icons (high quality SVG icons) -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    // Initialize Lucide icons after DOM is ready
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  </script>
+  <% } %> <!-- End maintenance mode else block -->
+</body>
+</html>

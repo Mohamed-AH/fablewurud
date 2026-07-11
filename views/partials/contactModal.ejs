@@ -1,0 +1,460 @@
+<!-- Contact Modal -->
+<div id="contactModal" class="contact-modal" onclick="if(event.target === this) closeContactModal();">
+  <div class="contact-modal-content">
+    <button type="button" class="contact-modal-close" onclick="closeContactModal()" aria-label="<%= locale === 'ar' ? 'إغلاق' : 'Close' %>">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="contact-modal-header">
+      <h2><%= locale === 'ar' ? 'تواصل معنا' : 'Contact Us' %></h2>
+      <p><%= locale === 'ar' ? 'نسعد بتواصلكم واستفساراتكم' : 'We are happy to hear from you' %></p>
+    </div>
+
+    <form id="contactForm" class="contact-form" onsubmit="submitContactForm(event)">
+      <div class="contact-form-group">
+        <label for="contactName"><%= locale === 'ar' ? 'الاسم' : 'Name' %> <span class="required">*</span></label>
+        <input type="text" id="contactName" name="name" required autocomplete="name" placeholder="<%= locale === 'ar' ? 'أدخل اسمك الكريم' : 'Enter your name' %>">
+        <span class="contact-error" id="contactNameError"></span>
+      </div>
+
+      <div class="contact-form-group">
+        <label for="contactEmail"><%= locale === 'ar' ? 'البريد الإلكتروني' : 'Email' %> <span class="required">*</span></label>
+        <input type="email" id="contactEmail" name="email" required autocomplete="email" placeholder="<%= locale === 'ar' ? 'example@email.com' : 'example@email.com' %>">
+        <span class="contact-error" id="contactEmailError"></span>
+      </div>
+
+      <div class="contact-form-group">
+        <label for="contactMessage"><%= locale === 'ar' ? 'الرسالة' : 'Message' %> <span class="required">*</span></label>
+        <textarea id="contactMessage" name="message" rows="4" required placeholder="<%= locale === 'ar' ? 'اكتب رسالتك هنا...' : 'Write your message here...' %>"></textarea>
+        <span class="contact-error" id="contactMessageError"></span>
+      </div>
+
+      <div class="contact-form-actions">
+        <button type="submit" class="contact-submit-btn" id="contactSubmitBtn">
+          <span class="btn-text"><%= locale === 'ar' ? 'إرسال الرسالة' : 'Send Message' %></span>
+          <span class="btn-loading" style="display: none;">
+            <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="32"></circle>
+            </svg>
+            <%= locale === 'ar' ? 'جاري الإرسال...' : 'Sending...' %>
+          </span>
+        </button>
+      </div>
+
+      <div id="contactSuccess" class="contact-success" style="display: none;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <h3><%= locale === 'ar' ? 'تم إرسال رسالتك بنجاح!' : 'Message sent successfully!' %></h3>
+        <p><%= locale === 'ar' ? 'شكراً لتواصلكم. سنرد عليكم في أقرب وقت.' : 'Thank you for reaching out. We will respond soon.' %></p>
+      </div>
+
+      <div id="contactError" class="contact-error-box" style="display: none;">
+        <p id="contactErrorMessage"></p>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .contact-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(44, 21, 8, 0.6);
+    backdrop-filter: blur(4px);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .contact-modal.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  .contact-modal-content {
+    background: #FDF8F2;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(44, 21, 8, 0.3);
+    animation: modalSlideIn 0.25s ease;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .contact-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #7A5C3A;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    z-index: 1;
+  }
+
+  html[dir="ltr"] .contact-modal-close {
+    right: auto;
+    left: 16px;
+  }
+
+  .contact-modal-close:hover {
+    background: rgba(196, 154, 60, 0.15);
+    color: #2C1508;
+  }
+
+  .contact-modal-header {
+    padding: 32px 32px 0;
+    text-align: center;
+  }
+
+  .contact-modal-header h2 {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 24px;
+    font-weight: 700;
+    color: #2C1508;
+    margin: 0 0 8px;
+  }
+
+  .contact-modal-header p {
+    font-size: 14px;
+    color: #7A5C3A;
+    margin: 0;
+  }
+
+  .contact-form {
+    padding: 24px 32px 32px;
+  }
+
+  .contact-form-group {
+    margin-bottom: 20px;
+  }
+
+  .contact-form-group label {
+    display: block;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 14px;
+    font-weight: 600;
+    color: #2C1508;
+    margin-bottom: 8px;
+    text-align: right;
+  }
+
+  html[dir="ltr"] .contact-form-group label {
+    text-align: left;
+  }
+
+  .contact-form-group .required {
+    color: #C49A3C;
+  }
+
+  .contact-form-group input,
+  .contact-form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #DEC99A;
+    border-radius: 10px;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 15px;
+    color: #2C1508;
+    background: #FFFFFF;
+    direction: rtl;
+    text-align: right;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+  }
+
+  html[dir="ltr"] .contact-form-group input,
+  html[dir="ltr"] .contact-form-group textarea {
+    direction: ltr;
+    text-align: left;
+  }
+
+  .contact-form-group input::placeholder,
+  .contact-form-group textarea::placeholder {
+    color: #A89070;
+  }
+
+  .contact-form-group input:focus,
+  .contact-form-group textarea:focus {
+    outline: none;
+    border-color: #C49A3C;
+    box-shadow: 0 0 0 3px rgba(196, 154, 60, 0.15);
+  }
+
+  .contact-form-group input.error,
+  .contact-form-group textarea.error {
+    border-color: #D32F2F;
+  }
+
+  .contact-form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .contact-error {
+    display: block;
+    font-size: 12px;
+    color: #D32F2F;
+    margin-top: 6px;
+    text-align: right;
+  }
+
+  html[dir="ltr"] .contact-error {
+    text-align: left;
+  }
+
+  .contact-form-actions {
+    margin-top: 24px;
+  }
+
+  .contact-submit-btn {
+    width: 100%;
+    padding: 14px 24px;
+    background: #C49A3C;
+    color: #FDF8F2;
+    border: none;
+    border-radius: 10px;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .contact-submit-btn:hover:not(:disabled) {
+    background: #A8832F;
+  }
+
+  .contact-submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .contact-submit-btn .spinner {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .contact-success {
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  .contact-success svg {
+    color: #4CAF50;
+    margin-bottom: 16px;
+  }
+
+  .contact-success h3 {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 20px;
+    font-weight: 700;
+    color: #2C1508;
+    margin: 0 0 8px;
+  }
+
+  .contact-success p {
+    font-size: 14px;
+    color: #7A5C3A;
+    margin: 0;
+  }
+
+  .contact-error-box {
+    background: rgba(211, 47, 47, 0.1);
+    border: 1px solid rgba(211, 47, 47, 0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  .contact-error-box p {
+    font-size: 14px;
+    color: #D32F2F;
+    margin: 0;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 480px) {
+    .contact-modal {
+      padding: 0;
+      align-items: flex-end;
+    }
+
+    .contact-modal-content {
+      max-width: 100%;
+      border-radius: 20px 20px 0 0;
+      max-height: 95vh;
+    }
+
+    .contact-modal-header {
+      padding: 24px 20px 0;
+    }
+
+    .contact-modal-header h2 {
+      font-size: 20px;
+    }
+
+    .contact-form {
+      padding: 20px;
+    }
+
+    .contact-form-group input,
+    .contact-form-group textarea {
+      font-size: 16px; /* Prevent iOS zoom */
+    }
+  }
+</style>
+
+<script>
+  function openContactModal() {
+    const modal = document.getElementById('contactModal');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    // Reset form state
+    document.getElementById('contactForm').reset();
+    document.getElementById('contactSuccess').style.display = 'none';
+    document.getElementById('contactError').style.display = 'none';
+    document.querySelectorAll('.contact-form-group input, .contact-form-group textarea').forEach(el => {
+      el.classList.remove('error');
+    });
+    document.querySelectorAll('.contact-error').forEach(el => {
+      el.textContent = '';
+    });
+    // Focus first field
+    setTimeout(() => document.getElementById('contactName').focus(), 100);
+  }
+
+  function closeContactModal() {
+    const modal = document.getElementById('contactModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  // Close on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeContactModal();
+    }
+  });
+
+  async function submitContactForm(event) {
+    event.preventDefault();
+
+    const form = document.getElementById('contactForm');
+    const submitBtn = document.getElementById('contactSubmitBtn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoading = submitBtn.querySelector('.btn-loading');
+    const successDiv = document.getElementById('contactSuccess');
+    const errorDiv = document.getElementById('contactError');
+    const errorMessage = document.getElementById('contactErrorMessage');
+
+    // Get form values
+    const name = document.getElementById('contactName').value.trim();
+    const email = document.getElementById('contactEmail').value.trim();
+    const message = document.getElementById('contactMessage').value.trim();
+
+    // Clear previous errors
+    document.querySelectorAll('.contact-form-group input, .contact-form-group textarea').forEach(el => {
+      el.classList.remove('error');
+    });
+    document.querySelectorAll('.contact-error').forEach(el => {
+      el.textContent = '';
+    });
+    errorDiv.style.display = 'none';
+
+    // Client-side validation
+    let hasError = false;
+    const locale = document.documentElement.lang || 'ar';
+
+    if (!name) {
+      document.getElementById('contactName').classList.add('error');
+      document.getElementById('contactNameError').textContent = locale === 'ar' ? 'الاسم مطلوب' : 'Name is required';
+      hasError = true;
+    }
+
+    if (!email) {
+      document.getElementById('contactEmail').classList.add('error');
+      document.getElementById('contactEmailError').textContent = locale === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required';
+      hasError = true;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      document.getElementById('contactEmail').classList.add('error');
+      document.getElementById('contactEmailError').textContent = locale === 'ar' ? 'البريد الإلكتروني غير صالح' : 'Invalid email format';
+      hasError = true;
+    }
+
+    if (!message) {
+      document.getElementById('contactMessage').classList.add('error');
+      document.getElementById('contactMessageError').textContent = locale === 'ar' ? 'الرسالة مطلوبة' : 'Message is required';
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    // Show loading state
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'inline-flex';
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Hide form fields and show success
+        form.querySelectorAll('.contact-form-group, .contact-form-actions').forEach(el => {
+          el.style.display = 'none';
+        });
+        successDiv.style.display = 'block';
+      } else {
+        errorMessage.textContent = locale === 'ar' ? result.error : (result.errorEn || result.error);
+        errorDiv.style.display = 'block';
+      }
+    } catch (err) {
+      console.error('Contact form error:', err);
+      errorMessage.textContent = locale === 'ar' ? 'حدث خطأ. يرجى المحاولة لاحقاً.' : 'An error occurred. Please try again.';
+      errorDiv.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      btnText.style.display = 'inline';
+      btnLoading.style.display = 'none';
+    }
+  }
+</script>

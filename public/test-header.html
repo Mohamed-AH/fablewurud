@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Header Test - Debug</title>
+  <style>
+    /* EXACT copy from layout.ejs critical CSS */
+    :root{--primary-dark:#2C1810;--primary-brown:#5C4033;--accent-gold:#C19A6B;--accent-amber:#D4A574;--cream:#F5EBE0;--paper:#FAF7F2;--sage:#8B9D83;--text-primary:#2C1810;--text-secondary:#5C4033;--text-muted:#8B7355;--border-light:#E8DCC8;--shadow-warm:rgba(92,64,51,0.15);--font-arabic-display:'Scheherazade New',serif;--font-arabic-body:'Noto Naskh Arabic',serif;--space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;--space-2xl:48px;--space-3xl:64px}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:var(--font-arabic-body);background:var(--paper);color:var(--text-primary);line-height:1.9;direction:rtl;padding-bottom:140px}
+    h1,h2,h3,h4,h5,h6{font-family:var(--font-arabic-display);font-weight:700}
+
+    .header{background:linear-gradient(135deg,#2C1810 0%,#3D2419 100%);border-bottom:3px solid #C19A6B;position:sticky;top:0;z-index:1000;box-shadow:0 4px 12px var(--shadow-warm);height:68px;display:flex;align-items:center}
+    .header-content{max-width:1200px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;width:100%}
+    .logo{display:flex;align-items:center;font-family:var(--font-arabic-display);font-size:22px;font-weight:700;color:#FAF7F2;text-decoration:none;text-shadow:2px 2px 4px rgba(0,0,0,0.3);letter-spacing:0.5px;line-height:1.3}
+    .logo-text{display:block}
+    .header-actions{display:flex;gap:var(--space-md);align-items:center}
+    #langToggle{background:transparent;color:#FAF7F2;border:2px solid #C19A6B;padding:8px 20px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease}
+    .hamburger-btn{display:none;flex-direction:column;justify-content:center;align-items:center;width:44px;height:44px;background:rgba(193,154,107,0.15);border:2px solid var(--accent-gold);border-radius:8px;cursor:pointer;padding:10px;gap:5px;z-index:1002}
+    .hamburger-line{display:block;width:22px;height:3px;background:var(--accent-gold);border-radius:2px;transition:all 0.3s ease}
+
+    /* Mobile breakpoint - EXACT copy */
+    @media(max-width:768px){
+      .header{height:auto;min-height:56px}
+      .header-content{padding:12px 16px;gap:8px}
+      .logo{display:block;font-size:15px;flex:1;min-width:0;line-height:1.4}
+      .logo-text{display:block}
+      .nav-desktop{display:none}
+      .hamburger-btn{display:flex}
+      .header-actions{flex-shrink:0;gap:var(--space-sm)}
+      #langToggle{padding:6px 14px;font-size:13px}
+    }
+    @media(max-width:400px){
+      .logo{font-size:14px}
+      .header-content{padding:10px 12px}
+      #langToggle{padding:5px 10px;font-size:12px}
+    }
+
+    /* Debug panel */
+    .debug-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #333;
+      color: #fff;
+      padding: 15px;
+      font-family: monospace;
+      font-size: 12px;
+      z-index: 9999;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    .debug-panel h3 {
+      color: #ffd700;
+      margin-bottom: 10px;
+    }
+    .debug-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid #555;
+    }
+    .debug-controls {
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .debug-controls button {
+      padding: 8px 12px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .debug-controls button.active {
+      background: #4CAF50;
+      color: white;
+    }
+    .debug-controls button:not(.active) {
+      background: #f44336;
+      color: white;
+    }
+    .lang-switch {
+      background: #2196F3 !important;
+      color: white !important;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <a href="/" class="logo" id="logo">
+        <span class="logo-text" id="logoText">موقع الشيخ حسن بن محمد منصور الدغريري</span>
+      </a>
+      <div class="header-actions" id="headerActions">
+        <button id="langToggle"><span>EN</span></button>
+        <button class="hamburger-btn" id="hamburgerBtn">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div style="padding: 20px; margin-bottom: 300px;">
+    <h2>Test Content</h2>
+    <p>Resize browser to test different widths.</p>
+  </div>
+
+  <div class="debug-panel">
+    <h3>Debug Info</h3>
+    <div class="debug-row"><span>Screen width:</span><span id="screenWidth">-</span></div>
+    <div class="debug-row"><span>Document dir:</span><span id="docDir">-</span></div>
+    <div class="debug-row"><span>Header content width:</span><span id="headerContentWidth">-</span></div>
+    <div class="debug-row"><span>Logo computed width:</span><span id="logoWidth">-</span></div>
+    <div class="debug-row"><span>Logo scrollWidth (actual text):</span><span id="logoScrollWidth">-</span></div>
+    <div class="debug-row"><span>Actions width:</span><span id="actionsWidth">-</span></div>
+    <div class="debug-row"><span>Logo overflow?:</span><span id="logoOverflow">-</span></div>
+
+    <div class="debug-controls">
+      <button class="lang-switch" onclick="toggleLang()">Switch to English (LTR)</button>
+      <button id="btnFlex" onclick="toggleFlex()">flex:1</button>
+      <button id="btnMinWidth" onclick="toggleMinWidth()">min-width:0</button>
+      <button id="btnDisplay" onclick="toggleDisplay()">display:block</button>
+      <button id="btnOverflow" onclick="toggleOverflow()">overflow:hidden</button>
+      <button id="btnWordBreak" onclick="toggleWordBreak()">word-break</button>
+    </div>
+
+    <div style="margin-top:10px; color:#aaa;">
+      <small>Current logo styles: <span id="currentStyles">-</span></small>
+    </div>
+  </div>
+
+  <script>
+    const logo = document.getElementById('logo');
+    const logoText = document.getElementById('logoText');
+    const headerActions = document.getElementById('headerActions');
+    const headerContent = document.querySelector('.header-content');
+
+    // Track toggle states
+    let states = {
+      flex: true,
+      minWidth: true,
+      display: true, // block
+      overflow: false,
+      wordBreak: false
+    };
+
+    function updateDebug() {
+      document.getElementById('screenWidth').textContent = window.innerWidth + 'px';
+      document.getElementById('docDir').textContent = document.documentElement.dir;
+      document.getElementById('headerContentWidth').textContent = headerContent.offsetWidth + 'px';
+      document.getElementById('logoWidth').textContent = logo.offsetWidth + 'px';
+      document.getElementById('logoScrollWidth').textContent = logo.scrollWidth + 'px';
+      document.getElementById('actionsWidth').textContent = headerActions.offsetWidth + 'px';
+
+      const isOverflowing = logo.scrollWidth > logo.offsetWidth;
+      document.getElementById('logoOverflow').textContent = isOverflowing ? 'YES - TEXT CLIPPED!' : 'No';
+      document.getElementById('logoOverflow').style.color = isOverflowing ? '#f44336' : '#4CAF50';
+
+      // Show current computed styles
+      const computed = window.getComputedStyle(logo);
+      document.getElementById('currentStyles').textContent =
+        `display:${computed.display}; flex:${computed.flex}; min-width:${computed.minWidth}; overflow:${computed.overflow}`;
+
+      updateButtons();
+    }
+
+    function updateButtons() {
+      document.getElementById('btnFlex').className = states.flex ? 'active' : '';
+      document.getElementById('btnMinWidth').className = states.minWidth ? 'active' : '';
+      document.getElementById('btnDisplay').className = states.display ? 'active' : '';
+      document.getElementById('btnOverflow').className = states.overflow ? 'active' : '';
+      document.getElementById('btnWordBreak').className = states.wordBreak ? 'active' : '';
+    }
+
+    function toggleLang() {
+      const html = document.documentElement;
+      const btn = document.querySelector('.lang-switch');
+      if (html.dir === 'rtl') {
+        html.dir = 'ltr';
+        html.lang = 'en';
+        document.body.style.direction = 'ltr';
+        logoText.textContent = 'Sheikh Hasan bin Mohammed Mansour Dhaghriri';
+        document.getElementById('langToggle').innerHTML = '<span>عربي</span>';
+        btn.textContent = 'Switch to Arabic (RTL)';
+      } else {
+        html.dir = 'rtl';
+        html.lang = 'ar';
+        document.body.style.direction = 'rtl';
+        logoText.textContent = 'موقع الشيخ حسن بن محمد منصور الدغريري';
+        document.getElementById('langToggle').innerHTML = '<span>EN</span>';
+        btn.textContent = 'Switch to English (LTR)';
+      }
+      updateDebug();
+    }
+
+    function toggleFlex() {
+      states.flex = !states.flex;
+      logo.style.flex = states.flex ? '1' : 'none';
+      updateDebug();
+    }
+
+    function toggleMinWidth() {
+      states.minWidth = !states.minWidth;
+      logo.style.minWidth = states.minWidth ? '0' : 'auto';
+      updateDebug();
+    }
+
+    function toggleDisplay() {
+      states.display = !states.display;
+      logo.style.display = states.display ? 'block' : 'flex';
+      updateDebug();
+    }
+
+    function toggleOverflow() {
+      states.overflow = !states.overflow;
+      logo.style.overflow = states.overflow ? 'hidden' : 'visible';
+      updateDebug();
+    }
+
+    function toggleWordBreak() {
+      states.wordBreak = !states.wordBreak;
+      if (states.wordBreak) {
+        logoText.style.wordBreak = 'break-word';
+        logoText.style.overflowWrap = 'break-word';
+      } else {
+        logoText.style.wordBreak = 'normal';
+        logoText.style.overflowWrap = 'normal';
+      }
+      updateDebug();
+    }
+
+    // Initial update
+    updateDebug();
+    window.addEventListener('resize', updateDebug);
+  </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<%- include('layout', { body: `
+<header class="editor-header">
+  <a href="/article-editor/article/${article.shortId || article._id}" class="btn btn-secondary" style="padding: 8px 12px;">←</a>
+  <h1>سجل التعديلات</h1>
+  <div class="header-actions">
+    <a href="/article-editor/article/${article.shortId || article._id}" class="btn btn-primary">تحرير</a>
+  </div>
+</header>
+
+<main class="editor-main">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">${article.title}</span>
+    </div>
+
+    ${history.length > 0 ? `
+      <div class="history-list">
+        ${history.map(item => `
+          <div class="history-item">
+            <div class="history-header">
+              ${item.editedBy && item.editedBy.profilePhoto
+                ? `<img src="${item.editedBy.profilePhoto}" alt="" class="history-avatar">`
+                : `<div class="history-avatar" style="background: #DEC99A; display: flex; align-items: center; justify-content: center; font-size: 18px;">👤</div>`
+              }
+              <div class="history-info">
+                <div class="history-name">${item.editedBy ? (item.editedBy.displayName || item.editedBy.email) : 'مستخدم محذوف'}</div>
+                <div class="history-date">${new Date(item.editedAt).toLocaleString('ar-SA', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}</div>
+              </div>
+            </div>
+            <div class="history-changes">
+              ${(item.fieldsChanged || []).map(field => {
+                const labels = {
+                  title: 'العنوان',
+                  summary: 'الملخص',
+                  content: 'المحتوى'
+                };
+                return `<span class="change-badge">${labels[field] || field}</span>`;
+              }).join('')}
+            </div>
+            ${item.changeDescription ? `
+              <p style="margin-top: 12px; font-size: 14px; color: #7A5C3A;">
+                ${item.changeDescription}
+              </p>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    ` : `
+      <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <p>لا يوجد سجل تعديلات لهذا المقال</p>
+      </div>
+    `}
+  </div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    <a href="/article-editor" class="btn btn-outline">العودة للقائمة</a>
+  </div>
+</main>
+` }) %>

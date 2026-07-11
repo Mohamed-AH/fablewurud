@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= adminLocale === 'ar' ? 'إدارة المحاضرات' : 'Manage Lectures' %> - <%= t('admin_title') %></title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .container { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+    }
+    .search-form {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    [dir="rtl"] .search-form {
+      flex-direction: row-reverse;
+    }
+
+    .search-form input, .search-form select {
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .search-form input { flex: 1; min-width: 200px; }
+    .search-form select { min-width: 200px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    thead { background: #f8f8f8; }
+    th, td { padding: 12px; border-bottom: 1px solid #eee; }
+
+    [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
+    [dir="ltr"] th, [dir="ltr"] td { text-align: left; }
+
+    th { font-weight: 600; color: #666; font-size: 13px; }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .badge-success { background: #d4edda; color: #155724; }
+    .badge-warning { background: #fff3cd; color: #856404; }
+    .badge-info { background: #d1ecf1; color: #0c5460; }
+    .actions { display: flex; gap: 8px; }
+
+    [dir="rtl"] .actions {
+      flex-direction: row-reverse;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary { background: #1A5F5A; color: white; }
+    .btn-primary:hover { background: #145047; }
+    .btn-danger { background: #dc3545; color: white; }
+    .btn-danger:hover { background: #c82333; }
+    .btn-sm { padding: 4px 8px; font-size: 12px; }
+    .empty-state {
+      text-align: center;
+      padding: 48px;
+      color: #666;
+    }
+    .slug { font-size: 11px; color: #888; direction: ltr; }
+
+    [dir="rtl"] .slug { text-align: left; }
+    [dir="ltr"] .slug { text-align: right; }
+
+    .lecture-title { font-weight: 500; }
+    tr.deleting { opacity: 0.5; background: #fee; }
+    .stats { display: flex; gap: 24px; margin-bottom: 16px; }
+
+    [dir="rtl"] .stats {
+      flex-direction: row-reverse;
+    }
+
+    .stat { background: #f8f8f8; padding: 12px 16px; border-radius: 6px; }
+    .stat-value { font-size: 24px; font-weight: 600; color: #1A5F5A; }
+    .stat-label { font-size: 12px; color: #666; }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'manage' }) %>
+
+  <main class="admin-container">
+    <div class="card">
+      <!-- Search Form -->
+      <form class="search-form" method="GET" action="/admin/lectures">
+        <input type="text" name="search" placeholder="<%= adminLocale === 'ar' ? 'بحث بالعنوان أو الرابط...' : 'Search by title or slug...' %>" value="<%= search %>">
+        <select name="seriesId">
+          <option value=""><%= adminLocale === 'ar' ? '-- كل السلاسل --' : '-- All Series --' %></option>
+          <% allSeries.forEach(s => { %>
+            <option value="<%= s._id %>" <%= selectedSeriesId === s._id.toString() ? 'selected' : '' %>>
+              <%= adminLocale === 'ar' ? s.titleArabic : (s.titleEnglish || s.titleArabic) %>
+            </option>
+          <% }) %>
+        </select>
+        <button type="submit" class="btn btn-primary"><%= adminLocale === 'ar' ? '🔍 بحث' : '🔍 Search' %></button>
+        <% if (search || selectedSeriesId) { %>
+          <a href="/admin/lectures" class="btn" style="background: #6c757d; color: white;"><%= adminLocale === 'ar' ? 'مسح' : 'Clear' %></a>
+        <% } %>
+      </form>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value"><%= lectures.length %></div>
+          <div class="stat-label"><%= adminLocale === 'ar' ? 'نتيجة' : 'results' %></div>
+        </div>
+      </div>
+
+      <% if (lectures.length > 0) { %>
+        <table>
+          <thead>
+            <tr>
+              <th><%= adminLocale === 'ar' ? 'العنوان' : 'Title' %></th>
+              <th><%= adminLocale === 'ar' ? 'السلسلة' : 'Series' %></th>
+              <th><%= adminLocale === 'ar' ? 'الشيخ' : 'Sheikh' %></th>
+              <th><%= adminLocale === 'ar' ? 'الحالة' : 'Status' %></th>
+              <th><%= adminLocale === 'ar' ? 'الصوت' : 'Audio' %></th>
+              <th><%= adminLocale === 'ar' ? 'الإجراءات' : 'Actions' %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% lectures.forEach(lecture => { %>
+              <tr id="row-<%= lecture._id %>">
+                <td>
+                  <div class="lecture-title"><%= adminLocale === 'ar' ? lecture.titleArabic : (lecture.titleEnglish || lecture.titleArabic) %></div>
+                  <div class="slug"><%= lecture.slug || 'no-slug' %></div>
+                </td>
+                <td>
+                  <% if (lecture.seriesId) { %>
+                    <%= adminLocale === 'ar' ? lecture.seriesId.titleArabic : (lecture.seriesId.titleEnglish || lecture.seriesId.titleArabic) %>
+                  <% } else { %>
+                    <span style="color:#999"><%= adminLocale === 'ar' ? 'منفصلة' : 'Standalone' %></span>
+                  <% } %>
+                </td>
+                <td><%= lecture.sheikhId ? (adminLocale === 'ar' ? lecture.sheikhId.nameArabic : (lecture.sheikhId.nameEnglish || lecture.sheikhId.nameArabic)) : (adminLocale === 'ar' ? 'غير محدد' : 'Unspecified') %></td>
+                <td>
+                  <% if (lecture.published) { %>
+                    <span class="badge badge-success"><%= adminLocale === 'ar' ? 'منشورة' : 'Published' %></span>
+                  <% } else { %>
+                    <span class="badge badge-warning"><%= adminLocale === 'ar' ? 'مسودة' : 'Draft' %></span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (lecture.audioFileName || lecture.audioUrl) { %>
+                    <span class="badge badge-info"><%= adminLocale === 'ar' ? '✓ موجود' : '✓ Available' %></span>
+                  <% } else { %>
+                    <span class="badge" style="background:#f8d7da;color:#721c24"><%= adminLocale === 'ar' ? '✗ لا يوجد' : '✗ Missing' %></span>
+                  <% } %>
+                </td>
+                <td class="actions">
+                  <a href="/admin/lectures/<%= lecture._id %>/edit" class="btn btn-primary btn-sm"><%= adminLocale === 'ar' ? '✏️ تعديل' : '✏️ Edit' %></a>
+                  <button class="btn btn-danger btn-sm" onclick="deleteLecture('<%= lecture._id %>', '<%= lecture.titleArabic.replace(/'/g, "\\'").substring(0, 30) %>')">
+                    <%= adminLocale === 'ar' ? '🗑️ حذف' : '🗑️ Delete' %>
+                  </button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } else { %>
+        <div class="empty-state">
+          <p><%= adminLocale === 'ar' ? 'لا توجد نتائج' : 'No results found' %></p>
+          <% if (search || selectedSeriesId) { %>
+            <p style="margin-top: 8px; font-size: 14px;"><%= adminLocale === 'ar' ? 'جرب تغيير معايير البحث' : 'Try changing your search criteria' %></p>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
+  </main>
+
+  <script>
+    const isArabic = '<%= adminLocale %>' === 'ar';
+
+    const msgs = {
+      confirmDelete: isArabic ? 'هل أنت متأكد من حذف المحاضرة:' : 'Are you sure you want to delete:',
+      audioWarning: isArabic ? '\n\nسيتم حذف الملف الصوتي أيضاً!' : '\n\nThe audio file will also be deleted!',
+      deleteFailed: isArabic ? 'فشل الحذف: ' : 'Delete failed: ',
+      error: isArabic ? 'خطأ: ' : 'Error: '
+    };
+
+    async function deleteLecture(id, title) {
+      if (!confirm(`${msgs.confirmDelete}\n"${title}..."?${msgs.audioWarning}`)) {
+        return;
+      }
+
+      const row = document.getElementById(`row-${id}`);
+      row.classList.add('deleting');
+
+      try {
+        const response = await fetch(`/admin/lectures/${id}/delete`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          row.style.transition = 'all 0.3s ease';
+          row.style.transform = isArabic ? 'translateX(-100%)' : 'translateX(100%)';
+          row.style.opacity = '0';
+          setTimeout(() => row.remove(), 300);
+        } else {
+          row.classList.remove('deleting');
+          alert(msgs.deleteFailed + data.message);
+        }
+      } catch (error) {
+        row.classList.remove('deleting');
+        alert(msgs.error + error.message);
+      }
+    }
+  </script>
+</body>
+</html>

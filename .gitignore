@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Audio files (too large for git)
+/mnt/audio/
+uploads/
+*.mp3
+*.m4a
+*.wav
+*.ogg
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+
+# Build output
+dist/
+build/
+
+# PM2
+.pm2/
+ecosystem.config.js
+
+# Temporary files
+tmp/
+temp/
+
+# Test artifacts
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+tests/uploads/
+.env.test.local
+test-logs/
+
+# Test videos and screenshots
+tests/e2e/*.png
+tests/e2e/*.mp4
+tests/e2e/videos/
+tests/e2e/screenshots/
+
+# Import/migration reports
+import-report-*.json
+verify-report-*.json
+.mongo-uri
+tests/.mongo-config.json

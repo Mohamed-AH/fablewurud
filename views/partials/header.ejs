@@ -1,0 +1,42 @@
+<header class="header">
+  <div class="header-content">
+    <a href="/" class="logo">
+      <span class="logo-text">
+        <%= locale === 'ar' ? 'موقع الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>
+      </span>
+    </a>
+
+    <!-- Desktop Navigation -->
+    <nav class="nav-desktop">
+      <a href="/" class="nav-link"><%= t('nav_home') %></a>
+      <a href="/browse" class="nav-link"><%= t('nav_lectures') %></a>
+      <a href="/series" class="nav-link"><%= t('nav_series') %></a>
+      <a href="/articles" class="nav-link"><%= locale === 'ar' ? 'مقالات' : 'Articles' %></a>
+      <a href="/sheikhs/حسن-بن-محمد-منصور-الدغريري" class="nav-link"><%= locale === 'ar' ? 'السيرة الذاتية' : 'Biography' %></a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="langToggle" class="btn-secondary" aria-label="Toggle language">
+        <span id="langText"><%= locale === 'ar' ? 'EN' : 'عربي' %></span>
+      </button>
+
+      <!-- Hamburger Menu Button (Mobile) -->
+      <button id="menuToggle" class="hamburger-btn" aria-label="<%= locale === 'ar' ? 'القائمة' : 'Menu' %>" aria-expanded="false">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Navigation Overlay (outside header for proper fixed positioning) -->
+<div id="mobileNav" class="mobile-nav">
+  <nav class="mobile-nav-content">
+    <a href="/" class="mobile-nav-link"><%= t('nav_home') %></a>
+    <a href="/browse" class="mobile-nav-link"><%= t('nav_lectures') %></a>
+    <a href="/series" class="mobile-nav-link"><%= t('nav_series') %></a>
+    <a href="/articles" class="mobile-nav-link"><%= locale === 'ar' ? 'مقالات' : 'Articles' %></a>
+    <a href="/sheikhs/حسن-بن-محمد-منصور-الدغريري" class="mobile-nav-link"><%= locale === 'ar' ? 'السيرة الذاتية' : 'Biography' %></a>
+  </nav>
+</div>

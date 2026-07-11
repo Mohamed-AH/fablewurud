@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= t('admin_sheikhs') %> - <%= t('admin_title') %></title>
+  <style>
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    [dir="rtl"] .page-header {
+      flex-direction: row-reverse;
+    }
+
+    .page-title {
+      font-size: 28px;
+      color: #2C3E35;
+    }
+
+    .sheikhs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .sheikh-card {
+      background: white;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.3s;
+    }
+
+    .sheikh-card:hover {
+      border-color: #1A5F5A;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .sheikh-header {
+      margin-bottom: 16px;
+    }
+
+    .sheikh-name {
+      font-size: 20px;
+      font-weight: 600;
+      color: #2C3E35;
+      margin-bottom: 4px;
+    }
+
+    .sheikh-name-en {
+      font-size: 14px;
+      color: #6c757d;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+
+    .sheikh-honorific {
+      font-size: 13px;
+      color: #1A5F5A;
+      font-weight: 600;
+    }
+
+    .sheikh-bio {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 16px;
+      max-height: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sheikh-stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #6c757d;
+    }
+
+    [dir="rtl"] .sheikh-stats {
+      flex-direction: row-reverse;
+    }
+
+    .sheikh-actions {
+      display: flex;
+      gap: 8px;
+      padding-top: 16px;
+      border-top: 1px solid #e9ecef;
+    }
+
+    [dir="rtl"] .sheikh-actions {
+      flex-direction: row-reverse;
+    }
+
+    .btn-small {
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'sheikhs' }) %>
+
+  <main class="admin-container">
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="alert alert-success" id="success-message">
+        <% if (success === 'sheikh-created') { %>
+          <%= adminLocale === 'ar' ? '✅ تم إضافة الشيخ بنجاح' : '✅ Sheikh added successfully' %>
+        <% } else if (success === 'sheikh-updated') { %>
+          <%= adminLocale === 'ar' ? '✅ تم تحديث بيانات الشيخ بنجاح' : '✅ Sheikh updated successfully' %>
+        <% } else if (success === 'sheikh-deleted') { %>
+          <%= adminLocale === 'ar' ? '✅ تم حذف الشيخ بنجاح' : '✅ Sheikh deleted successfully' %>
+        <% } %>
+      </div>
+    <% } %>
+
+    <div class="page-header">
+      <h2 class="page-title"><%= t('admin_sheikhs') %> (<%= sheikhs.length %>)</h2>
+      <a href="/admin/sheikhs/new" class="btn btn-primary">+ <%= adminLocale === 'ar' ? 'إضافة شيخ جديد' : 'Add New Sheikh' %></a>
+    </div>
+
+    <% if (sheikhs && sheikhs.length > 0) { %>
+      <div class="sheikhs-grid">
+        <% sheikhs.forEach(sheikh => { %>
+          <div class="sheikh-card">
+            <div class="sheikh-header">
+              <div class="sheikh-name"><%= adminLocale === 'ar' ? sheikh.nameArabic : (sheikh.nameEnglish || sheikh.nameArabic) %></div>
+              <% if (adminLocale === 'ar' && sheikh.nameEnglish) { %>
+                <div class="sheikh-name-en"><%= sheikh.nameEnglish %></div>
+              <% } else if (adminLocale === 'en' && sheikh.nameArabic !== sheikh.nameEnglish) { %>
+                <div class="sheikh-name-en"><%= sheikh.nameArabic %></div>
+              <% } %>
+              <div class="sheikh-honorific"><%= sheikh.honorific || (adminLocale === 'ar' ? 'حفظه الله' : 'May Allah preserve him') %></div>
+            </div>
+
+            <% const bio = adminLocale === 'ar' ? sheikh.bioArabic : (sheikh.bioEnglish || sheikh.bioArabic); %>
+            <% if (bio) { %>
+              <div class="sheikh-bio"><%= bio.substring(0, 150) %><%= bio.length > 150 ? '...' : '' %></div>
+            <% } %>
+
+            <div class="sheikh-stats">
+              <span><%= adminLocale === 'ar' ? '📚 ' + (sheikh.actualLectureCount || 0) + ' محاضرة' : '📚 ' + (sheikh.actualLectureCount || 0) + ' lectures' %></span>
+            </div>
+
+            <div class="sheikh-actions">
+              <a href="/admin/sheikhs/<%= sheikh._id %>/edit" class="btn btn-secondary btn-small"><%= t('admin_btn_edit') %></a>
+              <button onclick="deleteSheikhConfirm('<%= sheikh._id %>', '<%= sheikh.nameArabic %>')" class="btn btn-danger btn-small"><%= t('admin_btn_delete') %></button>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <div class="empty-icon">👨‍🏫</div>
+        <h3><%= adminLocale === 'ar' ? 'لا يوجد شيوخ حالياً' : 'No sheikhs found' %></h3>
+        <p><%= adminLocale === 'ar' ? 'ابدأ بإضافة شيخ جديد' : 'Start by adding a new sheikh' %></p>
+      </div>
+    <% } %>
+  </main>
+
+  <script>
+    // Auto-hide success message
+    const successMsg = document.getElementById('success-message');
+    if (successMsg) {
+      setTimeout(() => {
+        successMsg.style.opacity = '0';
+        successMsg.style.transition = 'opacity 0.5s';
+        setTimeout(() => successMsg.remove(), 500);
+      }, 3000);
+    }
+
+    function deleteSheikhConfirm(sheikhId, sheikhName) {
+      const confirmMsg = '<%= adminLocale === "ar" ? "هل أنت متأكد من حذف الشيخ" : "Are you sure you want to delete" %> "' + sheikhName + '"?\n\n<%= adminLocale === "ar" ? "لن يتم الحذف إذا كان هناك محاضرات أو سلاسل مرتبطة بهذا الشيخ." : "Deletion will fail if there are lectures or series linked to this sheikh." %>';
+
+      if (confirm(confirmMsg)) {
+        fetch(`/admin/sheikhs/${sheikhId}/delete`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            window.location.reload();
+          } else {
+            alert('<%= adminLocale === "ar" ? "خطأ: " : "Error: " %>' + data.message);
+          }
+        })
+        .catch(err => {
+          console.error('Delete error:', err);
+          alert('<%= adminLocale === "ar" ? "حدث خطأ أثناء الحذف" : "An error occurred while deleting" %>');
+        });
+      }
+    }
+  </script>
+</body>
+</html>

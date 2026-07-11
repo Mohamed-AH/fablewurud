@@ -1,0 +1,611 @@
+<style>
+  /* Series List Page - Redesigned per design handoff */
+  .page-header {
+    background: linear-gradient(to left, var(--redesign-brown-dark, #2C1508) 0%, #3D1E0A 28%, #5E6B3D 62%, var(--redesign-sage, #6B7A4E) 100%);
+    padding: 50px 48px 44px;
+    text-align: center;
+  }
+
+  .page-header .container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .page-title {
+    font-size: 34px;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-weight: 800;
+    color: var(--redesign-card-bg, #FDF8F2);
+    margin-bottom: 8px;
+  }
+
+  .page-subtitle {
+    color: rgba(245, 237, 224, 0.65);
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .page-divider {
+    height: 3px;
+    background: linear-gradient(to left, transparent 0%, var(--redesign-gold-primary, #C49A3C) 20%, var(--redesign-gold-primary, #C49A3C) 80%, transparent 100%);
+  }
+
+  .series-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 32px 44px;
+  }
+
+  .series-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 44px;
+  }
+
+  .series-card {
+    background: var(--redesign-card-bg, #FDF8F2);
+    border: 1px solid var(--redesign-gold-light, #DEC99A);
+    border-radius: 12px;
+    padding: 18px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: block;
+  }
+
+  .series-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(44, 21, 8, 0.1);
+    border-color: var(--redesign-gold-primary, #C49A3C);
+  }
+
+  .series-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    gap: 10px;
+  }
+
+  .series-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--redesign-badge-bg, #E8D5A0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .series-icon svg {
+    stroke: var(--redesign-text-mid, #7A5C3A);
+    width: 16px;
+    height: 16px;
+  }
+
+  .series-content {
+    flex: 1;
+  }
+
+  .series-title {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--redesign-brown-dark, #2C1508);
+    margin-bottom: 0;
+    line-height: 1.4;
+    text-align: right;
+  }
+
+  .series-title-en {
+    color: var(--redesign-text-muted, #A89070);
+    font-size: 12px;
+    margin-bottom: 10px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .series-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .series-sheikh {
+    display: none;
+  }
+
+  .series-category {
+    background: var(--redesign-badge-bg, #E8D5A0);
+    color: var(--redesign-text-mid, #7A5C3A);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 10px;
+  }
+
+  .series-lessons {
+    background: var(--redesign-badge-bg, #E8D5A0);
+    color: var(--redesign-text-mid, #7A5C3A);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 8px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--redesign-text-muted, #A89070);
+  }
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  @media (max-width: 1024px) {
+    .series-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    /* Hide header on mobile - search is first element */
+    .page-header,
+    .page-divider {
+      display: none;
+    }
+
+    .series-container {
+      padding: 16px 12px 80px;
+    }
+
+    .series-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .series-card {
+      padding: 14px 16px;
+      position: relative;
+      box-shadow: 0 1px 4px rgba(44, 21, 8, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Hide icon on mobile */
+    .series-icon {
+      display: none;
+    }
+
+    /* Card header - just title now */
+    .series-card-header {
+      margin-bottom: 4px;
+      gap: 0;
+    }
+
+    .series-title {
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    .series-title-en {
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    /* Lesson badge floats top-left */
+    .series-lessons {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: var(--redesign-brown-dark, #2C1508);
+      color: var(--redesign-gold-light, #DEC99A);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+
+    .series-meta {
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .series-category {
+      font-size: 11px;
+      padding: 3px 10px;
+    }
+
+    /* Show sheikh name on mobile */
+    .series-sheikh {
+      display: inline;
+      color: var(--redesign-text-muted, #A89070);
+      font-size: 12px;
+    }
+  }
+
+  /* Small phones (below 480px) */
+  @media (max-width: 480px) {
+    .series-grid {
+      gap: 8px;
+    }
+
+    .series-card {
+      padding: 12px 14px;
+    }
+
+    .series-title {
+      font-size: 16px;
+    }
+
+    .series-title-en {
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .series-lessons {
+      top: 12px;
+      left: 12px;
+      font-size: 10px;
+      padding: 3px 8px;
+    }
+
+    .series-category {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+
+    .series-sheikh {
+      font-size: 11px;
+    }
+  }
+
+  /* Very small phones (below 360px) */
+  @media (max-width: 360px) {
+    .series-card {
+      padding: 10px 12px;
+    }
+
+    .series-title {
+      font-size: 15px;
+    }
+
+    .series-title-en {
+      font-size: 11px;
+    }
+
+    .series-lessons {
+      top: 10px;
+      left: 10px;
+      font-size: 9px;
+      padding: 2px 6px;
+    }
+  }
+
+  /* Search box styles */
+  .search-section {
+    margin-bottom: 24px;
+  }
+
+  .search-wrapper {
+    position: relative;
+    max-width: 500px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 14px 48px 14px 40px;
+    border: 2px solid var(--accent-amber);
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: inherit;
+    background: var(--cream);
+    color: var(--primary-dark);
+    box-sizing: border-box;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 3px rgba(196, 154, 60, 0.15);
+  }
+
+  .search-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .search-icon {
+    position: absolute;
+    right: 16px;
+    left: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .search-clear {
+    position: absolute;
+    left: 12px;
+    right: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    display: none;
+    font-size: 18px;
+  }
+
+  .search-clear.visible {
+    display: block;
+  }
+
+  .search-clear:hover {
+    color: var(--primary-dark);
+  }
+
+  /* LTR overrides for English */
+  html[dir="ltr"] .search-wrapper {
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  html[dir="ltr"] .search-input {
+    padding: 14px 40px 14px 48px;
+    text-align: left;
+  }
+
+  html[dir="ltr"] .search-icon {
+    left: 16px;
+    right: auto;
+  }
+
+  html[dir="ltr"] .search-clear {
+    right: 12px;
+    left: auto;
+  }
+
+  .search-results-info {
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+    display: none;
+  }
+
+  .no-results.visible {
+    display: block;
+  }
+
+  .series-card.hidden {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .search-section {
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      padding: 12px 44px 12px 36px;
+      font-size: 15px;
+    }
+
+    html[dir="ltr"] .search-input {
+      padding: 12px 36px 12px 44px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .search-section {
+      margin-bottom: 16px;
+    }
+
+    .search-input {
+      padding: 11px 40px 11px 32px;
+      font-size: 14px;
+      border-radius: 10px;
+    }
+
+    .search-icon {
+      right: 12px;
+      left: auto;
+    }
+
+    .search-clear {
+      left: 10px;
+      right: auto;
+    }
+
+    html[dir="ltr"] .search-input {
+      padding: 11px 32px 11px 40px;
+    }
+
+    html[dir="ltr"] .search-icon {
+      left: 12px;
+      right: auto;
+    }
+
+    html[dir="ltr"] .search-clear {
+      right: 10px;
+      left: auto;
+    }
+  }
+</style>
+
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title"><%= locale === 'ar' ? 'السلاسل' : 'Series' %></h1>
+    <p class="page-subtitle"><%= locale === 'ar' ? 'تصفح جميع السلاسل العلمية' : 'Browse all lecture series' %></p>
+  </div>
+</div>
+<div class="page-divider"></div>
+
+<div class="container series-container">
+  <% if (series && series.length > 0) { %>
+    <div class="search-section">
+      <div class="search-wrapper">
+        <span class="search-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+        </span>
+        <input type="text"
+               id="seriesSearch"
+               class="search-input"
+               placeholder="<%= locale === 'ar' ? 'ابحث في السلاسل...' : 'Search series...' %>"
+               autocomplete="off">
+        <button type="button" class="search-clear" id="searchClear" title="<%= locale === 'ar' ? 'مسح' : 'Clear' %>">×</button>
+      </div>
+      <div class="search-results-info" id="searchResultsInfo"></div>
+    </div>
+
+    <div class="no-results" id="noResults">
+      <div class="empty-icon">🔍</div>
+      <h3><%= locale === 'ar' ? 'لا توجد نتائج' : 'No results found' %></h3>
+      <p><%= locale === 'ar' ? 'جرب كلمات بحث مختلفة' : 'Try different search terms' %></p>
+    </div>
+
+    <div class="series-grid" id="seriesGrid">
+      <% series.forEach(s => { %>
+        <a href="/series/<%= s.slug ? encodeURIComponent(s.slug) : s._id %>"
+           class="series-card"
+           data-title-ar="<%= (s.titleArabic || '').toLowerCase() %>"
+           data-title-en="<%= (s.titleEnglish || '').toLowerCase() %>"
+           data-sheikh="<%= s.sheikhId ? (s.sheikhId.nameArabic || '').toLowerCase() : '' %>"
+           data-category="<%= (s.category || '').toLowerCase() %>">
+          <div class="series-card-header">
+            <div class="series-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+            </div>
+            <h3 class="series-title"><%= s.titleArabic %></h3>
+          </div>
+          <% if (s.titleEnglish) { %>
+            <p class="series-title-en"><%= s.titleEnglish %></p>
+          <% } %>
+          <div class="series-meta">
+            <% if (s.lectureCount) { %>
+              <span class="series-lessons"><%= s.lectureCount %> <%= locale === 'ar' ? 'درس' : 'lessons' %></span>
+            <% } %>
+            <% if (s.category) { %>
+              <%
+                const categoryArabic = {
+                  'Tafsir': 'تفسير',
+                  'Hadith': 'حديث',
+                  'Fiqh': 'فقه',
+                  'Aqeedah': 'عقيدة',
+                  'Seerah': 'سيرة',
+                  'Akhlaq': 'أخلاق',
+                  'Other': 'أخرى'
+                };
+              %>
+              <span class="series-category"><%= categoryArabic[s.category] || s.category || 'أخرى' %></span>
+            <% } %>
+            <% if (s.sheikhId && s.sheikhId.nameArabic) { %>
+              <span class="series-sheikh"><%= locale === 'ar' ? s.sheikhId.nameArabic : (s.sheikhId.nameEnglish || s.sheikhId.nameArabic) %></span>
+            <% } %>
+          </div>
+        </a>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <div class="empty-state">
+      <div class="empty-icon">📚</div>
+      <h3><%= locale === 'ar' ? 'لا توجد سلاسل حالياً' : 'No series available' %></h3>
+    </div>
+  <% } %>
+</div>
+
+<% if (series && series.length > 0) { %>
+<script>
+(function() {
+  const searchInput = document.getElementById('seriesSearch');
+  const searchClear = document.getElementById('searchClear');
+  const searchResultsInfo = document.getElementById('searchResultsInfo');
+  const noResults = document.getElementById('noResults');
+  const seriesGrid = document.getElementById('seriesGrid');
+  const seriesCards = document.querySelectorAll('.series-card');
+  const totalCount = seriesCards.length;
+
+  const isArabic = '<%= locale %>' === 'ar';
+
+  function normalizeArabic(text) {
+    return text
+      .replace(/[أإآا]/g, 'ا')
+      .replace(/ة/g, 'ه')
+      .replace(/ى/g, 'ي')
+      .replace(/ؤ/g, 'و')
+      .replace(/ئ/g, 'ي')
+      .trim();
+  }
+
+  function filterSeries() {
+    const query = normalizeArabic(searchInput.value.toLowerCase());
+    let visibleCount = 0;
+
+    searchClear.classList.toggle('visible', query.length > 0);
+
+    seriesCards.forEach(card => {
+      const titleAr = normalizeArabic(card.dataset.titleAr || '');
+      const titleEn = (card.dataset.titleEn || '').toLowerCase();
+      const sheikh = normalizeArabic(card.dataset.sheikh || '');
+      const category = (card.dataset.category || '').toLowerCase();
+
+      const matches = !query ||
+        titleAr.includes(query) ||
+        titleEn.includes(query) ||
+        sheikh.includes(query) ||
+        category.includes(query);
+
+      card.classList.toggle('hidden', !matches);
+      if (matches) visibleCount++;
+    });
+
+    if (query) {
+      searchResultsInfo.textContent = isArabic
+        ? `عرض ${visibleCount} من ${totalCount} سلسلة`
+        : `Showing ${visibleCount} of ${totalCount} series`;
+    } else {
+      searchResultsInfo.textContent = '';
+    }
+
+    noResults.classList.toggle('visible', visibleCount === 0 && query.length > 0);
+    seriesGrid.style.display = visibleCount === 0 && query.length > 0 ? 'none' : '';
+  }
+
+  searchInput.addEventListener('input', filterSeries);
+
+  searchClear.addEventListener('click', function() {
+    searchInput.value = '';
+    filterSeries();
+    searchInput.focus();
+  });
+
+  searchInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      searchInput.value = '';
+      filterSeries();
+    }
+  });
+})();
+</script>
+<% } %>

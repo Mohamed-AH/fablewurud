@@ -1,0 +1,78 @@
+# Docker Compose configuration for Duroos Platform
+#
+# Usage:
+#   docker-compose up -d         Start services
+#   docker-compose down          Stop services
+#   docker-compose logs -f app   View logs
+#   docker-compose restart app   Restart app
+
+version: '3.8'
+
+services:
+  app:
+    build: .
+    image: duroos:latest
+    container_name: duroos-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      # Persist uploads across container restarts
+      - ./uploads:/app/uploads
+      # Persist logs
+      - ./logs:/app/logs
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - duroos-network
+
+  # Optional: MongoDB service (if not using MongoDB Atlas)
+  # Uncomment if you want to run MongoDB locally
+  # mongodb:
+  #   image: mongo:7
+  #   container_name: duroos-mongodb
+  #   restart: unless-stopped
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: admin
+  #     MONGO_INITDB_ROOT_PASSWORD: changeme
+  #     MONGO_INITDB_DATABASE: duroos
+  #   volumes:
+  #     - mongodb-data:/data/db
+  #     - mongodb-config:/data/configdb
+  #   networks:
+  #     - duroos-network
+
+  # Optional: Nginx reverse proxy
+  # Uncomment if you want Nginx in Docker
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: duroos-nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  #     - /etc/letsencrypt:/etc/letsencrypt:ro
+  #   depends_on:
+  #     - app
+  #   networks:
+  #     - duroos-network
+
+networks:
+  duroos-network:
+    driver: bridge
+
+# volumes:
+#   mongodb-data:
+#   mongodb-config:

@@ -1,0 +1,545 @@
+<style>
+  .articles-page {
+    min-height: 100vh;
+    padding-bottom: 90px;
+  }
+
+  @media (max-width: 768px) {
+    .articles-page {
+      padding-bottom: calc(80px + env(safe-area-inset-bottom, 0));
+    }
+  }
+
+  .articles-header {
+    background: linear-gradient(to left, #2C1508 0%, #3D2815 30%, #5A6944 70%, #6B7A4E 100%);
+    padding: 48px 32px;
+    text-align: center;
+  }
+
+  html[dir="ltr"] .articles-header {
+    background: linear-gradient(to right, #2C1508 0%, #3D2815 30%, #5A6944 70%, #6B7A4E 100%);
+  }
+
+  .articles-header h1 {
+    color: #FFFFFF;
+    font-size: 36px;
+    font-weight: 700;
+    margin: 0;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .articles-header p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    margin-top: 8px;
+  }
+
+  /* Mobile header */
+  @media (max-width: 768px) {
+    .articles-header {
+      padding: 14px 16px 18px;
+    }
+
+    .articles-header h1 {
+      font-size: 18px;
+    }
+
+    .articles-header p {
+      font-size: 11px;
+      margin-top: 4px;
+    }
+  }
+
+  .articles-filter-section {
+    background: #F5EDE0;
+    padding: 20px 32px;
+    border-bottom: 1px solid #DEC99A;
+  }
+
+  .articles-filter-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .filter-chip {
+    background: #FDF8F2;
+    border: 1px solid #DEC99A;
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #7A5C3A;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+  }
+
+  .filter-chip:hover {
+    background: #E8D5A0;
+    border-color: #C49A3C;
+  }
+
+  .filter-chip.active {
+    background: #C49A3C;
+    color: #FDF8F2;
+    border-color: #C49A3C;
+  }
+
+  .articles-search-wrapper {
+    background: #FDF8F2;
+    border: 1px solid #DEC99A;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 10px;
+    min-width: 280px;
+  }
+
+  .articles-search-icon {
+    flex-shrink: 0;
+    color: #A89070;
+  }
+
+  .articles-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 10px 0;
+    font-family: inherit;
+    font-size: 14px;
+    color: #2C1508;
+  }
+
+  .articles-search-input::placeholder {
+    color: #A89070;
+  }
+
+  .articles-search-input:focus {
+    outline: none;
+  }
+
+  .articles-search-wrapper:focus-within {
+    border-color: #C49A3C;
+  }
+
+  /* Mobile filter section */
+  @media (max-width: 768px) {
+    .articles-filter-section {
+      padding: 10px 14px;
+    }
+
+    .articles-filter-container {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .filter-chips {
+      display: none; /* Hide chips on mobile for simplicity */
+    }
+
+    .articles-search-wrapper {
+      width: 100%;
+      min-width: unset;
+      padding: 0 10px;
+    }
+
+    .articles-search-input {
+      padding: 9px 0;
+      font-size: 13px;
+    }
+  }
+
+  .articles-list {
+    padding: 24px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .article-card {
+    background: #FDF8F2;
+    border: 1px solid #DEC99A;
+    border-radius: 12px;
+    padding: 16px 18px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+  }
+
+  .article-card:hover {
+    border-color: #C49A3C;
+    box-shadow: 0 4px 16px rgba(44, 21, 8, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .article-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .article-type {
+    background: #E8D5A0;
+    color: #7A5C3A;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 8px;
+  }
+
+  .article-type.telegram {
+    background: #6B7A4E;
+    color: #FDF8F2;
+  }
+
+  .article-reading-time {
+    color: #A89070;
+    font-size: 12px;
+  }
+
+  .article-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 8px;
+  }
+
+  .article-date {
+    color: #A89070;
+    font-size: 12px;
+  }
+
+  .article-title {
+    color: #2C1508;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 5px;
+    direction: rtl;
+    text-align: right;
+  }
+
+  .article-summary {
+    color: #7A5C3A;
+    font-size: 12px;
+    line-height: 1.55;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    direction: rtl;
+    text-align: right;
+  }
+
+  .article-read-more {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #C49A3C;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* LTR UI adjustments - keep Arabic content RTL */
+  html[dir="ltr"] .article-card {
+    text-align: left;
+  }
+
+  html[dir="ltr"] .article-meta {
+    flex-direction: row-reverse;
+  }
+
+  html[dir="ltr"] .article-footer {
+    flex-direction: row-reverse;
+  }
+
+  html[dir="ltr"] .article-read-more {
+    flex-direction: row-reverse;
+  }
+
+  html[dir="ltr"] .article-read-more .arrow {
+    transform: scaleX(-1);
+  }
+
+  html[dir="ltr"] .articles-filter-container {
+    flex-direction: row-reverse;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 20px;
+    max-width: 100%;
+  }
+
+  .pagination a,
+  .pagination span {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    min-width: 36px;
+    text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    .pagination {
+      gap: 4px;
+      padding: 16px 12px;
+    }
+
+    .pagination a,
+    .pagination span {
+      padding: 5px 8px;
+      font-size: 12px;
+      min-width: 32px;
+    }
+  }
+
+  .pagination a {
+    background: #FDF8F2;
+    color: #7A5C3A;
+    border: 1px solid #DEC99A;
+  }
+
+  .pagination a:hover {
+    background: #E8D5A0;
+    border-color: #C49A3C;
+  }
+
+  .pagination .active {
+    background: #C49A3C;
+    color: #FDF8F2;
+    border: 1px solid #C49A3C;
+  }
+
+  .pagination .disabled {
+    background: #F5EDE0;
+    color: #A89070;
+    border: 1px solid #DEC99A;
+    cursor: not-allowed;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #A89070;
+  }
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .empty-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #7A5C3A;
+  }
+
+  /* Tablet - 2 columns */
+  @media (max-width: 992px) {
+    .articles-list {
+      grid-template-columns: repeat(2, 1fr);
+      padding: 20px 24px;
+      gap: 16px;
+    }
+  }
+
+  /* Mobile - single column */
+  @media (max-width: 768px) {
+    .articles-list {
+      grid-template-columns: 1fr;
+      padding: 12px 14px;
+      gap: 10px;
+    }
+
+    .article-card {
+      padding: 12px 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .articles-list {
+      padding: 10px 12px;
+    }
+
+    .article-card {
+      padding: 10px 12px;
+    }
+
+    .article-title {
+      font-size: 13px;
+    }
+
+    .article-summary {
+      font-size: 11px;
+    }
+  }
+</style>
+
+<div class="articles-page">
+<div class="articles-header">
+  <h1><%= locale === 'ar' ? 'المقالات' : 'Articles' %></h1>
+  <p><%= locale === 'ar' ? 'مقالات ومواضيع علمية مختارة' : 'Selected scholarly articles and topics' %></p>
+</div>
+
+<div class="articles-filter-section">
+  <div class="articles-filter-container">
+    <div class="filter-chips">
+      <button class="filter-chip active" data-filter="all"><%= locale === 'ar' ? 'الكل' : 'All' %></button>
+      <button class="filter-chip" data-filter="Aqeedah"><%= locale === 'ar' ? 'عقيدة' : 'Aqeedah' %></button>
+      <button class="filter-chip" data-filter="Taleem"><%= locale === 'ar' ? 'تعليم' : 'Education' %></button>
+      <button class="filter-chip" data-filter="Quran"><%= locale === 'ar' ? 'قرآن' : 'Quran' %></button>
+      <button class="filter-chip" data-filter="Seerah"><%= locale === 'ar' ? 'سيرة' : 'Seerah' %></button>
+    </div>
+    <div class="articles-search-wrapper">
+      <svg class="articles-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" class="articles-search-input" placeholder="<%= locale === 'ar' ? 'ابحث في المقالات...' : 'Search articles...' %>" id="articleSearch" />
+    </div>
+  </div>
+</div>
+
+<div class="articles-list" id="articlesList">
+  <% if (articles && articles.length > 0) { %>
+    <% articles.forEach(article => { %>
+      <%
+        // Estimate reading time (avg 200 words/min for Arabic)
+        const contentLength = (article.content || article.summary || '').length;
+        const wordsEstimate = contentLength / 5; // Rough chars to words
+        const readingTime = Math.max(1, Math.ceil(wordsEstimate / 200));
+      %>
+      <a href="/articles/<%= article.slug || article.shortId || article._id %>" class="article-card" data-title="<%= article.title %>" data-type="<%= article.type %>">
+        <div class="article-meta">
+          <span class="article-type <%= article.type === 'TelegramArticle' ? 'telegram' : '' %>">
+            <%= article.type === 'TelegramArticle' ? 'تليجرام' : 'أصداء' %>
+          </span>
+          <span class="article-reading-time"><%= readingTime %> <%= locale === 'ar' ? 'دقائق قراءة' : 'min read' %></span>
+        </div>
+        <h3 class="article-title"><%= article.title %></h3>
+        <% if (article.summary) { %>
+          <p class="article-summary"><%= article.summary %></p>
+        <% } %>
+        <div class="article-footer">
+          <span class="article-date">
+            <%
+              const pubDate = new Date(article.publishedAt);
+              const hijriFormatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              });
+            %>
+            <%= hijriFormatter.format(pubDate) %>
+          </span>
+          <div class="article-read-more">
+            <span><%= locale === 'ar' ? 'قراءة المقال' : 'Read Article' %></span>
+            <span class="arrow">←</span>
+          </div>
+        </div>
+      </a>
+    <% }); %>
+  <% } else { %>
+    <div class="empty-state">
+      <div class="empty-icon">📝</div>
+      <div class="empty-title"><%= locale === 'ar' ? 'لا توجد مقالات حالياً' : 'No articles yet' %></div>
+    </div>
+  <% } %>
+</div>
+
+<% if (totalPages > 1) { %>
+  <div class="pagination">
+    <% if (currentPage > 1) { %>
+      <a href="/articles?page=<%= currentPage - 1 %>">←</a>
+    <% } else { %>
+      <span class="disabled">←</span>
+    <% } %>
+
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <% if (i === currentPage) { %>
+        <span class="active"><%= i %></span>
+      <% } else { %>
+        <a href="/articles?page=<%= i %>"><%= i %></a>
+      <% } %>
+    <% } %>
+
+    <% if (currentPage < totalPages) { %>
+      <a href="/articles?page=<%= currentPage + 1 %>">→</a>
+    <% } else { %>
+      <span class="disabled">→</span>
+    <% } %>
+  </div>
+<% } %>
+</div>
+
+<script>
+  const searchInput = document.getElementById('articleSearch');
+  const articlesList = document.getElementById('articlesList');
+  const articleCards = articlesList.querySelectorAll('.article-card');
+  const filterChips = document.querySelectorAll('.filter-chip');
+
+  let currentFilter = 'all';
+  let currentSearch = '';
+
+  function filterArticles() {
+    articleCards.forEach(card => {
+      const title = card.dataset.title.toLowerCase();
+      const type = card.dataset.type || '';
+
+      const matchesSearch = currentSearch === '' || title.includes(currentSearch);
+      const matchesFilter = currentFilter === 'all' ||
+        (currentFilter === 'Aqeedah' && type === 'Asdaa') ||
+        (currentFilter === 'Taleem' && type === 'Asdaa') ||
+        (currentFilter === 'Quran' && type === 'Asdaa') ||
+        (currentFilter === 'Seerah' && type === 'Asdaa') ||
+        type.toLowerCase().includes(currentFilter.toLowerCase());
+
+      if (matchesSearch && matchesFilter) {
+        card.style.display = 'flex';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  searchInput.addEventListener('input', function() {
+    currentSearch = this.value.toLowerCase().trim();
+    filterArticles();
+  });
+
+  filterChips.forEach(chip => {
+    chip.addEventListener('click', function() {
+      filterChips.forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      currentFilter = this.dataset.filter;
+      filterArticles();
+    });
+  });
+</script>

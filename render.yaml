@@ -1,0 +1,71 @@
+# Render Blueprint Specification
+# https://render.com/docs/blueprint-spec
+#
+# Deploy with: Connect GitHub repo to Render and it auto-detects this file
+
+services:
+  - type: web
+    name: wurud
+    env: node
+    plan: free
+    region: frankfurt  # Closest to Middle East users
+    branch: main
+
+    # Build configuration
+    buildCommand: npm install
+    startCommand: npm start
+
+    # Health check
+    healthCheckPath: /
+
+    # Auto-deploy on push
+    autoDeploy: true
+
+    # Environment variables
+    envVars:
+      # Node environment
+      - key: NODE_ENV
+        value: production
+
+      # MongoDB Atlas connection
+      - key: MONGODB_URI
+        sync: false  # Set manually in Render dashboard
+
+      # Session security
+      - key: SESSION_SECRET
+        generateValue: true
+
+      # Google OAuth (set manually in Render dashboard)
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALLBACK_URL
+        sync: false  # Will be https://wurud.onrender.com/auth/google/callback
+
+      # Admin email whitelist
+      - key: ADMIN_EMAILS
+        sync: false
+
+      # OCI Object Storage Configuration (set manually in Render dashboard)
+      - key: OCI_NAMESPACE
+        sync: false
+      - key: OCI_BUCKET
+        value: wurud-audio
+      - key: OCI_REGION
+        value: me-jeddah-1
+      - key: OCI_TENANCY
+        sync: false
+      - key: OCI_USER
+        sync: false
+      - key: OCI_FINGERPRINT
+        sync: false
+      - key: OCI_PRIVATE_KEY
+        sync: false  # Paste full PEM content
+
+      # Site URL (auto-set by Render)
+      - key: SITE_URL
+        fromService:
+          type: web
+          name: wurud
+          property: url

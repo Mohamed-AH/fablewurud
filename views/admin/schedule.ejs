@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= t('admin_schedule') %> - <%= t('admin_title') %></title>
+  <style>
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    [dir="rtl"] .page-header {
+      flex-direction: row-reverse;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 600;
+      color: #1A5F5A;
+    }
+
+    .schedule-table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .schedule-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+      padding: 16px;
+      border-bottom: 1px solid #eee;
+    }
+
+    [dir="rtl"] .schedule-table th,
+    [dir="rtl"] .schedule-table td {
+      text-align: right;
+    }
+
+    [dir="ltr"] .schedule-table th,
+    [dir="ltr"] .schedule-table td {
+      text-align: left;
+    }
+
+    .schedule-table th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #1A5F5A;
+    }
+
+    .schedule-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .schedule-table tr:hover td {
+      background: #f8f9fa;
+    }
+
+    .day-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-inactive {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 8px;
+    }
+
+    [dir="rtl"] .actions-cell {
+      flex-direction: row-reverse;
+    }
+
+    .btn-edit {
+      background: #ffc107;
+      color: #333;
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+
+    .btn-edit:hover {
+      background: #e0a800;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+      padding: 6px 12px;
+      font-size: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'schedule' }) %>
+
+  <main class="admin-container">
+    <div class="page-header">
+      <h2 class="page-title"><%= t('admin_schedule') %></h2>
+      <a href="/admin/schedule/add" class="btn btn-primary">+ <%= adminLocale === 'ar' ? 'إضافة جدول' : 'Add Schedule Item' %></a>
+    </div>
+
+    <% if (typeof success !== 'undefined' || (typeof query !== 'undefined' && query.success)) { %>
+      <div class="alert alert-success">
+        <% const successMsg = typeof query !== 'undefined' && query.success ? query.success : success; %>
+        <% if (successMsg === 'created') { %><%= adminLocale === 'ar' ? 'تم إنشاء الجدول بنجاح!' : 'Schedule item created successfully!' %><% } %>
+        <% if (successMsg === 'updated') { %><%= adminLocale === 'ar' ? 'تم تحديث الجدول بنجاح!' : 'Schedule item updated successfully!' %><% } %>
+        <% if (successMsg === 'deleted') { %><%= adminLocale === 'ar' ? 'تم حذف الجدول بنجاح!' : 'Schedule item deleted successfully!' %><% } %>
+      </div>
+    <% } %>
+
+    <% if (typeof error !== 'undefined' || (typeof query !== 'undefined' && query.error)) { %>
+      <div class="alert alert-danger">
+        <% const errorMsg = typeof query !== 'undefined' && query.error ? query.error : error; %>
+        <% if (errorMsg === 'not_found') { %><%= adminLocale === 'ar' ? 'الجدول غير موجود.' : 'Schedule item not found.' %><% } %>
+        <% if (errorMsg === 'create_failed') { %><%= adminLocale === 'ar' ? 'فشل في إنشاء الجدول.' : 'Failed to create schedule item.' %><% } %>
+        <% if (errorMsg === 'update_failed') { %><%= adminLocale === 'ar' ? 'فشل في تحديث الجدول.' : 'Failed to update schedule item.' %><% } %>
+        <% if (errorMsg === 'delete_failed') { %><%= adminLocale === 'ar' ? 'فشل في حذف الجدول.' : 'Failed to delete schedule item.' %><% } %>
+      </div>
+    <% } %>
+
+    <% if (scheduleItems && scheduleItems.length > 0) { %>
+      <div class="schedule-table">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th><%= adminLocale === 'ar' ? 'اليوم' : 'Day' %></th>
+              <th><%= adminLocale === 'ar' ? 'الوقت' : 'Time' %></th>
+              <th><%= t('admin_th_series') %></th>
+              <th><%= adminLocale === 'ar' ? 'الموقع' : 'Location' %></th>
+              <th><%= t('admin_th_status') %></th>
+              <th><%= t('admin_th_actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% scheduleItems.forEach(function(item) { %>
+              <tr>
+                <td><span class="day-badge"><%= adminLocale === 'ar' ? item.dayOfWeek : (item.dayOfWeekEnglish || item.dayOfWeek) %></span></td>
+                <td><%= adminLocale === 'ar' ? item.time : (item.timeEnglish || item.time) %></td>
+                <td><%= item.seriesId ? (adminLocale === 'ar' ? item.seriesId.titleArabic : (item.seriesId.titleEnglish || item.seriesId.titleArabic)) : '-' %></td>
+                <td><%= adminLocale === 'ar' ? item.location : (item.locationEnglish || item.location) %></td>
+                <td>
+                  <span class="status-badge <%= item.isActive ? 'status-active' : 'status-inactive' %>">
+                    <%= item.isActive ? (adminLocale === 'ar' ? 'نشط' : 'Active') : (adminLocale === 'ar' ? 'غير نشط' : 'Inactive') %>
+                  </span>
+                </td>
+                <td>
+                  <div class="actions-cell">
+                    <a href="/admin/schedule/<%= item._id %>/edit" class="btn-edit"><%= t('admin_btn_edit') %></a>
+                    <form action="/admin/schedule/<%= item._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('<%= adminLocale === 'ar' ? 'هل أنت متأكد من حذف هذا الجدول؟' : 'Are you sure you want to delete this schedule item?' %>');">
+                      <button type="submit" class="btn-danger"><%= t('admin_btn_delete') %></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <p><%= adminLocale === 'ar' ? 'لا توجد عناصر جدول.' : 'No schedule items found.' %></p>
+        <a href="/admin/schedule/add" class="btn btn-primary"><%= adminLocale === 'ar' ? 'إضافة أول جدول' : 'Add Your First Schedule Item' %></a>
+      </div>
+    <% } %>
+  </main>
+</body>
+</html>

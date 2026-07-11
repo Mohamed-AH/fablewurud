@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('admin_article_editors') || 'Article Editors' %> - <%= t('admin_title') %></title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <% if (adminIsRTL) { %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <% } %>
+  <style>
+    .toggle-card {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .toggle-info h3 {
+      margin: 0 0 4px 0;
+      font-size: 16px;
+    }
+
+    .toggle-info p {
+      margin: 0;
+      color: #6c757d;
+      font-size: 14px;
+    }
+
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      background: #28a745;
+      color: white;
+    }
+
+    .toggle-btn.inactive {
+      background: #dc3545;
+      color: white;
+    }
+
+    .toggle-btn:hover {
+      opacity: 0.9;
+    }
+
+    .add-form {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .add-form h3 {
+      margin: 0 0 16px 0;
+      font-size: 16px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .form-row input {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 14px;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .form-row button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .form-row button:hover {
+      background: #0056b3;
+    }
+
+    .editors-list {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .editor-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .editor-item:last-child {
+      border-bottom: none;
+    }
+
+    .editor-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #dee2e6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .editor-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .editor-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .editor-name {
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 2px;
+    }
+
+    .editor-email {
+      color: #6c757d;
+      font-size: 13px;
+    }
+
+    .editor-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 4px;
+    }
+
+    .editor-status {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .editor-status.active {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .editor-status.inactive {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .editor-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .editor-actions button {
+      padding: 6px 12px;
+      border: 1px solid #dee2e6;
+      background: white;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .editor-actions button:hover {
+      background: #f8f9fa;
+    }
+
+    .editor-actions button.danger {
+      color: #dc3545;
+      border-color: #dc3545;
+    }
+
+    .editor-actions button.danger:hover {
+      background: #dc3545;
+      color: white;
+    }
+
+    .editor-actions button.success {
+      color: #28a745;
+      border-color: #28a745;
+    }
+
+    .editor-actions button.success:hover {
+      background: #28a745;
+      color: white;
+    }
+
+    .empty-state {
+      padding: 48px;
+      text-align: center;
+      color: #6c757d;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      z-index: 1000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success {
+      background: #28a745;
+    }
+
+    .toast.error {
+      background: #dc3545;
+    }
+
+    @media (max-width: 768px) {
+      .toggle-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .editor-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .editor-actions {
+        width: 100%;
+        margin-top: 12px;
+      }
+
+      .editor-actions button {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <main class="admin-container">
+    <h2 style="margin-bottom: 24px;"><%= t('admin_article_editors') || 'Article Editors' %></h2>
+
+    <!-- Login Link Toggle -->
+    <div class="toggle-card">
+      <div class="toggle-info">
+        <h3><%= adminLocale === 'ar' ? 'رابط تسجيل الدخول' : 'Editor Login Link' %></h3>
+        <p><%= adminLocale === 'ar' ? 'التحكم في إظهار رابط تسجيل الدخول للمحررين في أسفل الموقع' : 'Control visibility of editor login link in website footer' %></p>
+      </div>
+      <button
+        id="toggleLoginBtn"
+        class="toggle-btn <%= showLoginLink ? 'active' : 'inactive' %>"
+        onclick="toggleLoginLink()"
+      >
+        <span id="toggleIcon"><%= showLoginLink ? '✓' : '✕' %></span>
+        <span id="toggleText"><%= showLoginLink ? (adminLocale === 'ar' ? 'مفعّل' : 'Visible') : (adminLocale === 'ar' ? 'مخفي' : 'Hidden') %></span>
+      </button>
+    </div>
+
+    <!-- Add Editor Form -->
+    <div class="add-form">
+      <h3><%= adminLocale === 'ar' ? 'إضافة محرر جديد' : 'Add New Editor' %></h3>
+      <form class="form-row" onsubmit="addEditor(event)">
+        <input
+          type="email"
+          id="editorEmail"
+          placeholder="<%= adminLocale === 'ar' ? 'البريد الإلكتروني' : 'Email address' %>"
+          required
+        >
+        <input
+          type="text"
+          id="editorName"
+          placeholder="<%= adminLocale === 'ar' ? 'الاسم (اختياري)' : 'Display name (optional)' %>"
+        >
+        <button type="submit"><%= adminLocale === 'ar' ? 'إضافة' : 'Add Editor' %></button>
+      </form>
+    </div>
+
+    <!-- Editors List -->
+    <div class="editors-list">
+      <% if (editors.length > 0) { %>
+        <% editors.forEach(editor => { %>
+          <div class="editor-item" id="editor-<%= editor._id %>">
+            <div class="editor-avatar">
+              <% if (editor.profilePhoto) { %>
+                <img src="<%= editor.profilePhoto %>" alt="">
+              <% } else { %>
+                👤
+              <% } %>
+            </div>
+            <div class="editor-info">
+              <div class="editor-name"><%= editor.displayName || editor.email %></div>
+              <div class="editor-email"><%= editor.email %></div>
+              <div class="editor-meta">
+                <span><%= adminLocale === 'ar' ? 'انضم:' : 'Joined:' %> <%= new Date(editor.createdAt).toLocaleDateString(adminLocale === 'ar' ? 'ar-SA' : 'en-US') %></span>
+                <% if (editor.lastLogin) { %>
+                  <span><%= adminLocale === 'ar' ? 'آخر دخول:' : 'Last login:' %> <%= new Date(editor.lastLogin).toLocaleDateString(adminLocale === 'ar' ? 'ar-SA' : 'en-US') %></span>
+                <% } %>
+              </div>
+            </div>
+            <span class="editor-status <%= editor.isActive ? 'active' : 'inactive' %>">
+              <%= editor.isActive ? (adminLocale === 'ar' ? 'نشط' : 'Active') : (adminLocale === 'ar' ? 'معطل' : 'Inactive') %>
+            </span>
+            <div class="editor-actions">
+              <% if (editor.isActive) { %>
+                <button class="danger" onclick="removeEditor('<%= editor._id %>')">
+                  <%= adminLocale === 'ar' ? 'إلغاء الوصول' : 'Deactivate' %>
+                </button>
+              <% } else { %>
+                <button class="success" onclick="reactivateEditor('<%= editor._id %>')">
+                  <%= adminLocale === 'ar' ? 'إعادة تفعيل' : 'Reactivate' %>
+                </button>
+              <% } %>
+              <button class="danger" onclick="deleteEditor('<%= editor._id %>')" style="background: #721c24;">
+                <%= adminLocale === 'ar' ? 'حذف نهائي' : 'Delete' %>
+              </button>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon">📝</div>
+          <p><%= adminLocale === 'ar' ? 'لا يوجد محررون حالياً' : 'No article editors yet' %></p>
+        </div>
+      <% } %>
+    </div>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast show ' + type;
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    async function toggleLoginLink() {
+      const btn = document.getElementById('toggleLoginBtn');
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/admin/article-editors/toggle-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const isVisible = data.showLoginLink;
+          btn.className = 'toggle-btn ' + (isVisible ? 'active' : 'inactive');
+          document.getElementById('toggleIcon').textContent = isVisible ? '✓' : '✕';
+          document.getElementById('toggleText').textContent = isVisible
+            ? '<%= adminLocale === "ar" ? "مفعّل" : "Visible" %>'
+            : '<%= adminLocale === "ar" ? "مخفي" : "Hidden" %>';
+          showToast(data.message, 'success');
+        } else {
+          showToast(data.message || 'Error', 'error');
+        }
+      } catch (error) {
+        showToast('Connection error', 'error');
+      }
+
+      btn.disabled = false;
+    }
+
+    async function addEditor(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('editorEmail').value.trim();
+      const displayName = document.getElementById('editorName').value.trim();
+
+      try {
+        const response = await fetch('/admin/article-editors/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, displayName })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showToast(data.message, 'success');
+          // Reload page to show new editor
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showToast(data.message || 'Error', 'error');
+        }
+      } catch (error) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    async function removeEditor(id) {
+      if (!confirm('<%= adminLocale === "ar" ? "هل أنت متأكد من إلغاء وصول هذا المحرر؟" : "Are you sure you want to remove this editor\\'s access?" %>')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/admin/article-editors/${id}/remove`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showToast(data.message, 'success');
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showToast(data.message || 'Error', 'error');
+        }
+      } catch (error) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    async function reactivateEditor(id) {
+      try {
+        const response = await fetch(`/admin/article-editors/${id}/reactivate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showToast(data.message, 'success');
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showToast(data.message || 'Error', 'error');
+        }
+      } catch (error) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    async function deleteEditor(id) {
+      if (!confirm('<%= adminLocale === "ar" ? "هل أنت متأكد من الحذف النهائي؟ لا يمكن التراجع!" : "Permanently delete this editor? This cannot be undone!" %>')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/admin/article-editors/${id}/delete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showToast(data.message, 'success');
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showToast(data.message || 'Error', 'error');
+        }
+      } catch (error) {
+        showToast('Connection error', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

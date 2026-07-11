@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= adminLocale === 'ar' ? 'تعديل السلسلة' : 'Edit Series' %> - <%= t('admin_title') %></title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .header {
+      background: #1A5F5A;
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .header h1 { font-size: 24px; font-weight: 600; }
+    .header-nav { display: flex; align-items: center; gap: 16px; }
+    .header-nav a { color: white; text-decoration: none; opacity: 0.9; }
+    .header-nav a:hover { opacity: 1; }
+    .container { max-width: 800px; margin: 0 auto; padding: 32px 24px; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 32px;
+    }
+    .form-group {
+      margin-bottom: 24px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #2C3E35;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin-left: 8px;
+    }
+    .btn-primary {
+      background: #1A5F5A;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #145047;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+    }
+    .lectures-section {
+      margin-top: 48px;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1A5F5A;
+    }
+    .lecture-count {
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 14px;
+    }
+    .lectures-list {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    .lecture-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #eee;
+      background: white;
+      transition: background 0.2s;
+    }
+    .lecture-item:last-child {
+      border-bottom: none;
+    }
+    .lecture-item:hover {
+      background: #f8f9fa;
+    }
+    .lecture-item.dragging {
+      opacity: 0.5;
+      background: #e3f2fd;
+    }
+    .lecture-item.drag-over {
+      border-top: 3px solid #1A5F5A;
+    }
+    .drag-handle {
+      cursor: grab;
+      color: #999;
+      font-size: 18px;
+      padding: 4px;
+    }
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+    .lecture-order {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #1A5F5A;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .lecture-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .lecture-title {
+      font-weight: 500;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lecture-meta {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+    .lecture-actions {
+      display: flex;
+      gap: 4px;
+    }
+    .move-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .move-btn:hover {
+      background: #1A5F5A;
+      color: white;
+      border-color: #1A5F5A;
+    }
+    .move-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    .action-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .edit-btn:hover {
+      background: #1A5F5A;
+      border-color: #1A5F5A;
+    }
+    .remove-btn {
+      color: #dc3545;
+      font-weight: bold;
+    }
+    .remove-btn:hover {
+      background: #dc3545;
+      color: white;
+      border-color: #dc3545;
+    }
+    .save-order-btn {
+      margin-top: 16px;
+      padding: 12px 24px;
+      background: #1A5F5A;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: none;
+    }
+    .save-order-btn:hover {
+      background: #145047;
+    }
+    .save-order-btn.visible {
+      display: inline-block;
+    }
+    /* Unassociated Lectures Section */
+    .unassociated-section {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 2px dashed #ddd;
+    }
+    .section-toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: 16px;
+      background: #fff3e0;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+    .section-toggle:hover {
+      background: #ffe0b2;
+    }
+    .section-toggle h2 {
+      margin: 0;
+      font-size: 18px;
+      color: #e65100;
+    }
+    .toggle-icon {
+      font-size: 20px;
+      transition: transform 0.3s;
+    }
+    .toggle-icon.open {
+      transform: rotate(180deg);
+    }
+    .unassociated-content {
+      display: none;
+    }
+    .unassociated-content.visible {
+      display: block;
+    }
+    .search-box {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+    .unassociated-list {
+      max-height: 400px;
+      overflow-y: auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .unassociated-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #eee;
+    }
+    .unassociated-item:last-child {
+      border-bottom: none;
+    }
+    .unassociated-item:hover {
+      background: #f8f9fa;
+    }
+    .unassociated-item .lecture-info {
+      flex: 1;
+    }
+    .unassociated-item .lecture-title {
+      font-weight: 500;
+    }
+    .unassociated-item .lecture-meta {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+    .assign-form {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .assign-form input {
+      width: 60px;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .assign-btn {
+      padding: 6px 12px;
+      background: #1A5F5A;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .assign-btn:hover {
+      background: #145047;
+    }
+    .assign-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .no-unassociated {
+      padding: 32px;
+      text-align: center;
+      color: #666;
+    }
+    .loading-spinner {
+      text-align: center;
+      padding: 32px;
+      color: #666;
+    }
+    /* Create Series Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.visible {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .modal-header h3 {
+      margin: 0;
+      color: #1A5F5A;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+    }
+    .modal-close:hover {
+      color: #333;
+    }
+    .create-series-btn {
+      padding: 10px 20px;
+      background: #D4AF37;
+      color: #2C1810;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .create-series-btn:hover {
+      background: #c9a033;
+    }
+    .status-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-right: 8px;
+    }
+    .status-published {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .status-draft {
+      background: #fff3e0;
+      color: #e65100;
+    }
+    /* Audio status indicators */
+    .audio-status {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-right: 6px;
+    }
+    .audio-has {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+    .audio-none {
+      background: #ffebee;
+      color: #c62828;
+    }
+    .audio-uploading {
+      background: #fff8e1;
+      color: #f57c00;
+    }
+    /* Inline upload styles */
+    .upload-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid #C19A6B;
+      background: #fffbf0;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .upload-btn:hover {
+      background: #C19A6B;
+      color: white;
+    }
+    .upload-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .publish-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid #2e7d32;
+      background: #e8f5e9;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    .publish-btn:hover {
+      background: #2e7d32;
+      color: white;
+    }
+    .publish-btn.draft {
+      border-color: #e65100;
+      background: #fff3e0;
+    }
+    .publish-btn.draft:hover {
+      background: #e65100;
+      color: white;
+    }
+    .publish-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .lecture-upload-input {
+      display: none;
+    }
+    .inline-progress {
+      display: none;
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+    .inline-progress.visible {
+      display: block;
+    }
+    .inline-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #1A5F5A, #2E8B57);
+      width: 0%;
+      transition: width 0.2s;
+    }
+    .inline-progress-bar.success {
+      background: #4CAF50;
+    }
+    .inline-progress-bar.error {
+      background: #f44336;
+    }
+    .empty-lectures {
+      padding: 32px;
+      text-align: center;
+      color: #666;
+    }
+    .btn-add-lecture {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      background: #D4AF37;
+      color: #2C1810;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-add-lecture:hover {
+      background: #c9a033;
+      transform: translateY(-1px);
+    }
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #c3e6cb;
+    }
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #f5c6cb;
+    }
+    /* Toggle Switch Styles */
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 2px solid #ddd;
+    }
+    .toggle-container.hidden-series {
+      background: #fff3e0;
+      border-color: #e65100;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 56px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 28px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #1A5F5A;
+    }
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(28px);
+    }
+    .toggle-label {
+      font-weight: 600;
+      color: #2C3E35;
+    }
+    .toggle-description {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+    .hidden-warning {
+      display: none;
+      padding: 8px 12px;
+      background: #dc3545;
+      color: white;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    .toggle-container.hidden-series .hidden-warning {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'manage' }) %>
+
+  <main class="admin-container">
+    <% if (typeof success !== 'undefined' && success === 'lecture_added') { %>
+      <div class="success-message"><%= adminLocale === 'ar' ? '✓ تمت إضافة الدرس بنجاح' : '✓ Lecture added successfully' %></div>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success === 'updated') { %>
+      <div class="success-message"><%= adminLocale === 'ar' ? '✓ تم حفظ التغييرات بنجاح' : '✓ Changes saved successfully' %></div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error === 'add_failed') { %>
+      <div class="error-message"><%= adminLocale === 'ar' ? '❌ حدث خطأ أثناء إضافة الدرس' : '❌ Error adding lecture' %></div>
+    <% } %>
+    <div class="card">
+      <form method="POST" action="/admin/series/<%= series._id %>/edit">
+        <div class="form-group">
+          <label for="titleArabic"><%= adminLocale === 'ar' ? 'العنوان بالعربية' : 'Title (Arabic)' %> *</label>
+          <input
+            type="text"
+            id="titleArabic"
+            name="titleArabic"
+            value="<%= series.titleArabic %>"
+            required
+            dir="rtl"
+            class="form-control"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="titleEnglish"><%= adminLocale === 'ar' ? 'العنوان بالإنجليزية' : 'Title (English)' %></label>
+          <input
+            type="text"
+            id="titleEnglish"
+            name="titleEnglish"
+            value="<%= series.titleEnglish || '' %>"
+            dir="ltr"
+            class="form-control"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="category"><%= adminLocale === 'ar' ? 'التصنيف (يتحكم بفلتر الصفحة الرئيسية)' : 'Category (Controls homepage filter)' %></label>
+          <%
+            // Default to 'Other' if category is null/undefined
+            const currentCategory = series.category || 'Other';
+          %>
+          <select id="category" name="category" class="form-control" style="background: #fffbf0; border: 2px solid #C19A6B;">
+            <option value="Aqeedah" <%= currentCategory === 'Aqeedah' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'عقيدة' : 'Aqeedah' %></option>
+            <option value="Fiqh" <%= currentCategory === 'Fiqh' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'فقه' : 'Fiqh' %></option>
+            <option value="Tafsir" <%= currentCategory === 'Tafsir' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'تفسير' : 'Tafsir' %></option>
+            <option value="Hadith" <%= currentCategory === 'Hadith' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'حديث' : 'Hadith' %></option>
+            <option value="Seerah" <%= currentCategory === 'Seerah' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'سيرة' : 'Seerah' %></option>
+            <option value="Akhlaq" <%= currentCategory === 'Akhlaq' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'أخلاق' : 'Akhlaq' %></option>
+            <option value="Other" <%= currentCategory === 'Other' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'أخرى' : 'Other' %></option>
+          </select>
+          <p style="font-size: 12px; color: #C19A6B; margin-top: 4px; font-weight: 600;">
+            <%= adminLocale === 'ar' ? '⚠️ هذا الحقل يحدد تصنيف السلسلة في فلاتر الصفحة الرئيسية' : '⚠️ This field determines the series category in homepage filters' %>
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label><%= adminLocale === 'ar' ? 'نوع المحتوى' : 'Content Type' %></label>
+          <div style="display: flex; gap: 24px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+            <%
+              // Content TYPE tags only - subject/topic is handled by Category above
+              const availableTags = ['series', 'lecture', 'khutba'];
+              const tagLabels = adminLocale === 'ar' ? {
+                'series': 'سلسلة دروس',
+                'lecture': 'محاضرة منفردة',
+                'khutba': 'خطبة جمعة'
+              } : {
+                'series': 'Lecture Series',
+                'lecture': 'Single Lecture',
+                'khutba': 'Friday Sermon'
+              };
+              const seriesTags = series.tags || [];
+            %>
+            <% availableTags.forEach(tag => { %>
+              <div class="checkbox-group">
+                <input
+                  type="checkbox"
+                  id="tag-<%= tag %>"
+                  name="tags"
+                  value="<%= tag %>"
+                  <%= seriesTags.includes(tag) ? 'checked' : '' %>
+                >
+                <label for="tag-<%= tag %>" style="margin-bottom: 0; margin-right: 8px;"><%= tagLabels[tag] %></label>
+              </div>
+            <% }) %>
+          </div>
+          <p style="font-size: 12px; color: #666; margin-top: 8px;">
+            💡 <%= adminLocale === 'ar' ? 'نوع المحتوى (التصنيف بالأعلى يحدد الموضوع: عقيدة، فقه، إلخ)' : 'Content type (Category above determines the subject: Aqeedah, Fiqh, etc.)' %>
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label for="descriptionArabic"><%= adminLocale === 'ar' ? 'الوصف بالعربية' : 'Description (Arabic)' %></label>
+          <textarea
+            id="descriptionArabic"
+            name="descriptionArabic"
+            dir="rtl"
+            class="form-control"
+          ><%= series.descriptionArabic || '' %></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="descriptionEnglish"><%= adminLocale === 'ar' ? 'الوصف بالإنجليزية' : 'Description (English)' %></label>
+          <textarea
+            id="descriptionEnglish"
+            name="descriptionEnglish"
+            dir="ltr"
+            class="form-control"
+          ><%= series.descriptionEnglish || '' %></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="bookAuthor"><%= adminLocale === 'ar' ? 'المؤلف الأصلي للكتاب' : 'Original Book Author' %></label>
+          <input
+            type="text"
+            id="bookAuthor"
+            name="bookAuthor"
+            value="<%= series.bookAuthor || '' %>"
+            placeholder="<%= adminLocale === 'ar' ? 'مثال: الشيخ أحمد بن يحيى النجمي' : 'Example: Sheikh Ahmad ibn Yahya an-Najmi' %>"
+            class="form-control"
+          >
+          <p style="font-size: 12px; color: #666; margin-top: 4px;">
+            💡 <%= adminLocale === 'ar' ? 'اسم مؤلف الكتاب الذي يشرحه الشيخ (يظهر في صفحة السلسلة)' : 'Name of the book author being explained by the sheikh (displayed on series page)' %>
+          </p>
+        </div>
+
+        <!-- Parent Series (for mini-series/sub-series) -->
+        <div class="form-group">
+          <label for="parentSeriesId"><%= adminLocale === 'ar' ? 'السلسلة الأم (اختياري)' : 'Parent Series (Optional)' %></label>
+          <select
+            id="parentSeriesId"
+            name="parentSeriesId"
+            class="form-control"
+            style="padding: 10px 14px;"
+          >
+            <option value=""><%= adminLocale === 'ar' ? '-- بدون سلسلة أم --' : '-- No Parent Series --' %></option>
+          </select>
+          <p style="font-size: 12px; color: #666; margin-top: 4px;">
+            💡 <%= adminLocale === 'ar' ? 'اختر السلسلة الأم إذا كانت هذه سلسلة فرعية (مثل: سلاسل ضمن خطب الجمعة)' : 'Select parent series if this is a sub-series (e.g., mini-series within Friday Sermons)' %>
+          </p>
+        </div>
+
+        <script>
+          // Load parent series options
+          (function() {
+            const currentSeriesId = '<%= series._id %>';
+            const currentParentId = '<%= series.parentSeriesId || "" %>';
+            const select = document.getElementById('parentSeriesId');
+
+            fetch('/api/series/parents')
+              .then(res => res.json())
+              .then(data => {
+                if (data.success && data.series) {
+                  data.series.forEach(s => {
+                    // Skip current series (prevent self-reference)
+                    if (s._id === currentSeriesId) return;
+
+                    const option = document.createElement('option');
+                    option.value = s._id;
+                    option.textContent = s.titleArabic;
+                    if (s._id === currentParentId) {
+                      option.selected = true;
+                    }
+                    select.appendChild(option);
+                  });
+                }
+              })
+              .catch(err => console.error('Error loading parent series:', err));
+          })();
+        </script>
+
+        <div class="form-group">
+          <label><%= adminLocale === 'ar' ? 'إظهار السلسلة للعموم' : 'Series Visibility' %></label>
+          <div class="toggle-container <%= series.isVisible === false ? 'hidden-series' : '' %>" id="visibilityContainer">
+            <label class="toggle-switch">
+              <input type="checkbox" name="isVisible" id="isVisible" <%= series.isVisible !== false ? 'checked' : '' %> onchange="updateVisibilityUI()">
+              <span class="toggle-slider"></span>
+            </label>
+            <div>
+              <div class="toggle-label" id="visibilityLabel">
+                <%= series.isVisible !== false ? (adminLocale === 'ar' ? '👁️ مرئية للعموم' : '👁️ Visible to Public') : (adminLocale === 'ar' ? '🚫 مخفية' : '🚫 Hidden') %>
+              </div>
+              <div class="toggle-description">
+                <%= adminLocale === 'ar' ? 'عند إيقاف هذا الخيار، لن تظهر السلسلة في الصفحة الرئيسية أو صفحة التصفح أو خريطة الموقع' : 'When disabled, the series will not appear on homepage, browse page, or sitemap' %>
+              </div>
+            </div>
+          </div>
+          <div class="hidden-warning" id="hiddenWarning" style="<%= series.isVisible !== false ? 'display: none;' : '' %>">
+            <%= adminLocale === 'ar' ? '⚠️ هذه السلسلة مخفية حالياً ولن تظهر للزوار' : '⚠️ This series is currently hidden and will not appear to visitors' %>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><%= adminLocale === 'ar' ? 'القسم في الصفحة الرئيسية' : 'Homepage Section' %></label>
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <select id="sectionSelect" style="flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:14px;">
+              <option value=""><%= adminLocale === 'ar' ? '-- بدون قسم --' : '-- No Section --' %></option>
+              <% if (typeof sections !== 'undefined' && sections) { %>
+                <% sections.forEach(function(sec) { %>
+                  <option value="<%= sec._id %>" <%= series.sectionId && series.sectionId.toString() === sec._id.toString() ? 'selected' : '' %>>
+                    <%= sec.icon %> <%= adminLocale === 'ar' ? sec.title.ar : sec.title.en %>
+                  </option>
+                <% }) %>
+              <% } %>
+            </select>
+            <button type="button" class="btn btn-primary" style="padding:10px 16px;font-size:13px;white-space:nowrap;" onclick="assignSection()"><%= adminLocale === 'ar' ? 'تعيين' : 'Assign' %></button>
+          </div>
+          <div style="font-size:12px;color:#888;margin-top:4px;">
+            <%= adminLocale === 'ar' ? 'حدد القسم الذي تظهر فيه هذه السلسلة في الصفحة الرئيسية' : 'Select which homepage section this series appears in' %>
+          </div>
+        </div>
+
+        <!-- Display Options Section -->
+        <%
+          const displayOptions = series.displayOptions || {};
+          const showSearch = displayOptions.showSearch !== false;
+          const showYearFilter = displayOptions.showYearFilter !== false;
+          const showSortOptions = displayOptions.showSortOptions !== false;
+          const minLecturesForSearch = displayOptions.minLecturesForSearch || 15;
+          const minLecturesForYearFilter = displayOptions.minLecturesForYearFilter || 15;
+        %>
+        <div class="form-group" style="margin-top: 32px; padding-top: 24px; border-top: 2px solid #ddd;">
+          <label style="font-size: 18px; color: #1A5F5A; margin-bottom: 16px; display: block;">
+            <span style="margin-left: 8px;">🔍</span>
+            <%= adminLocale === 'ar' ? 'خيارات العرض (البحث والفلترة)' : 'Display Options (Search & Filter)' %>
+          </label>
+          <p style="font-size: 13px; color: #666; margin-bottom: 20px; background: #f0f8ff; padding: 12px; border-radius: 8px;">
+            💡 <%= adminLocale === 'ar' ? 'تحكم في ظهور شريط البحث وخيارات الفلترة في صفحة السلسلة. مفيد للسلاسل الكبيرة مثل الخطب (183 خطبة).' : 'Control the visibility of search bar and filter options on the series page. Useful for large series like khutbahs (183 lectures).' %>
+          </p>
+
+          <div style="display: grid; gap: 16px;">
+            <!-- Search Toggle -->
+            <div class="toggle-container" style="background: #f8f9fa;">
+              <label class="toggle-switch">
+                <input type="checkbox" name="showSearch" id="showSearch" <%= showSearch ? 'checked' : '' %>>
+                <span class="toggle-slider"></span>
+              </label>
+              <div style="flex: 1;">
+                <div class="toggle-label"><%= adminLocale === 'ar' ? '🔎 إظهار شريط البحث' : '🔎 Show Search Bar' %></div>
+                <div class="toggle-description"><%= adminLocale === 'ar' ? 'السماح للزوار بالبحث في عناوين المحاضرات' : 'Allow visitors to search lecture titles' %></div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 12px; color: #666; margin: 0;"><%= adminLocale === 'ar' ? 'الحد الأدنى:' : 'Min lectures:' %></label>
+                <input type="number" name="minLecturesForSearch" value="<%= minLecturesForSearch %>" min="0" max="1000" style="width: 60px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+              </div>
+            </div>
+
+            <!-- Year Filter Toggle -->
+            <div class="toggle-container" style="background: #f8f9fa;">
+              <label class="toggle-switch">
+                <input type="checkbox" name="showYearFilter" id="showYearFilter" <%= showYearFilter ? 'checked' : '' %>>
+                <span class="toggle-slider"></span>
+              </label>
+              <div style="flex: 1;">
+                <div class="toggle-label"><%= adminLocale === 'ar' ? '📅 إظهار فلتر السنة الهجرية' : '📅 Show Hijri Year Filter' %></div>
+                <div class="toggle-description"><%= adminLocale === 'ar' ? 'السماح للزوار بتصفية المحاضرات حسب السنة الهجرية' : 'Allow visitors to filter lectures by Hijri year' %></div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 12px; color: #666; margin: 0;"><%= adminLocale === 'ar' ? 'الحد الأدنى:' : 'Min lectures:' %></label>
+                <input type="number" name="minLecturesForYearFilter" value="<%= minLecturesForYearFilter %>" min="0" max="1000" style="width: 60px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+              </div>
+            </div>
+
+            <!-- Sort Options Toggle -->
+            <div class="toggle-container" style="background: #f8f9fa;">
+              <label class="toggle-switch">
+                <input type="checkbox" name="showSortOptions" id="showSortOptions" <%= showSortOptions ? 'checked' : '' %>>
+                <span class="toggle-slider"></span>
+              </label>
+              <div style="flex: 1;">
+                <div class="toggle-label"><%= adminLocale === 'ar' ? '↕️ إظهار خيارات الترتيب' : '↕️ Show Sort Options' %></div>
+                <div class="toggle-description"><%= adminLocale === 'ar' ? 'السماح للزوار بترتيب المحاضرات (الأحدث/الأقدم/حسب الرقم)' : 'Allow visitors to sort lectures (newest/oldest/by number)' %></div>
+              </div>
+            </div>
+
+            <!-- Default Sort Order -->
+            <%
+              const defaultSortOrder = displayOptions.defaultSortOrder || 'oldest';
+            %>
+            <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; display: flex; align-items: center; gap: 16px;">
+              <div style="flex: 1;">
+                <div class="toggle-label" style="margin-bottom: 4px;"><%= adminLocale === 'ar' ? '📊 الترتيب الافتراضي' : '📊 Default Sort Order' %></div>
+                <div class="toggle-description"><%= adminLocale === 'ar' ? 'ترتيب المحاضرات عند فتح الصفحة لأول مرة' : 'Lecture order when page first loads' %></div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border-radius: 6px; background: <%= defaultSortOrder !== 'newest' ? '#1A5F5A' : '#fff' %>; color: <%= defaultSortOrder !== 'newest' ? '#fff' : '#333' %>; border: 1px solid #ddd;">
+                  <input type="radio" name="defaultSortOrder" value="oldest" <%= defaultSortOrder !== 'newest' ? 'checked' : '' %> style="display: none;">
+                  <%= adminLocale === 'ar' ? 'الأقدم أولاً' : 'Oldest First' %>
+                </label>
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border-radius: 6px; background: <%= defaultSortOrder === 'newest' ? '#1A5F5A' : '#fff' %>; color: <%= defaultSortOrder === 'newest' ? '#fff' : '#333' %>; border: 1px solid #ddd;">
+                  <input type="radio" name="defaultSortOrder" value="newest" <%= defaultSortOrder === 'newest' ? 'checked' : '' %> style="display: none;">
+                  <%= adminLocale === 'ar' ? 'الأحدث أولاً' : 'Newest First' %>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <p style="font-size: 12px; color: #888; margin-top: 12px;">
+            ℹ️ <%= adminLocale === 'ar' ? 'الحد الأدنى = 0 يعني دائماً إظهار الخيار. مثال: إذا كان الحد الأدنى 15 والسلسلة بها 10 محاضرات، لن يظهر الخيار.' : 'Min = 0 means always show. Example: if min is 15 and series has 10 lectures, the option won\'t show.' %>
+          </p>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary"><%= adminLocale === 'ar' ? '💾 حفظ التغييرات' : '💾 Save Changes' %></button>
+          <a href="/admin/manage" class="btn btn-secondary"><%= adminLocale === 'ar' ? '↩️ إلغاء' : '↩️ Cancel' %></a>
+        </div>
+      </form>
+
+      <!-- Lectures Reorder Section -->
+      <div class="lectures-section">
+        <div class="section-header">
+          <h2 class="section-title"><%= adminLocale === 'ar' ? '📚 ترتيب المحاضرات' : '📚 Reorder Lectures' %></h2>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="lecture-count"><%= lectures.length %> <%= adminLocale === 'ar' ? 'محاضرة' : 'lectures' %></span>
+            <a href="/admin/series/<%= series._id %>/quick-add-lecture" class="btn-add-lecture" title="<%= adminLocale === 'ar' ? 'إضافة درس جديد' : 'Add new lecture' %>">
+              + <%= adminLocale === 'ar' ? 'إضافة درس' : 'Add Lecture' %>
+            </a>
+          </div>
+        </div>
+
+        <% if (lectures && lectures.length > 0) { %>
+          <div class="lectures-list" id="lecturesList">
+            <% lectures.forEach((lecture, index) => { %>
+              <div class="lecture-item" data-id="<%= lecture._id %>" draggable="true">
+                <span class="drag-handle">⋮⋮</span>
+                <div class="lecture-order"><%= index + 1 %></div>
+                <div class="lecture-info">
+                  <div class="lecture-title">
+                    <span class="status-badge <%= lecture.published ? 'status-published' : 'status-draft' %>">
+                      <%= lecture.published ? (adminLocale === 'ar' ? 'منشور' : 'Published') : (adminLocale === 'ar' ? 'مسودة' : 'Draft') %>
+                    </span>
+                    <span class="audio-status <%= lecture.audioUrl ? 'audio-has' : 'audio-none' %>" id="audio-status-<%= lecture._id %>">
+                      <%= lecture.audioUrl ? (adminLocale === 'ar' ? '🔊 صوت' : '🔊 Audio') : (adminLocale === 'ar' ? '⚠️ بدون صوت' : '⚠️ No Audio') %>
+                    </span>
+                    <%= adminLocale === 'ar' ? lecture.titleArabic : (lecture.titleEnglish || lecture.titleArabic) %>
+                  </div>
+                  <div class="lecture-meta">
+                    <% if (lecture.lectureNumber) { %>
+                      <%= adminLocale === 'ar' ? 'رقم الدرس' : 'Lecture #' %>: <%= lecture.lectureNumber %> |
+                    <% } %>
+                    <% if (lecture.dateRecorded) { %>
+                      <%= adminLocale === 'ar' ? 'التاريخ' : 'Date' %>: <%= new Date(lecture.dateRecorded).toLocaleDateString(adminLocale === 'ar' ? 'ar-SA' : 'en-US') %>
+                    <% } %>
+                    <% if (lecture.durationSeconds) { %>
+                      | <%= adminLocale === 'ar' ? 'المدة' : 'Duration' %>: <% const hrs = Math.floor(lecture.durationSeconds / 3600); const mins = Math.floor((lecture.durationSeconds % 3600) / 60); const secs = lecture.durationSeconds % 60; %><%= hrs > 0 ? hrs + ':' + String(mins).padStart(2, '0') : mins %>:<%= String(secs).padStart(2, '0') %>
+                    <% } %>
+                  </div>
+                  <div class="inline-progress" id="progress-<%= lecture._id %>">
+                    <div class="inline-progress-bar" id="progress-bar-<%= lecture._id %>"></div>
+                  </div>
+                </div>
+                <div class="lecture-actions">
+                  <input type="file" id="upload-input-<%= lecture._id %>" class="lecture-upload-input" accept=".mp3,.m4a,.aac,.wav,.ogg,.flac" onchange="uploadLectureAudio('<%= lecture._id %>', this)">
+                  <button class="upload-btn" id="upload-btn-<%= lecture._id %>" onclick="document.getElementById('upload-input-<%= lecture._id %>').click()" title="<%= adminLocale === 'ar' ? 'رفع ملف صوتي' : 'Upload audio file' %>">📤</button>
+                  <button class="publish-btn <%= lecture.published ? '' : 'draft' %>" id="publish-btn-<%= lecture._id %>" onclick="togglePublish('<%= lecture._id %>')" title="<%= lecture.published ? (adminLocale === 'ar' ? 'إلغاء النشر' : 'Unpublish') : (adminLocale === 'ar' ? 'نشر' : 'Publish') %>">
+                    <%= lecture.published ? '👁' : '👁‍🗨' %>
+                  </button>
+                  <a href="/admin/lectures/<%= lecture._id %>/edit" class="action-btn edit-btn" title="<%= adminLocale === 'ar' ? 'تعديل' : 'Edit' %>">✏️</a>
+                  <button class="action-btn remove-btn" onclick="removeLectureFromSeries('<%= lecture._id %>', '<%= lecture.titleArabic.substring(0, 30) %>')" title="<%= adminLocale === 'ar' ? 'إزالة من السلسلة' : 'Remove from series' %>">✕</button>
+                  <button class="move-btn" onclick="moveLecture('<%= lecture._id %>', 'up')" title="<%= adminLocale === 'ar' ? 'تحريك لأعلى' : 'Move up' %>" <%= index === 0 ? 'disabled' : '' %>>▲</button>
+                  <button class="move-btn" onclick="moveLecture('<%= lecture._id %>', 'down')" title="<%= adminLocale === 'ar' ? 'تحريك لأسفل' : 'Move down' %>" <%= index === lectures.length - 1 ? 'disabled' : '' %>>▼</button>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+
+          <button class="save-order-btn" id="saveOrderBtn" onclick="saveOrder()"><%= adminLocale === 'ar' ? '💾 حفظ الترتيب الجديد' : '💾 Save New Order' %></button>
+        <% } else { %>
+          <div class="lectures-list">
+            <div class="empty-lectures">
+              <p><%= adminLocale === 'ar' ? 'لا توجد محاضرات في هذه السلسلة' : 'No lectures in this series' %></p>
+            </div>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Unassociated Lectures Section -->
+      <div class="unassociated-section">
+        <div class="section-toggle" onclick="toggleUnassociated()">
+          <h2><%= adminLocale === 'ar' ? '📎 محاضرات بدون سلسلة' : '📎 Unassociated Lectures' %></h2>
+          <span class="toggle-icon" id="toggleIcon">▼</span>
+        </div>
+        <div class="unassociated-content" id="unassociatedContent">
+          <button class="create-series-btn" onclick="openCreateSeriesModal()">
+            + <%= adminLocale === 'ar' ? 'إنشاء سلسلة جديدة' : 'Create New Series' %>
+          </button>
+          <div class="search-box">
+            <input type="text" id="searchUnassociated" placeholder="<%= adminLocale === 'ar' ? 'بحث في المحاضرات غير المرتبطة...' : 'Search unassociated lectures...' %>" oninput="filterUnassociated()">
+          </div>
+          <div class="unassociated-list" id="unassociatedList">
+            <div class="loading-spinner"><%= adminLocale === 'ar' ? '⏳ جاري التحميل...' : '⏳ Loading...' %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Create Series Modal -->
+  <div class="modal-overlay" id="createSeriesModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><%= adminLocale === 'ar' ? '📚 إنشاء سلسلة جديدة' : '📚 Create New Series' %></h3>
+        <button class="modal-close" onclick="closeCreateSeriesModal()">&times;</button>
+      </div>
+      <form id="createSeriesForm" onsubmit="submitCreateSeries(event)">
+        <div class="form-group">
+          <label for="newSeriesTitleArabic"><%= adminLocale === 'ar' ? 'العنوان بالعربية' : 'Title (Arabic)' %> *</label>
+          <input type="text" id="newSeriesTitleArabic" required placeholder="<%= adminLocale === 'ar' ? 'مثال: شرح كتاب التوحيد' : 'Example: شرح كتاب التوحيد' %>" dir="rtl" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="newSeriesTitleEnglish"><%= adminLocale === 'ar' ? 'العنوان بالإنجليزية' : 'Title (English)' %></label>
+          <input type="text" id="newSeriesTitleEnglish" placeholder="Example: Explanation of Kitab at-Tawhid" dir="ltr" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="newSeriesSheikh"><%= adminLocale === 'ar' ? 'الشيخ' : 'Sheikh' %> *</label>
+          <select id="newSeriesSheikh" required class="form-control">
+            <option value=""><%= adminLocale === 'ar' ? '-- اختر الشيخ --' : '-- Select Sheikh --' %></option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="newSeriesCategory"><%= adminLocale === 'ar' ? 'التصنيف' : 'Category' %></label>
+          <select id="newSeriesCategory" class="form-control">
+            <option value="Other"><%= adminLocale === 'ar' ? 'أخرى' : 'Other' %></option>
+            <option value="Aqeedah"><%= adminLocale === 'ar' ? 'عقيدة' : 'Aqeedah' %></option>
+            <option value="Fiqh"><%= adminLocale === 'ar' ? 'فقه' : 'Fiqh' %></option>
+            <option value="Tafsir"><%= adminLocale === 'ar' ? 'تفسير' : 'Tafsir' %></option>
+            <option value="Hadith"><%= adminLocale === 'ar' ? 'حديث' : 'Hadith' %></option>
+            <option value="Seerah"><%= adminLocale === 'ar' ? 'سيرة' : 'Seerah' %></option>
+            <option value="Akhlaq"><%= adminLocale === 'ar' ? 'أخلاق' : 'Akhlaq' %></option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn btn-primary"><%= adminLocale === 'ar' ? 'إنشاء السلسلة' : 'Create Series' %></button>
+          <button type="button" class="btn btn-secondary" onclick="closeCreateSeriesModal()"><%= adminLocale === 'ar' ? 'إلغاء' : 'Cancel' %></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const seriesId = '<%= series._id %>';
+    let orderChanged = false;
+    const isArabic = '<%= adminLocale %>' === 'ar';
+
+    // Translated messages
+    const msgs = {
+      visiblePublic: isArabic ? '👁️ مرئية للعموم' : '👁️ Visible to Public',
+      hidden: isArabic ? '🚫 مخفية' : '🚫 Hidden',
+      saving: isArabic ? '⏳ جاري الحفظ...' : '⏳ Saving...',
+      saved: isArabic ? '✅ تم الحفظ' : '✅ Saved',
+      saveOrder: isArabic ? '💾 حفظ الترتيب الجديد' : '💾 Save New Order',
+      saveFailed: isArabic ? '❌ فشل الحفظ' : '❌ Save Failed',
+      confirmRemove: isArabic ? 'هل تريد إزالة' : 'Do you want to remove',
+      fromSeries: isArabic ? 'من هذه السلسلة؟' : 'from this series?',
+      removeNote: isArabic ? '\n\nلن يتم حذف المحاضرة، فقط إزالتها من السلسلة.' : '\n\nThe lecture will not be deleted, only removed from the series.',
+      removeFailed: isArabic ? 'فشل في إزالة المحاضرة: ' : 'Failed to remove lecture: ',
+      unknownError: isArabic ? 'خطأ غير معروف' : 'Unknown error',
+      removeError: isArabic ? 'حدث خطأ أثناء إزالة المحاضرة' : 'Error occurred while removing lecture',
+      lecture: isArabic ? 'محاضرة' : 'lecture',
+      noUnassociated: isArabic ? '✓ لا توجد محاضرات غير مرتبطة' : '✓ No unassociated lectures',
+      noTitle: isArabic ? 'بدون عنوان' : 'No title',
+      noAudio: isArabic ? '⚠️ بدون صوت' : '⚠️ No audio',
+      lectureNum: isArabic ? 'رقم الدرس' : 'Lecture #',
+      addToSeries: isArabic ? 'إضافة للسلسلة' : 'Add to Series',
+      loadError: isArabic ? 'خطأ في تحميل البيانات' : 'Error loading data',
+      connError: isArabic ? 'خطأ في الاتصال' : 'Connection error',
+      addSuccess: isArabic ? '✓ تمت إضافة المحاضرة للسلسلة بنجاح.\nقم بتحديث الصفحة لرؤية التغييرات في قائمة المحاضرات.' : '✓ Lecture added to series successfully.\nRefresh the page to see changes in the lecture list.',
+      addFailed: isArabic ? 'فشل في إضافة المحاضرة: ' : 'Failed to add lecture: ',
+      publishFailed: isArabic ? 'فشل في تغيير حالة النشر' : 'Failed to change publish status',
+      published: isArabic ? 'منشور' : 'Published',
+      draft: isArabic ? 'مسودة' : 'Draft',
+      uploading: isArabic ? '⏳ جاري الرفع...' : '⏳ Uploading...',
+      processing: isArabic ? '⏳ معالجة...' : '⏳ Processing...',
+      hasAudio: isArabic ? '🔊 صوت' : '🔊 Audio',
+      uploadFailed: isArabic ? '❌ فشل' : '❌ Failed',
+      noAudioStatus: isArabic ? '⚠️ بدون صوت' : '⚠️ No Audio',
+      duration: isArabic ? 'المدة' : 'Duration',
+      selectSheikh: isArabic ? '-- اختر الشيخ --' : '-- Select Sheikh --',
+      fillRequired: isArabic ? 'الرجاء إدخال العنوان واختيار الشيخ' : 'Please enter title and select sheikh',
+      creating: isArabic ? '⏳ جاري الإنشاء...' : '⏳ Creating...',
+      createSeries: isArabic ? 'إنشاء السلسلة' : 'Create Series',
+      seriesCreated: isArabic ? '✓ تم إنشاء السلسلة' : '✓ Series created',
+      goToEdit: isArabic ? 'بنجاح.\n\nهل تريد الانتقال إلى صفحة تعديل السلسلة الجديدة؟' : 'successfully.\n\nDo you want to go to the new series edit page?',
+      createFailed: isArabic ? 'فشل في إنشاء السلسلة: ' : 'Failed to create series: '
+    };
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    // Section assignment
+    function assignSection() {
+      const select = document.getElementById('sectionSelect');
+      const sectionId = select.value;
+      const seriesId = '<%= series._id %>';
+
+      fetch(`/admin/series/${seriesId}/assign-section`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sectionId })
+      })
+      .then(res => {
+        if (res.redirected) {
+          window.location.href = res.url;
+        } else {
+          window.location.reload();
+        }
+      })
+      .catch(() => alert(isArabic ? 'حدث خطأ' : 'An error occurred'));
+    }
+
+    // Visibility toggle UI update
+    function updateVisibilityUI() {
+      const checkbox = document.getElementById('isVisible');
+      const container = document.getElementById('visibilityContainer');
+      const label = document.getElementById('visibilityLabel');
+      const warning = document.getElementById('hiddenWarning');
+
+      if (checkbox.checked) {
+        container.classList.remove('hidden-series');
+        label.textContent = msgs.visiblePublic;
+        warning.style.display = 'none';
+      } else {
+        container.classList.add('hidden-series');
+        label.textContent = msgs.hidden;
+        warning.style.display = 'block';
+      }
+    }
+
+    // Drag and drop functionality
+    const lecturesList = document.getElementById('lecturesList');
+    if (lecturesList) {
+      let draggedItem = null;
+
+      lecturesList.addEventListener('dragstart', (e) => {
+        if (e.target.classList.contains('lecture-item')) {
+          draggedItem = e.target;
+          e.target.classList.add('dragging');
+        }
+      });
+
+      lecturesList.addEventListener('dragend', (e) => {
+        if (e.target.classList.contains('lecture-item')) {
+          e.target.classList.remove('dragging');
+          document.querySelectorAll('.lecture-item').forEach(item => {
+            item.classList.remove('drag-over');
+          });
+          updateOrderNumbers();
+        }
+      });
+
+      lecturesList.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const afterElement = getDragAfterElement(lecturesList, e.clientY);
+        const dragging = document.querySelector('.dragging');
+
+        document.querySelectorAll('.lecture-item').forEach(item => {
+          item.classList.remove('drag-over');
+        });
+
+        if (afterElement) {
+          afterElement.classList.add('drag-over');
+          lecturesList.insertBefore(dragging, afterElement);
+        } else {
+          lecturesList.appendChild(dragging);
+        }
+      });
+    }
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.lecture-item:not(.dragging)')];
+
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function moveLecture(lectureId, direction) {
+      const item = document.querySelector(`.lecture-item[data-id="${lectureId}"]`);
+      if (!item) return;
+
+      const parent = item.parentNode;
+      if (direction === 'up' && item.previousElementSibling) {
+        parent.insertBefore(item, item.previousElementSibling);
+      } else if (direction === 'down' && item.nextElementSibling) {
+        parent.insertBefore(item.nextElementSibling, item);
+      }
+
+      updateOrderNumbers();
+    }
+
+    function updateOrderNumbers() {
+      const items = document.querySelectorAll('.lecture-item');
+      items.forEach((item, index) => {
+        const orderBadge = item.querySelector('.lecture-order');
+        if (orderBadge) {
+          orderBadge.textContent = index + 1;
+        }
+
+        // Update move button states
+        const upBtn = item.querySelector('.move-btn:first-child');
+        const downBtn = item.querySelector('.move-btn:last-child');
+        if (upBtn) upBtn.disabled = index === 0;
+        if (downBtn) downBtn.disabled = index === items.length - 1;
+      });
+
+      orderChanged = true;
+      document.getElementById('saveOrderBtn').classList.add('visible');
+    }
+
+    async function saveOrder() {
+      const items = document.querySelectorAll('.lecture-item');
+      const lectureIds = Array.from(items).map(item => item.dataset.id);
+
+      const saveBtn = document.getElementById('saveOrderBtn');
+      saveBtn.textContent = msgs.saving;
+      saveBtn.disabled = true;
+
+      try {
+        const response = await fetch(`/admin/series/${seriesId}/reorder-lectures`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ lectureIds })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          saveBtn.textContent = msgs.saved;
+          orderChanged = false;
+          setTimeout(() => {
+            saveBtn.textContent = msgs.saveOrder;
+            saveBtn.classList.remove('visible');
+            saveBtn.disabled = false;
+          }, 2000);
+        } else {
+          throw new Error(result.error || msgs.unknownError);
+        }
+      } catch (error) {
+        console.error('Save order error:', error);
+        saveBtn.textContent = msgs.saveFailed;
+        saveBtn.disabled = false;
+        setTimeout(() => {
+          saveBtn.textContent = msgs.saveOrder;
+        }, 2000);
+      }
+    }
+
+    // Remove lecture from series (doesn't delete the lecture)
+    async function removeLectureFromSeries(lectureId, title) {
+      if (!confirm(`${msgs.confirmRemove} "${title}..." ${msgs.fromSeries}${msgs.removeNote}`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/admin/lectures/${lectureId}/remove-from-series`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Remove the lecture item from the list
+          const lectureItem = document.querySelector(`.lecture-item[data-id="${lectureId}"]`);
+          if (lectureItem) {
+            lectureItem.style.transition = 'opacity 0.3s, transform 0.3s';
+            lectureItem.style.opacity = '0';
+            lectureItem.style.transform = 'translateX(20px)';
+            setTimeout(() => {
+              lectureItem.remove();
+              updateOrderNumbers();
+              // Update lecture count
+              const countSpan = document.querySelector('.lecture-count');
+              if (countSpan) {
+                const currentCount = parseInt(countSpan.textContent) - 1;
+                countSpan.textContent = `${currentCount} ${msgs.lecture}`;
+              }
+            }, 300);
+          }
+        } else {
+          alert(msgs.removeFailed + (result.error || msgs.unknownError));
+        }
+      } catch (error) {
+        console.error('Remove lecture error:', error);
+        alert(msgs.removeError);
+      }
+    }
+
+    // Warn before leaving if order changed
+    window.addEventListener('beforeunload', (e) => {
+      if (orderChanged) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    // ========== Create Series Modal ==========
+    let sheikhsLoaded = false;
+
+    function openCreateSeriesModal() {
+      document.getElementById('createSeriesModal').classList.add('visible');
+      if (!sheikhsLoaded) {
+        loadSheikhs();
+      }
+    }
+
+    function closeCreateSeriesModal() {
+      document.getElementById('createSeriesModal').classList.remove('visible');
+    }
+
+    async function loadSheikhs() {
+      try {
+        const response = await fetch('/admin/api/sheikhs');
+        const data = await response.json();
+
+        if (data.success) {
+          const select = document.getElementById('newSeriesSheikh');
+          data.sheikhs.forEach(sheikh => {
+            const option = document.createElement('option');
+            option.value = sheikh._id;
+            option.textContent = sheikh.nameArabic;
+            select.appendChild(option);
+          });
+          sheikhsLoaded = true;
+        }
+      } catch (error) {
+        console.error('Load sheikhs error:', error);
+      }
+    }
+
+    async function submitCreateSeries(event) {
+      event.preventDefault();
+
+      const titleArabic = document.getElementById('newSeriesTitleArabic').value.trim();
+      const titleEnglish = document.getElementById('newSeriesTitleEnglish').value.trim();
+      const sheikhId = document.getElementById('newSeriesSheikh').value;
+      const category = document.getElementById('newSeriesCategory').value;
+
+      if (!titleArabic || !sheikhId) {
+        alert(msgs.fillRequired);
+        return;
+      }
+
+      const submitBtn = event.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = msgs.creating;
+
+      try {
+        const response = await fetch('/admin/api/series/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            titleArabic,
+            titleEnglish,
+            sheikhId,
+            category
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          closeCreateSeriesModal();
+          // Redirect to the new series edit page
+          if (confirm(`${msgs.seriesCreated} "${result.series.titleArabic}" ${msgs.goToEdit}`)) {
+            window.location.href = `/admin/series/${result.series._id}/edit`;
+          }
+        } else {
+          alert(msgs.createFailed + (result.error || msgs.unknownError));
+        }
+      } catch (error) {
+        console.error('Create series error:', error);
+        alert(msgs.connError);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = msgs.createSeries;
+      }
+    }
+
+    // Close modal on outside click
+    document.getElementById('createSeriesModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeCreateSeriesModal();
+      }
+    });
+
+    // ========== Unassociated Lectures Section ==========
+    let unassociatedLectures = [];
+    let unassociatedLoaded = false;
+
+    function toggleUnassociated() {
+      const content = document.getElementById('unassociatedContent');
+      const icon = document.getElementById('toggleIcon');
+
+      content.classList.toggle('visible');
+      icon.classList.toggle('open');
+
+      // Load data on first open
+      if (content.classList.contains('visible') && !unassociatedLoaded) {
+        loadUnassociatedLectures();
+      }
+    }
+
+    async function loadUnassociatedLectures() {
+      const listEl = document.getElementById('unassociatedList');
+
+      try {
+        const response = await fetch('/admin/api/unassociated-lectures');
+        const data = await response.json();
+
+        if (data.success) {
+          unassociatedLectures = data.lectures;
+          unassociatedLoaded = true;
+          renderUnassociatedLectures(unassociatedLectures);
+        } else {
+          listEl.innerHTML = '<div class="no-unassociated">' + msgs.loadError + '</div>';
+        }
+      } catch (error) {
+        console.error('Load unassociated error:', error);
+        listEl.innerHTML = '<div class="no-unassociated">' + msgs.connError + '</div>';
+      }
+    }
+
+    function renderUnassociatedLectures(lectures) {
+      const listEl = document.getElementById('unassociatedList');
+
+      if (lectures.length === 0) {
+        listEl.innerHTML = '<div class="no-unassociated">' + msgs.noUnassociated + '</div>';
+        return;
+      }
+
+      listEl.innerHTML = lectures.map(lecture => `
+        <div class="unassociated-item" data-id="${escapeHtml(lecture._id)}" data-title="${escapeHtml(lecture.titleArabic || '')}">
+          <div class="lecture-info">
+            <div class="lecture-title">${escapeHtml(lecture.titleArabic) || msgs.noTitle}</div>
+            <div class="lecture-meta">
+              ${lecture.audioFileName ? '🔊 ' + escapeHtml(lecture.audioFileName) : msgs.noAudio}
+              ${lecture.duration ? ' | ' + formatDuration(lecture.duration) : ''}
+            </div>
+          </div>
+          <div class="assign-form">
+            <input type="number" id="num-${escapeHtml(lecture._id)}" placeholder="#" min="1" title="${msgs.lectureNum}">
+            <button class="assign-btn" onclick="assignLecture('${escapeHtml(lecture._id)}')">
+              ${msgs.addToSeries}
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function formatDuration(seconds) {
+      if (!seconds) return '';
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = Math.floor(seconds % 60);
+      if (hrs > 0) {
+        return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function filterUnassociated() {
+      const searchTerm = document.getElementById('searchUnassociated').value.toLowerCase();
+
+      const filtered = unassociatedLectures.filter(lecture => {
+        const title = (lecture.titleArabic || '').toLowerCase();
+        const audio = (lecture.audioFileName || '').toLowerCase();
+        return title.includes(searchTerm) || audio.includes(searchTerm);
+      });
+
+      renderUnassociatedLectures(filtered);
+    }
+
+    async function assignLecture(lectureId) {
+      const numInput = document.getElementById(`num-${lectureId}`);
+      const lectureNumber = numInput ? numInput.value : null;
+      const btn = event.target;
+
+      btn.disabled = true;
+      btn.textContent = '⏳...';
+
+      try {
+        const response = await fetch(`/admin/lectures/${lectureId}/assign-to-series`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            seriesId: seriesId,
+            lectureNumber: lectureNumber || null
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Remove from unassociated list
+          const item = document.querySelector(`.unassociated-item[data-id="${lectureId}"]`);
+          if (item) {
+            item.style.transition = 'opacity 0.3s, transform 0.3s';
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(-20px)';
+            setTimeout(() => {
+              item.remove();
+              // Update local array
+              unassociatedLectures = unassociatedLectures.filter(l => l._id !== lectureId);
+              if (unassociatedLectures.length === 0) {
+                document.getElementById('unassociatedList').innerHTML =
+                  '<div class="no-unassociated">' + msgs.noUnassociated + '</div>';
+              }
+            }, 300);
+          }
+
+          // Show success and suggest refresh
+          alert(msgs.addSuccess);
+        } else {
+          btn.disabled = false;
+          btn.textContent = msgs.addToSeries;
+          alert(msgs.addFailed + (result.error || msgs.unknownError));
+        }
+      } catch (error) {
+        console.error('Assign lecture error:', error);
+        btn.disabled = false;
+        btn.textContent = msgs.addToSeries;
+        alert(msgs.connError);
+      }
+    }
+
+    // ========== Toggle Publish ==========
+    async function togglePublish(lectureId) {
+      const btn = document.getElementById(`publish-btn-${lectureId}`);
+      const statusBadge = document.querySelector(`.lecture-item[data-id="${lectureId}"] .status-badge`);
+
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = '⏳';
+
+      try {
+        const response = await fetch(`/admin/lectures/${lectureId}/toggle-published`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Update button appearance
+          if (result.published) {
+            btn.classList.remove('draft');
+            btn.textContent = '👁';
+            btn.title = isArabic ? 'إلغاء النشر' : 'Unpublish';
+            statusBadge.className = 'status-badge status-published';
+            statusBadge.textContent = msgs.published;
+          } else {
+            btn.classList.add('draft');
+            btn.textContent = '👁‍🗨';
+            btn.title = isArabic ? 'نشر' : 'Publish';
+            statusBadge.className = 'status-badge status-draft';
+            statusBadge.textContent = msgs.draft;
+          }
+        } else {
+          btn.textContent = originalText;
+          alert(msgs.publishFailed);
+        }
+      } catch (error) {
+        console.error('Toggle publish error:', error);
+        btn.textContent = originalText;
+        alert(msgs.connError);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ========== Inline Audio Upload ==========
+    function uploadLectureAudio(lectureId, fileInput) {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const uploadBtn = document.getElementById(`upload-btn-${lectureId}`);
+      const progressDiv = document.getElementById(`progress-${lectureId}`);
+      const progressBar = document.getElementById(`progress-bar-${lectureId}`);
+      const audioStatus = document.getElementById(`audio-status-${lectureId}`);
+
+      // Disable upload button
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = '⏳';
+
+      // Show progress bar
+      progressDiv.classList.add('visible');
+      progressBar.style.width = '0%';
+      progressBar.className = 'inline-progress-bar';
+
+      // Update status
+      audioStatus.className = 'audio-status audio-uploading';
+      audioStatus.textContent = msgs.uploading;
+
+      // Create FormData
+      const formData = new FormData();
+      formData.append('audioFile', file);
+
+      // Create XHR for progress tracking
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          progressBar.style.width = percent + '%';
+
+          if (percent >= 100) {
+            audioStatus.textContent = msgs.processing;
+          }
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        try {
+          const response = JSON.parse(xhr.responseText);
+
+          if (xhr.status === 200 && response.success) {
+            // Success
+            progressBar.style.width = '100%';
+            progressBar.classList.add('success');
+            audioStatus.className = 'audio-status audio-has';
+            audioStatus.textContent = msgs.hasAudio;
+
+            // Show brief success message
+            uploadBtn.textContent = '✓';
+            setTimeout(() => {
+              uploadBtn.textContent = '📤';
+              uploadBtn.disabled = false;
+              progressDiv.classList.remove('visible');
+            }, 2000);
+
+            // Verify duration from the uploaded URL
+            verifyUploadedDuration(lectureId, response.audioUrl);
+
+          } else {
+            // Error
+            showUploadError(lectureId, response.error || msgs.unknownError);
+          }
+        } catch (e) {
+          showUploadError(lectureId, isArabic ? 'خطأ في معالجة الاستجابة' : 'Error processing response');
+        }
+
+        // Reset file input
+        fileInput.value = '';
+      });
+
+      xhr.addEventListener('error', () => {
+        showUploadError(lectureId, isArabic ? 'فشل الاتصال' : 'Connection failed');
+        fileInput.value = '';
+      });
+
+      xhr.addEventListener('timeout', () => {
+        showUploadError(lectureId, isArabic ? 'انتهت المهلة' : 'Timeout');
+        fileInput.value = '';
+      });
+
+      // Send request
+      xhr.open('POST', `/admin/api/lectures/${lectureId}/upload-audio`);
+      xhr.timeout = 600000; // 10 minutes
+      xhr.send(formData);
+    }
+
+    function showUploadError(lectureId, message) {
+      const uploadBtn = document.getElementById(`upload-btn-${lectureId}`);
+      const progressDiv = document.getElementById(`progress-${lectureId}`);
+      const progressBar = document.getElementById(`progress-bar-${lectureId}`);
+      const audioStatus = document.getElementById(`audio-status-${lectureId}`);
+
+      progressBar.classList.add('error');
+      audioStatus.className = 'audio-status audio-none';
+      audioStatus.textContent = msgs.uploadFailed;
+
+      uploadBtn.textContent = '📤';
+      uploadBtn.disabled = false;
+
+      setTimeout(() => {
+        progressDiv.classList.remove('visible');
+        audioStatus.textContent = msgs.noAudioStatus;
+      }, 3000);
+
+      console.error('Upload error:', message);
+    }
+
+    function verifyUploadedDuration(lectureId, audioUrl) {
+      const audio = new Audio();
+      audio.src = audioUrl;
+      audio.addEventListener('loadedmetadata', () => {
+        const duration = Math.floor(audio.duration);
+
+        // Update duration in lecture meta
+        const lectureItem = document.querySelector(`.lecture-item[data-id="${lectureId}"]`);
+        if (lectureItem) {
+          const metaDiv = lectureItem.querySelector('.lecture-meta');
+          const durationLabel = msgs.duration;
+          if (metaDiv && !metaDiv.textContent.includes(durationLabel)) {
+            const hrs = Math.floor(duration / 3600);
+            const mins = Math.floor((duration % 3600) / 60);
+            const secs = duration % 60;
+            const timeStr = hrs > 0
+              ? `${hrs}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+              : `${mins}:${String(secs).padStart(2, '0')}`;
+            metaDiv.innerHTML += ` | ${durationLabel}: ${timeStr}`;
+          }
+        }
+
+        // Send to server to update database
+        fetch(`/api/lectures/${lectureId}/verify-duration`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ duration: duration })
+        }).catch(err => console.error('Duration verify error:', err));
+      });
+    }
+  </script>
+</body>
+</html>

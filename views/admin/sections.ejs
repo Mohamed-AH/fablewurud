@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= adminLocale === 'ar' ? 'إدارة الأقسام' : 'Manage Sections' %> - <%= t('admin_title') %></title>
+  <style>
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    [dir="rtl"] .page-header {
+      flex-direction: row-reverse;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 600;
+      color: #1A5F5A;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    [dir="rtl"] .header-actions {
+      flex-direction: row-reverse;
+    }
+
+    .btn-primary {
+      background: #1A5F5A;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      background: #155450;
+    }
+
+    .btn-secondary {
+      background: #C19A6B;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: #A8845C;
+    }
+
+    .sections-table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .sections-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .sections-table th,
+    .sections-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #eee;
+    }
+
+    [dir="rtl"] .sections-table th,
+    [dir="rtl"] .sections-table td {
+      text-align: right;
+    }
+
+    [dir="ltr"] .sections-table th,
+    [dir="ltr"] .sections-table td {
+      text-align: left;
+    }
+
+    .sections-table th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #1A5F5A;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .sections-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .sections-table tr:hover td {
+      background: #f8f9fa;
+    }
+
+    .icon-cell {
+      font-size: 24px;
+      width: 50px;
+      text-align: center !important;
+    }
+
+    .title-cell {
+      font-weight: 500;
+    }
+
+    .count-badge {
+      display: inline-block;
+      background: #e3f2fd;
+      color: #1565c0;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-inactive {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-default {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    [dir="rtl"] .actions-cell {
+      flex-direction: row-reverse;
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      display: inline-block;
+    }
+
+    .btn-edit {
+      background: #ffc107;
+      color: #333;
+    }
+
+    .btn-edit:hover {
+      background: #e0a800;
+    }
+
+    .btn-manage {
+      background: #17a2b8;
+      color: white;
+    }
+
+    .btn-manage:hover {
+      background: #138496;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .btn-order {
+      background: #f0f0f0;
+      color: #333;
+      border: 1px solid #ddd;
+      padding: 4px 8px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .btn-order:hover {
+      background: #e0e0e0;
+    }
+
+    .btn-order:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .order-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      width: 35px;
+    }
+
+    .unassigned-banner {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 14px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    [dir="rtl"] .unassigned-banner {
+      flex-direction: row-reverse;
+    }
+
+    .unassigned-banner .text {
+      color: #856404;
+      font-weight: 500;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .empty-state h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #666;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    @media (max-width: 768px) {
+      .sections-table {
+        overflow-x: auto;
+      }
+
+      .hide-mobile {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'sections' }) %>
+
+  <main class="admin-container">
+    <div class="page-header">
+      <h2 class="page-title"><%= adminLocale === 'ar' ? 'إدارة الأقسام' : 'Manage Sections' %></h2>
+      <div class="header-actions">
+        <a href="/admin/homepage-config" class="btn-secondary"><%= adminLocale === 'ar' ? 'إعدادات الصفحة' : 'Homepage Config' %></a>
+        <a href="/admin/sections/new" class="btn-primary">+ <%= adminLocale === 'ar' ? 'قسم جديد' : 'New Section' %></a>
+      </div>
+    </div>
+
+    <% if (success) { %>
+      <div class="alert alert-success">
+        <% if (success === 'section_created') { %><%= adminLocale === 'ar' ? 'تم إنشاء القسم بنجاح!' : 'Section created successfully!' %><% } %>
+        <% if (success === 'section_updated') { %><%= adminLocale === 'ar' ? 'تم تحديث القسم بنجاح!' : 'Section updated successfully!' %><% } %>
+        <% if (success === 'section_deleted') { %><%= adminLocale === 'ar' ? 'تم حذف القسم بنجاح!' : 'Section deleted successfully!' %><% } %>
+      </div>
+    <% } %>
+
+    <% if (error) { %>
+      <div class="alert alert-danger">
+        <% if (error === 'not_found') { %><%= adminLocale === 'ar' ? 'القسم غير موجود.' : 'Section not found.' %><% } %>
+        <% if (error === 'cannot_delete_default') { %><%= adminLocale === 'ar' ? 'لا يمكن حذف الأقسام الافتراضية.' : 'Cannot delete default sections.' %><% } %>
+        <% if (error === 'create_failed') { %><%= adminLocale === 'ar' ? 'فشل في إنشاء القسم.' : 'Failed to create section.' %><% } %>
+        <% if (error === 'update_failed') { %><%= adminLocale === 'ar' ? 'فشل في تحديث القسم.' : 'Failed to update section.' %><% } %>
+        <% if (error === 'delete_failed') { %><%= adminLocale === 'ar' ? 'فشل في حذف القسم.' : 'Failed to delete section.' %><% } %>
+      </div>
+    <% } %>
+
+    <% if (unassignedCount > 0) { %>
+      <div class="unassigned-banner">
+        <span class="text"><%= adminLocale === 'ar' ? `${unassignedCount} سلسلة بدون قسم` : `${unassignedCount} series not assigned to any section` %></span>
+      </div>
+    <% } %>
+
+    <% if (sections && sections.length > 0) { %>
+      <div class="sections-table">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:50px"><%= adminLocale === 'ar' ? 'ترتيب' : 'Order' %></th>
+              <th style="width:50px"></th>
+              <th><%= adminLocale === 'ar' ? 'العنوان (عربي)' : 'Title (AR)' %></th>
+              <th class="hide-mobile"><%= adminLocale === 'ar' ? 'العنوان (إنجليزي)' : 'Title (EN)' %></th>
+              <th><%= adminLocale === 'ar' ? 'السلاسل' : 'Series' %></th>
+              <th><%= adminLocale === 'ar' ? 'الحالة' : 'Status' %></th>
+              <th><%= adminLocale === 'ar' ? 'إجراءات' : 'Actions' %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% sections.forEach(function(section, index) { %>
+              <tr>
+                <td>
+                  <div class="order-cell">
+                    <button class="btn-order" onclick="moveSection('<%= section._id %>', 'up')" <%= index === 0 ? 'disabled' : '' %>>&#9650;</button>
+                    <button class="btn-order" onclick="moveSection('<%= section._id %>', 'down')" <%= index === sections.length - 1 ? 'disabled' : '' %>>&#9660;</button>
+                  </div>
+                </td>
+                <td class="icon-cell"><%= section.icon %></td>
+                <td class="title-cell"><%= section.title.ar %></td>
+                <td class="title-cell hide-mobile"><%= section.title.en %></td>
+                <td>
+                  <a href="/admin/sections/<%= section._id %>/series" style="text-decoration:none;">
+                    <span class="count-badge"><%= section.seriesCount %></span>
+                  </a>
+                </td>
+                <td>
+                  <% if (section.isDefault) { %>
+                    <span class="status-badge status-default"><%= adminLocale === 'ar' ? 'افتراضي' : 'Default' %></span>
+                  <% } %>
+                  <span class="status-badge <%= section.isVisible ? 'status-active' : 'status-inactive' %>">
+                    <%= section.isVisible ? (adminLocale === 'ar' ? 'ظاهر' : 'Visible') : (adminLocale === 'ar' ? 'مخفي' : 'Hidden') %>
+                  </span>
+                </td>
+                <td>
+                  <div class="actions-cell">
+                    <a href="/admin/sections/<%= section._id %>/series" class="btn-sm btn-manage"><%= adminLocale === 'ar' ? 'محتوى' : 'Content' %></a>
+                    <a href="/admin/sections/<%= section._id %>/edit" class="btn-sm btn-edit"><%= adminLocale === 'ar' ? 'تعديل' : 'Edit' %></a>
+                    <% if (!section.isDefault) { %>
+                      <form action="/admin/sections/<%= section._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('<%= adminLocale === 'ar' ? 'هل أنت متأكد؟ سيتم إلغاء تعيين جميع السلاسل.' : 'Are you sure? All series will be unassigned.' %>');">
+                        <button type="submit" class="btn-sm btn-danger"><%= adminLocale === 'ar' ? 'حذف' : 'Delete' %></button>
+                      </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <h3><%= adminLocale === 'ar' ? 'لا توجد أقسام بعد' : 'No sections yet' %></h3>
+        <p><%= adminLocale === 'ar' ? 'أنشئ قسمك الأول لتنظيم السلاسل في الصفحة الرئيسية.' : 'Create your first section to organize series on the homepage.' %></p>
+        <a href="/admin/sections/new" class="btn-primary" style="margin-top:16px;display:inline-block;">+ <%= adminLocale === 'ar' ? 'قسم جديد' : 'New Section' %></a>
+      </div>
+    <% } %>
+  </main>
+
+  <script>
+    const isArabic = '<%= adminLocale %>' === 'ar';
+
+    function moveSection(sectionId, direction) {
+      const rows = document.querySelectorAll('tbody tr');
+      const ids = Array.from(rows).map((row, i) => {
+        const btn = row.querySelector('.btn-order');
+        const onclick = btn ? btn.getAttribute('onclick') : '';
+        const match = onclick.match(/'([^']+)'/);
+        return match ? match[1] : null;
+      });
+
+      const currentIndex = ids.indexOf(sectionId);
+      if (currentIndex === -1) return;
+
+      const swapIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      if (swapIndex < 0 || swapIndex >= ids.length) return;
+
+      // Build new order
+      const order = ids.map((id, i) => {
+        if (i === currentIndex) return { id: ids[swapIndex], order: i };
+        if (i === swapIndex) return { id: ids[currentIndex], order: i };
+        return { id, order: i };
+      });
+
+      fetch('/admin/sections/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          window.location.reload();
+        } else {
+          alert(isArabic ? 'فشل في إعادة الترتيب' : 'Failed to reorder');
+        }
+      })
+      .catch(() => alert(isArabic ? 'حدث خطأ' : 'An error occurred'));
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= isEdit ? (adminLocale === 'ar' ? 'تعديل القسم' : 'Edit Section') : (adminLocale === 'ar' ? 'قسم جديد' : 'New Section') %> - <%= t('admin_title') %></title>
+  <style>
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    [dir="rtl"] .page-header {
+      flex-direction: row-reverse;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 600;
+      color: #1A5F5A;
+    }
+
+    .back-link {
+      color: #1A5F5A;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .form-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      max-width: 700px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    [dir="rtl"] .form-group input,
+    [dir="rtl"] .form-group textarea {
+      text-align: right;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #1A5F5A;
+      box-shadow: 0 0 0 2px rgba(26, 95, 90, 0.15);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 20px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    .form-hint {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    [dir="rtl"] .toggle-group {
+      flex-direction: row-reverse;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      border-radius: 26px;
+      transition: .3s;
+    }
+
+    .toggle-slider::before {
+      content: "";
+      position: absolute;
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .3s;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #1A5F5A;
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(22px);
+    }
+
+    .toggle-label {
+      font-weight: 500;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .icon-preview {
+      font-size: 40px;
+      margin-top: 6px;
+      display: inline-block;
+    }
+
+    .btn-submit {
+      background: #1A5F5A;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      background: #155450;
+    }
+
+    .btn-cancel {
+      background: #f0f0f0;
+      color: #333;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 10px;
+    }
+
+    .btn-cancel:hover {
+      background: #e0e0e0;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    [dir="rtl"] .form-actions {
+      flex-direction: row-reverse;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        flex-direction: column;
+        gap: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'sections' }) %>
+
+  <main class="admin-container">
+    <div class="page-header">
+      <h2 class="page-title"><%= isEdit ? (adminLocale === 'ar' ? 'تعديل القسم' : 'Edit Section') : (adminLocale === 'ar' ? 'قسم جديد' : 'New Section') %></h2>
+      <a href="/admin/sections" class="back-link"><%= adminLocale === 'ar' ? '← العودة للأقسام' : '← Back to Sections' %></a>
+    </div>
+
+    <div class="form-card">
+      <form method="POST" action="<%= isEdit ? `/admin/sections/${section._id}` : '/admin/sections/new' %>">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><%= adminLocale === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)' %> *</label>
+            <input type="text" name="titleAr" dir="rtl" required value="<%= isEdit ? section.title.ar : '' %>" placeholder="السلاسل الجارية">
+          </div>
+          <div class="form-group">
+            <label><%= adminLocale === 'ar' ? 'العنوان (إنجليزي)' : 'Title (English)' %> *</label>
+            <input type="text" name="titleEn" dir="ltr" required value="<%= isEdit ? section.title.en : '' %>" placeholder="Active Series">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><%= adminLocale === 'ar' ? 'الأيقونة' : 'Icon (Emoji)' %></label>
+            <input type="text" name="icon" value="<%= isEdit ? section.icon : '📚' %>" style="width:80px;font-size:24px;text-align:center;" id="iconInput">
+            <span class="icon-preview" id="iconPreview"><%= isEdit ? section.icon : '📚' %></span>
+            <div class="form-hint"><%= adminLocale === 'ar' ? 'أدخل رمز إيموجي واحد' : 'Enter a single emoji character' %></div>
+          </div>
+          <div class="form-group">
+            <label><%= adminLocale === 'ar' ? 'عدد العناصر المعروضة' : 'Max Visible Items' %></label>
+            <input type="number" name="maxVisible" min="1" max="50" value="<%= isEdit ? section.maxVisible : 5 %>">
+            <div class="form-hint"><%= adminLocale === 'ar' ? 'باقي العناصر تظهر بزر "عرض المزيد"' : 'Remaining items shown via "Show more" button' %></div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><%= adminLocale === 'ar' ? 'الوصف (عربي)' : 'Description (Arabic)' %></label>
+            <textarea name="descriptionAr" dir="rtl" rows="2"><%= isEdit && section.description ? section.description.ar || '' : '' %></textarea>
+          </div>
+          <div class="form-group">
+            <label><%= adminLocale === 'ar' ? 'الوصف (إنجليزي)' : 'Description (English)' %></label>
+            <textarea name="descriptionEn" dir="ltr" rows="2"><%= isEdit && section.description ? section.description.en || '' : '' %></textarea>
+          </div>
+        </div>
+
+        <% if (isEdit) { %>
+          <div class="toggle-group">
+            <label class="toggle-switch">
+              <input type="checkbox" name="isVisible" <%= section.isVisible ? 'checked' : '' %>>
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label"><%= adminLocale === 'ar' ? 'ظاهر في الصفحة الرئيسية' : 'Visible on homepage' %></span>
+          </div>
+        <% } %>
+
+        <div class="toggle-group">
+          <label class="toggle-switch">
+            <input type="checkbox" name="collapsedByDefault" <%= isEdit && section.collapsedByDefault ? 'checked' : '' %>>
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label"><%= adminLocale === 'ar' ? 'مطوي افتراضيًا' : 'Collapsed by default' %></span>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-submit"><%= isEdit ? (adminLocale === 'ar' ? 'حفظ التعديلات' : 'Save Changes') : (adminLocale === 'ar' ? 'إنشاء القسم' : 'Create Section') %></button>
+          <a href="/admin/sections" class="btn-cancel"><%= adminLocale === 'ar' ? 'إلغاء' : 'Cancel' %></a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('iconInput').addEventListener('input', function() {
+      document.getElementById('iconPreview').textContent = this.value || '📚';
+    });
+  </script>
+</body>
+</html>

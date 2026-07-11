@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('admin_articles_title') %> - <%= t('admin_title') %></title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <% if (adminIsRTL) { %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <% } %>
+  <style>
+    .articles-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-mini {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-mini .number {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2C1508;
+    }
+    .stat-mini .label {
+      font-size: 12px;
+      color: #666;
+    }
+    .filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+    .filters-bar input,
+    .filters-bar select {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .filters-bar input[type="text"] {
+      min-width: 200px;
+    }
+    .bulk-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .bulk-actions button {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .bulk-actions button:hover {
+      background: #f0f0f0;
+    }
+    .bulk-actions button.danger {
+      color: #c00;
+      border-color: #c00;
+    }
+    .bulk-actions button.danger:hover {
+      background: #fee;
+    }
+    .article-row {
+      display: grid;
+      grid-template-columns: 40px 1fr 100px 100px 100px 120px;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #eee;
+      align-items: center;
+    }
+    .article-row:hover {
+      background: #fafafa;
+    }
+    .article-row.header {
+      background: #f5f5f5;
+      font-weight: 600;
+      font-size: 13px;
+      color: #666;
+    }
+    .article-title {
+      direction: rtl;
+      text-align: right;
+    }
+    .article-title a {
+      color: #2C1508;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .article-title a:hover {
+      color: #C49A3C;
+    }
+    .article-title .summary {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-asdaa {
+      background: #E8D5A0;
+      color: #7A5C3A;
+    }
+    .badge-telegram {
+      background: #6B7A4E;
+      color: #fff;
+    }
+    .badge-published {
+      background: #d4edda;
+      color: #155724;
+    }
+    .badge-draft {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .actions-cell {
+      display: flex;
+      gap: 6px;
+    }
+    .actions-cell a,
+    .actions-cell button {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #ddd;
+      background: #fff;
+      cursor: pointer;
+    }
+    .actions-cell a:hover,
+    .actions-cell button:hover {
+      background: #f0f0f0;
+    }
+    .actions-cell .delete-btn {
+      color: #c00;
+      border-color: #c00;
+    }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .pagination a,
+    .pagination span {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-decoration: none;
+      color: #333;
+    }
+    .pagination a:hover {
+      background: #f0f0f0;
+    }
+    .pagination .active {
+      background: #C49A3C;
+      color: #fff;
+      border-color: #C49A3C;
+    }
+    .pagination .disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .add-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      background: #C49A3C;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .add-btn:hover {
+      background: #a8832f;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 768px) {
+      .article-row {
+        grid-template-columns: 30px 1fr;
+        gap: 8px;
+      }
+      .article-row .hide-mobile {
+        display: none;
+      }
+      .filters-bar {
+        flex-direction: column;
+      }
+      .filters-bar input[type="text"] {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <main class="admin-container">
+    <div class="header-row">
+      <h2><%= t('admin_articles_title') %></h2>
+      <a href="/admin/articles/new" class="add-btn">
+        <span>+</span> <%= t('admin_articles_add') %>
+      </a>
+    </div>
+
+    <% if (success) { %>
+      <div class="alert alert-success">
+        <% if (success === 'article_created') { %><%= t('admin_msg_created') %>
+        <% } else if (success === 'article_updated') { %><%= t('admin_msg_updated') %>
+        <% } else if (success === 'article_deleted') { %><%= t('admin_msg_deleted') %>
+        <% } else { %><%= success %><% } %>
+      </div>
+    <% } %>
+
+    <% if (error) { %>
+      <div class="alert alert-error">
+        <% if (error === 'not_found') { %>Article not found
+        <% } else { %><%= t('admin_msg_error') %>: <%= error %><% } %>
+      </div>
+    <% } %>
+
+    <div class="articles-stats">
+      <div class="stat-mini">
+        <div class="number"><%= stats.total %></div>
+        <div class="label"><%= t('admin_total_articles') %></div>
+      </div>
+      <div class="stat-mini">
+        <div class="number"><%= stats.published %></div>
+        <div class="label"><%= t('admin_published') %></div>
+      </div>
+      <div class="stat-mini">
+        <div class="number"><%= stats.draft %></div>
+        <div class="label"><%= t('admin_unpublished') %></div>
+      </div>
+      <div class="stat-mini">
+        <div class="number"><%= stats.asdaa %></div>
+        <div class="label"><%= t('admin_articles_type_asdaa') %></div>
+      </div>
+      <div class="stat-mini">
+        <div class="number"><%= stats.telegram %></div>
+        <div class="label"><%= t('admin_articles_type_telegram') %></div>
+      </div>
+    </div>
+
+    <form method="GET" action="/admin/articles" class="filters-bar">
+      <input type="text" name="search" placeholder="<%= t('admin_btn_search') %>..." value="<%= filters.search || '' %>">
+      <select name="type">
+        <option value="all"><%= t('admin_articles_type') %>: All</option>
+        <option value="Asdaa" <%= filters.type === 'Asdaa' ? 'selected' : '' %>><%= t('admin_articles_type_asdaa') %></option>
+        <option value="TelegramArticle" <%= filters.type === 'TelegramArticle' ? 'selected' : '' %>><%= t('admin_articles_type_telegram') %></option>
+      </select>
+      <select name="status">
+        <option value="all"><%= t('admin_th_status') %>: All</option>
+        <option value="published" <%= filters.status === 'published' ? 'selected' : '' %>><%= t('admin_status_published') %></option>
+        <option value="draft" <%= filters.status === 'draft' ? 'selected' : '' %>><%= t('admin_status_draft') %></option>
+      </select>
+      <select name="sort">
+        <option value="newest">Newest First</option>
+        <option value="oldest" <%= filters.sort === 'oldest' ? 'selected' : '' %>>Oldest First</option>
+        <option value="title" <%= filters.sort === 'title' ? 'selected' : '' %>>Title A-Z</option>
+        <option value="updated" <%= filters.sort === 'updated' ? 'selected' : '' %>>Recently Updated</option>
+      </select>
+      <button type="submit"><%= t('admin_btn_filter') %></button>
+      <a href="/admin/articles" style="padding: 8px 12px;"><%= t('admin_btn_reset') %></a>
+    </form>
+
+    <div class="bulk-actions">
+      <label>
+        <input type="checkbox" id="selectAll"> Select All
+      </label>
+      <button type="button" onclick="bulkAction('publish')"><%= t('admin_articles_bulk_publish') %></button>
+      <button type="button" onclick="bulkAction('unpublish')"><%= t('admin_articles_bulk_unpublish') %></button>
+      <button type="button" class="danger" onclick="bulkAction('delete')"><%= t('admin_articles_bulk_delete') %></button>
+      <span id="selectedCount" style="margin-left: 10px; color: #666;"></span>
+    </div>
+
+    <div class="articles-table">
+      <div class="article-row header">
+        <div></div>
+        <div><%= t('admin_th_title') %></div>
+        <div class="hide-mobile"><%= t('admin_articles_type') %></div>
+        <div class="hide-mobile"><%= t('admin_th_status') %></div>
+        <div class="hide-mobile"><%= t('admin_th_date') %></div>
+        <div><%= t('admin_th_actions') %></div>
+      </div>
+
+      <% if (articles.length === 0) { %>
+        <div style="padding: 40px; text-align: center; color: #888;">
+          <%= t('admin_articles_no_articles') %>
+        </div>
+      <% } else { %>
+        <% articles.forEach(article => { %>
+          <div class="article-row">
+            <div>
+              <input type="checkbox" class="article-checkbox" value="<%= article._id %>">
+            </div>
+            <div class="article-title">
+              <a href="/admin/articles/<%= article._id %>/edit"><%= article.title %></a>
+              <% if (article.summary) { %>
+                <div class="summary"><%= article.summary %></div>
+              <% } %>
+            </div>
+            <div class="hide-mobile">
+              <span class="badge badge-<%= article.type === 'TelegramArticle' ? 'telegram' : 'asdaa' %>">
+                <%= article.type === 'TelegramArticle' ? t('admin_articles_type_telegram') : t('admin_articles_type_asdaa') %>
+              </span>
+            </div>
+            <div class="hide-mobile">
+              <span class="badge badge-<%= article.isPublished ? 'published' : 'draft' %>">
+                <%= article.isPublished ? t('admin_status_published') : t('admin_status_draft') %>
+              </span>
+            </div>
+            <div class="hide-mobile">
+              <% if (article.publishedAt) { %>
+                <%= new Date(article.publishedAt).toLocaleDateString('en-GB') %>
+              <% } %>
+            </div>
+            <div class="actions-cell">
+              <a href="/admin/articles/<%= article._id %>/edit"><%= t('admin_btn_edit') %></a>
+              <a href="/articles/<%= article.slug || article.shortId || article._id %>" target="_blank"><%= t('admin_btn_view') %></a>
+              <button type="button" class="delete-btn" onclick="deleteArticle('<%= article._id %>')"><%= t('admin_btn_delete') %></button>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+
+    <% if (pagination.totalPages > 1) { %>
+      <div class="pagination">
+        <% if (pagination.hasPrev) { %>
+          <a href="/admin/articles?page=<%= pagination.currentPage - 1 %>&search=<%= filters.search || '' %>&type=<%= filters.type || 'all' %>&status=<%= filters.status || 'all' %>&sort=<%= filters.sort || 'newest' %>">
+            &laquo; <%= t('admin_btn_previous') %>
+          </a>
+        <% } else { %>
+          <span class="disabled">&laquo; <%= t('admin_btn_previous') %></span>
+        <% } %>
+
+        <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+          <% if (i === pagination.currentPage) { %>
+            <span class="active"><%= i %></span>
+          <% } else if (Math.abs(i - pagination.currentPage) <= 2 || i === 1 || i === pagination.totalPages) { %>
+            <a href="/admin/articles?page=<%= i %>&search=<%= filters.search || '' %>&type=<%= filters.type || 'all' %>&status=<%= filters.status || 'all' %>&sort=<%= filters.sort || 'newest' %>"><%= i %></a>
+          <% } else if (Math.abs(i - pagination.currentPage) === 3) { %>
+            <span>...</span>
+          <% } %>
+        <% } %>
+
+        <% if (pagination.hasNext) { %>
+          <a href="/admin/articles?page=<%= pagination.currentPage + 1 %>&search=<%= filters.search || '' %>&type=<%= filters.type || 'all' %>&status=<%= filters.status || 'all' %>&sort=<%= filters.sort || 'newest' %>">
+            <%= t('admin_btn_next') %> &raquo;
+          </a>
+        <% } else { %>
+          <span class="disabled"><%= t('admin_btn_next') %> &raquo;</span>
+        <% } %>
+      </div>
+    <% } %>
+  </main>
+
+  <script>
+    // Select all checkbox
+    document.getElementById('selectAll').addEventListener('change', function() {
+      const checkboxes = document.querySelectorAll('.article-checkbox');
+      checkboxes.forEach(cb => cb.checked = this.checked);
+      updateSelectedCount();
+    });
+
+    // Individual checkbox change
+    document.querySelectorAll('.article-checkbox').forEach(cb => {
+      cb.addEventListener('change', updateSelectedCount);
+    });
+
+    function updateSelectedCount() {
+      const selected = document.querySelectorAll('.article-checkbox:checked').length;
+      document.getElementById('selectedCount').textContent = selected > 0 ? `${selected} selected` : '';
+    }
+
+    function getSelectedIds() {
+      return Array.from(document.querySelectorAll('.article-checkbox:checked')).map(cb => cb.value);
+    }
+
+    async function bulkAction(action) {
+      const ids = getSelectedIds();
+      if (ids.length === 0) {
+        alert('Please select at least one article');
+        return;
+      }
+
+      if (action === 'delete') {
+        if (!confirm(`Are you sure you want to delete ${ids.length} article(s)?`)) {
+          return;
+        }
+      }
+
+      try {
+        const response = await fetch('/admin/articles/bulk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ action, articleIds: ids })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          window.location.reload();
+        } else {
+          alert(result.message || 'Operation failed');
+        }
+      } catch (error) {
+        console.error('Bulk action error:', error);
+        alert('An error occurred');
+      }
+    }
+
+    async function deleteArticle(id) {
+      if (!confirm('<%= t("admin_msg_confirm_delete") %>')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/admin/articles/${id}/delete`, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          window.location.reload();
+        } else {
+          alert(result.message || 'Delete failed');
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        alert('An error occurred');
+      }
+    }
+  </script>
+</body>
+</html>

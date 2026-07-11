@@ -1,0 +1,4177 @@
+<style>
+  /* Search Hero Section - Redesigned per design handoff */
+  .search-hero {
+    background: linear-gradient(to left, var(--redesign-brown-dark, #2C1508) 0%, #3D1E0A 28%, #5E6B3D 62%, var(--redesign-sage, #6B7A4E) 100%);
+    padding: 64px 0 56px;
+    text-align: center;
+    position: relative;
+  }
+
+  .search-hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(to left, transparent 0%, var(--redesign-gold-primary, #C49A3C) 20%, var(--redesign-gold-primary, #C49A3C) 80%, transparent 100%);
+  }
+
+  /* Calligraphy watermark background */
+  .search-hero::before {
+    content: '﷽';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 200px;
+    color: rgba(255, 255, 255, 0.02);
+    font-family: var(--font-arabic-display);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .search-hero > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .search-hero-quote {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 38px;
+    font-weight: 800;
+    color: var(--redesign-card-bg, #FDF8F2);
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .search-hero-subheading {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 15px;
+    font-weight: 400;
+    color: rgba(245, 237, 224, 0.7);
+    margin-bottom: 36px;
+    line-height: 1.6;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .search-container {
+    max-width: 580px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+  }
+
+  .search-input {
+    flex: 1;
+    padding: 0 20px;
+    height: 52px;
+    border: none;
+    border-radius: 0 10px 10px 0;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 15px;
+    background: var(--redesign-card-bg, #FDF8F2);
+    color: var(--redesign-brown-dark, #2C1508);
+    direction: rtl;
+  }
+
+  .search-input::placeholder {
+    color: var(--redesign-text-muted, #A89070);
+  }
+
+  .search-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(193, 154, 107, 0.3), 0 8px 24px rgba(92, 64, 51, 0.15);
+  }
+
+  .search-btn {
+    padding: 0 28px;
+    height: 52px;
+    background: var(--redesign-gold-primary, #C49A3C);
+    color: var(--redesign-card-bg, #FDF8F2);
+    border: none;
+    border-radius: 10px 0 0 10px;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .search-btn:hover {
+    background: #B38A30;
+  }
+
+  /* Archive Stats Badge */
+  .archive-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 22px;
+    background: rgba(20, 10, 4, 0.5);
+    border: 1px solid rgba(196, 154, 60, 0.28);
+    border-radius: 24px;
+  }
+
+  .stat-link {
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .stat-link:hover {
+    background: rgba(196, 154, 60, 0.25);
+    border-color: rgba(196, 154, 60, 0.5);
+    transform: translateY(-2px);
+  }
+
+  .stat-icon {
+    color: var(--redesign-gold-light, #DEC99A);
+    display: flex;
+    align-items: center;
+  }
+
+  .stat-icon .lucide {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+  }
+
+  .stat-number {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--redesign-card-bg, #FDF8F2);
+    direction: ltr;
+  }
+
+  .stat-label {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(245, 237, 224, 0.55);
+  }
+
+  .stat-divider {
+    display: none;
+  }
+
+  /* Legacy support */
+  .lecture-count-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 32px;
+    padding: 20px 0;
+  }
+
+  .count-divider {
+    width: 48px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(180, 150, 110, 0.6), transparent);
+  }
+
+  .count-text {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .count-number {
+    font-family: var(--font-arabic-display);
+    font-size: 24px;
+    font-weight: 600;
+    color: rgba(250, 247, 242, 0.8);
+    letter-spacing: 0.5px;
+  }
+
+  .count-label {
+    font-family: var(--font-arabic-body);
+    font-size: 15px;
+    font-weight: 400;
+    color: rgba(250, 247, 242, 0.8);
+    letter-spacing: 0.3px;
+  }
+
+  /* Filter Panel - Redesigned per design handoff */
+  .filters-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 16px 20px 14px;
+    background: var(--redesign-card-bg, #FDF8F2);
+    border: 1px solid var(--redesign-badge-bg, #E8D5A0);
+    border-top: none;
+  }
+
+  .filter-group {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .filter-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .filter-label {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--redesign-text-muted, #A89070);
+    min-width: 50px;
+    flex-shrink: 0;
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    padding: 4px 13px;
+    border: none;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--redesign-text-mid, #7A5C3A);
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .chip:hover {
+    background: var(--redesign-badge-bg, #E8D5A0);
+  }
+
+  .chip.active {
+    background: var(--redesign-brown-dark, #2C1508);
+    color: var(--redesign-gold-primary, #C49A3C);
+    font-weight: 700;
+  }
+
+  .clear-filters-btn {
+    padding: 4px 13px;
+    border: none;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--redesign-text-muted, #A89070);
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: underline;
+  }
+
+  .clear-filters-btn:hover {
+    background: #dc3545;
+    color: white;
+  }
+
+  /* Minimized Title/Name Search Section - Inside filter panel */
+  .title-search-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  .title-search-wrapper {
+    position: relative;
+    background: var(--redesign-cream-bg, #F5EDE0);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .title-search-input {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 14px;
+    background: transparent;
+    color: var(--redesign-brown-dark, #2C1508);
+    direction: rtl;
+  }
+
+  .title-search-input::placeholder {
+    color: var(--redesign-text-muted, #A89070);
+    font-size: 14px;
+  }
+
+  .title-search-input:focus {
+    outline: none;
+  }
+
+  .title-search-icon {
+    font-size: 14px;
+    opacity: 0.6;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    order: -1;
+  }
+
+  .title-search-icon:hover {
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    .title-search-section {
+      padding: 0 14px;
+    }
+
+    .title-search-wrapper {
+      padding: 0 10px;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .title-search-input {
+      font-size: 13px;
+      padding: 9px 0;
+    }
+
+    /* Fix 1: Horizontal filter scroll */
+    .filter-group {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding-bottom: 4px;
+    }
+    .filter-group::-webkit-scrollbar {
+      display: none;
+    }
+    .filter-chips {
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+    .chip {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .filters-section {
+      padding: 12px 14px 10px;
+    }
+
+    /* Remove card container styling on mobile */
+    .tab-content .series-list {
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0 16px var(--space-xl);
+    }
+  }
+
+  /* Series Cards/Rows - Card container on desktop */
+  .series-list {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 32px var(--space-3xl);
+  }
+
+  .series-list > :first-child:not(.empty-state):not(.series-skeleton) {
+    margin-top: 0;
+  }
+
+  /* Card wrapper styling for the list */
+  .tab-content .series-list {
+    background: #FDF8F2;
+    border: 1px solid #DEC99A;
+    border-radius: 12px;
+    padding: 8px 24px;
+  }
+
+  /* Series Card - Redesigned per design handoff */
+  .series-card {
+    border-bottom: 1px solid #EDE4D3;
+    margin-bottom: 0;
+    padding: 18px 2px;
+  }
+
+  .series-card:last-child {
+    border-bottom: none;
+  }
+
+  .series-card::before {
+    display: none;
+  }
+
+  .series-card:hover {
+    background: rgba(196, 154, 60, 0.03);
+  }
+
+  .series-header {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+    padding: 0;
+    background: transparent;
+    border: none;
+  }
+
+  .series-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: right;
+  }
+
+  .series-title {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--redesign-brown-dark, #2C1508);
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .series-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .series-title a:hover {
+    color: var(--redesign-gold-primary, #C49A3C);
+  }
+
+  .series-sheikh {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--redesign-text-muted, #A89070);
+    line-height: 1.4;
+  }
+
+  .series-info {
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+    align-items: center;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: 0;
+    margin-top: 4px;
+  }
+
+  .series-lesson-count {
+    color: var(--redesign-text-mid, #7A5C3A);
+    font-weight: 500;
+  }
+
+  .category-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--redesign-gold-primary, #C49A3C);
+    color: var(--redesign-card-bg, #FDF8F2);
+    border: none;
+  }
+
+  .expand-btn {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: var(--redesign-card-bg, #FDF8F2);
+    border: 1px solid var(--redesign-gold-light, #DEC99A);
+    border-radius: 6px;
+    color: var(--redesign-brown-dark, #2C1508);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .expand-btn .expand-icon {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.5;
+  }
+
+  .expand-btn:hover {
+    background: var(--redesign-badge-bg, #E8D5A0);
+  }
+
+  .expand-btn.expanded {
+    background: var(--redesign-badge-bg, #E8D5A0);
+  }
+
+  /* Episodes List - CLS-safe animation approach */
+  .episodes-list {
+    background: var(--redesign-cream-bg, #F5EDE0);
+    border-radius: 8px;
+    margin-top: 16px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+    opacity: 0;
+  }
+
+  .episodes-list.show {
+    max-height: 10000px;
+    overflow: visible;
+    opacity: 1;
+    transition: max-height 0.5s ease-in, opacity 0.3s ease-in;
+  }
+
+  #content-khutbas .episodes-list.show {
+    max-height: 10000px;
+    overflow: visible;
+    opacity: 1;
+  }
+
+  .episode-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--redesign-badge-bg, #E8D5A0);
+    transition: background 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .episode-item:last-child {
+    border-bottom: none;
+  }
+
+  .episode-item:hover {
+    background: rgba(196, 154, 60, 0.06);
+  }
+
+  .episode-header {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .episode-number {
+    width: 28px;
+    height: 28px;
+    background: var(--redesign-gold-primary, #C49A3C);
+    color: var(--redesign-card-bg, #FDF8F2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .episode-title {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--redesign-brown-dark, #2C1508);
+    flex: 1;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .episode-meta {
+    display: none;
+  }
+
+  .episode-meta span:not(:last-child)::after {
+    display: none;
+  }
+
+  .hijri-date {
+    color: var(--redesign-text-mid, #7A5C3A);
+    font-weight: 500;
+  }
+
+  .episode-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .btn-play, .btn-download {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  .btn-play {
+    background: var(--redesign-gold-primary, #C49A3C);
+    color: var(--redesign-card-bg, #FDF8F2);
+    border: none;
+  }
+
+  .btn-play:hover {
+    background: #B38A30;
+  }
+
+  .btn-download {
+    background: transparent;
+    border: 1px solid var(--redesign-gold-primary, #C49A3C);
+    color: var(--redesign-gold-primary, #C49A3C);
+  }
+
+  .btn-download:hover {
+    background: var(--redesign-gold-primary, #C49A3C);
+    color: var(--redesign-card-bg, #FDF8F2);
+  }
+
+  .btn-play .lucide, .btn-download .lucide {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+  }
+
+  /* General inline icons */
+  .episode-meta .lucide,
+  .hijri-date .lucide,
+  .section-header .lucide,
+  .schedule-section-header .lucide {
+    width: 14px;
+    height: 14px;
+    margin-inline-end: 4px;
+    vertical-align: -2px;
+    stroke-width: 2;
+  }
+
+  /* Episode Sort Bar */
+  .episode-sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--redesign-card-bg, #FDF8F2);
+    border-bottom: 1px solid var(--redesign-badge-bg, #E8D5A0);
+  }
+
+  .episode-sort-label {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--redesign-text-muted, #A89070);
+    white-space: nowrap;
+  }
+
+  .episode-sort-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .sort-chip {
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--redesign-gold-light, #DEC99A);
+    background: var(--redesign-card-bg, #FDF8F2);
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--redesign-text-mid, #7A5C3A);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .sort-chip:hover {
+    background: var(--redesign-badge-bg, #E8D5A0);
+  }
+
+  .sort-chip.active {
+    background: var(--redesign-gold-primary, #C49A3C);
+    color: var(--redesign-card-bg, #FDF8F2);
+    border-color: var(--redesign-gold-primary, #C49A3C);
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: var(--space-3xl);
+    color: var(--text-muted);
+  }
+
+  .empty-icon {
+    margin-bottom: var(--space-md);
+    color: var(--redesign-text-muted, #A89070);
+  }
+
+  .empty-icon .lucide {
+    width: 64px;
+    height: 64px;
+    stroke-width: 1;
+  }
+
+  .empty-title {
+    font-family: var(--font-arabic-display);
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    color: var(--text-secondary);
+  }
+
+  .empty-text {
+    font-size: 16px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .search-hero {
+      min-height: 200px;
+      padding: var(--space-lg) var(--space-md);
+    }
+
+    .search-hero-quote {
+      font-size: 20px;
+      margin-bottom: 10px;
+      padding: 0 8px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.6;
+    }
+
+    .search-hero-subheading {
+      font-size: 14px;
+      margin-bottom: 20px;
+      padding: 0 12px;
+      line-height: 1.5;
+    }
+
+    .search-hero::before {
+      font-size: 100px;
+    }
+
+    .search-container {
+      flex-direction: column;
+      padding: 0 8px;
+    }
+
+    .search-input,
+    .search-btn {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .search-input {
+      font-size: 16px;
+      padding: 14px 16px;
+    }
+
+    .archive-stats {
+      gap: 12px;
+      margin-top: 20px;
+      padding: 14px 0;
+    }
+
+    .stat-item {
+      padding: 8px 14px;
+    }
+
+    .stat-number {
+      font-size: 18px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+    }
+
+    .stat-divider {
+      height: 28px;
+    }
+
+    .lecture-count-badge {
+      margin-top: 20px;
+      padding: 16px 0;
+      gap: 12px;
+    }
+
+    .count-divider {
+      width: 32px;
+    }
+
+    .count-text {
+      gap: 8px;
+    }
+
+    .count-number {
+      font-size: 20px;
+    }
+
+    .count-label {
+      font-size: 13px;
+    }
+
+    .series-meta {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .episode-item {
+      padding: 10px 12px;
+      gap: 8px;
+    }
+
+    .episode-number {
+      width: 24px;
+      height: 24px;
+      font-size: 11px;
+    }
+
+    .episode-title {
+      font-size: 13px;
+    }
+
+    .episode-actions {
+      gap: 6px;
+    }
+
+    /* Fix 4: Icon-only buttons on mobile */
+    .btn-play, .btn-download {
+      padding: 8px;
+      font-size: 0;
+      gap: 0;
+      width: 32px;
+      height: 32px;
+    }
+    .btn-play .lucide, .btn-download .lucide {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Fix 3: Allow episode title to wrap */
+    .episode-title {
+      font-size: 13px;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      line-height: 1.4;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .episode-item {
+      padding: 8px 10px;
+    }
+
+    .episode-header {
+      gap: 8px;
+    }
+
+    .episode-number {
+      width: 22px;
+      height: 22px;
+      font-size: 10px;
+      border-radius: 5px;
+    }
+
+    .episode-title {
+      font-size: 12px;
+    }
+
+    .btn-play, .btn-download {
+      padding: 6px;
+      width: 28px;
+      height: 28px;
+    }
+    .btn-play .lucide, .btn-download .lucide {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  /* Homepage Sections - Redesigned per design handoff */
+  .homepage-sections {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 32px 44px;
+  }
+
+  .section-block {
+    background: transparent;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: var(--redesign-badge-bg, #E8D5A0);
+    cursor: pointer;
+    user-select: none;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .section-header:hover {
+    background: #DCC890;
+  }
+
+  .section-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--redesign-brown-dark, #2C1508);
+    margin: 0;
+  }
+
+  .section-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--redesign-gold-primary, #C49A3C);
+    background: var(--redesign-brown-dark, #2C1508);
+    padding: 3px 12px;
+    border-radius: 10px;
+  }
+
+  .section-chevron {
+    stroke: var(--redesign-text-mid, #7A5C3A);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .section-chevron.collapsed {
+    transform: rotate(180deg);
+  }
+
+  .section-content {
+    transition: max-height 0.3s ease, opacity 0.2s ease;
+    overflow: hidden;
+    background: var(--redesign-card-bg, #FDF8F2);
+    border: 1px solid var(--redesign-gold-light, #DEC99A);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .section-content.collapsed {
+    max-height: 0 !important;
+    opacity: 0;
+    border: none;
+  }
+
+  .section-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .section-table tr {
+    border-bottom: 1px solid #F0E5CC;
+    transition: background 0.15s;
+  }
+
+  .section-table tr:last-child {
+    border-bottom: none;
+  }
+
+  .section-table tr:hover {
+    background: rgba(196, 154, 60, 0.05);
+  }
+
+  .section-table td {
+    padding: 14px 20px;
+    vertical-align: middle;
+  }
+
+  .section-series-title {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--redesign-brown-dark, #2C1508);
+    text-decoration: none;
+    display: block;
+  }
+
+  .section-series-title:hover {
+    color: var(--redesign-gold-primary, #C49A3C);
+  }
+
+  .section-series-subtitle {
+    font-size: 12px;
+    color: var(--redesign-text-muted, #A89070);
+    margin-top: 2px;
+  }
+
+  .section-lecture-count {
+    display: inline-block;
+    background: var(--redesign-badge-bg, #E8D5A0);
+    color: var(--redesign-text-mid, #7A5C3A);
+    padding: 3px 11px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .section-view-btn {
+    display: none;
+  }
+
+  .section-show-more {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #faf7f2;
+    border: none;
+    border-top: 1px solid #f0ebe4;
+    color: var(--accent-brown);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    font-family: 'Scheherazade New', serif;
+  }
+
+  .section-show-more:hover {
+    background: #f5ebe0;
+  }
+
+  @media (max-width: 768px) {
+    .homepage-sections {
+      padding: 0 var(--space-md);
+    }
+
+    .section-header {
+      padding: 12px 16px;
+    }
+
+    .section-title {
+      font-size: 18px;
+    }
+
+    .section-table td {
+      padding: 10px 12px;
+    }
+
+    .section-series-title {
+      font-size: 16px;
+    }
+
+    .section-table .hide-mobile {
+      display: none;
+    }
+  }
+
+  /* Navigation Tabs - Redesigned per design handoff */
+  .nav-tabs {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 32px;
+    border-top: 1px solid var(--redesign-badge-bg, #E8D5A0);
+  }
+
+  .nav-tabs-container {
+    display: flex;
+    border-bottom: 2px solid var(--redesign-badge-bg, #E8D5A0);
+  }
+
+  .nav-tab {
+    padding: 0 28px 13px;
+    border: none;
+    background: transparent;
+    color: var(--redesign-text-muted, #A89070);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    margin-bottom: -2px;
+    white-space: nowrap;
+  }
+
+  .nav-tab:hover {
+    color: var(--redesign-text-mid, #7A5C3A);
+  }
+
+  .nav-tab.active {
+    color: var(--redesign-brown-dark, #2C1508);
+    font-weight: 700;
+  }
+
+  .nav-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--redesign-gold-primary, #C49A3C);
+  }
+
+  .nav-tab .lucide {
+    width: 16px;
+    height: 16px;
+    margin-inline-end: 6px;
+    vertical-align: -2px;
+    stroke-width: 2;
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  /* Weekly Schedule Section - Card-Based Design */
+  .weekly-schedule-section {
+    max-width: 1200px;
+    margin: 0 auto var(--space-xl);
+    padding: var(--space-lg);
+  }
+
+  .schedule-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+  }
+
+  .schedule-title {
+    font-family: var(--font-arabic-display);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Location toggle (In-Person / Online) */
+  .schedule-location-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: var(--space-md);
+  }
+
+  .location-toggle-btn {
+    padding: 10px 20px;
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    background: white;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-secondary);
+  }
+
+  .location-toggle-btn:hover {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+  }
+
+  .location-toggle-btn.active {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: white;
+  }
+
+  .location-toggle-btn .lucide {
+    width: 16px;
+    height: 16px;
+    margin-inline-end: 6px;
+    vertical-align: -2px;
+    stroke-width: 2;
+  }
+
+  .location-toggle-count {
+    display: inline-block;
+    background: rgba(193, 154, 107, 0.2);
+    color: var(--accent-gold);
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 6px;
+  }
+
+  .location-toggle-btn.active .location-toggle-count {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+
+  /* Day tabs - horizontal scrollable */
+  .schedule-day-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: var(--space-md);
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .schedule-day-tabs::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .schedule-day-tabs::-webkit-scrollbar-track {
+    background: var(--border-light);
+    border-radius: 2px;
+  }
+
+  .schedule-day-tabs::-webkit-scrollbar-thumb {
+    background: var(--accent-gold);
+    border-radius: 2px;
+  }
+
+  .day-tab {
+    flex-shrink: 0;
+    padding: 12px 18px;
+    border: 2px solid var(--border-light);
+    border-radius: 10px;
+    background: white;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-secondary);
+    text-align: center;
+    min-width: 70px;
+  }
+
+  .day-tab:hover {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+  }
+
+  .day-tab.active {
+    background: var(--accent-gold);
+    border-color: var(--accent-gold);
+    color: var(--primary-dark);
+  }
+
+  .day-tab.disabled,
+  .day-tab:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: var(--border-light);
+  }
+
+  .day-tab.disabled:hover,
+  .day-tab:disabled:hover {
+    border-color: var(--border-light);
+    color: var(--text-secondary);
+  }
+
+  .day-tab-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .day-tab-count {
+    display: block;
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+
+  /* Schedule panels */
+  .schedule-location-panel {
+    display: none;
+  }
+
+  .schedule-location-panel.active {
+    display: block;
+  }
+
+  .schedule-day-panel {
+    display: none;
+  }
+
+  .schedule-day-panel.active {
+    display: block;
+  }
+
+  /* Session cards grid */
+  .session-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .session-card {
+    background: white;
+    border: 2px solid var(--border-light);
+    border-radius: 12px;
+    padding: 16px;
+    text-decoration: none;
+    display: block;
+    transition: all 0.2s ease;
+  }
+
+  .session-card:hover {
+    border-color: var(--accent-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-warm);
+  }
+
+  .session-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .session-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--cream);
+    color: var(--primary-brown);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 8px;
+  }
+
+  .session-time-icon {
+    font-size: 14px;
+  }
+
+  .session-badge {
+    display: inline-block;
+    background: var(--sage);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 8px;
+  }
+
+  .session-title {
+    font-family: var(--font-arabic-display);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .session-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .session-lesson-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--accent-gold);
+    color: var(--primary-dark);
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+
+  .session-location {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .schedule-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+
+  .schedule-empty-icon {
+    margin-bottom: 12px;
+    opacity: 0.5;
+    color: var(--redesign-text-muted, #A89070);
+  }
+
+  .schedule-empty-icon .lucide {
+    width: 48px;
+    height: 48px;
+    stroke-width: 1;
+  }
+
+  @media (max-width: 768px) {
+    .schedule-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .schedule-title {
+      font-size: 20px;
+    }
+
+    .schedule-location-toggle {
+      width: 100%;
+    }
+
+    .location-toggle-btn {
+      flex: 1;
+      text-align: center;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .day-tab {
+      padding: 10px 14px;
+      min-width: 60px;
+    }
+
+    .day-tab-name {
+      font-size: 13px;
+    }
+
+    .session-cards {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .session-card {
+      padding: 14px;
+    }
+
+    .session-title {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .weekly-schedule-section {
+      padding: var(--space-md);
+    }
+
+    .schedule-title {
+      font-size: 18px;
+    }
+
+    .location-toggle-btn {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
+    .day-tab {
+      padding: 8px 12px;
+      min-width: 55px;
+    }
+
+    .day-tab-name {
+      font-size: 12px;
+    }
+
+    .day-tab-count {
+      font-size: 10px;
+    }
+
+    .session-card {
+      padding: 12px;
+    }
+
+    .session-title {
+      font-size: 15px;
+    }
+
+    .session-time {
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+
+    .session-meta {
+      font-size: 12px;
+    }
+  }
+
+  /* Classic Table-Based Schedule (A/B Test) */
+  .schedule-table-wrapper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px var(--shadow-warm);
+    overflow: hidden;
+    border: 2px solid var(--border-light);
+  }
+
+  .schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .schedule-table th {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-brown) 100%);
+    color: var(--cream);
+    font-weight: 600;
+    padding: 14px 16px;
+    text-align: right;
+    font-size: 14px;
+  }
+
+  .schedule-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: middle;
+  }
+
+  .schedule-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .schedule-table tr:hover td {
+    background: rgba(193, 154, 107, 0.05);
+  }
+
+  .schedule-day-cell {
+    font-weight: 600;
+    color: var(--primary-brown);
+    white-space: nowrap;
+  }
+
+  .schedule-day-cell.multi-day {
+    white-space: normal;
+    min-width: 100px;
+  }
+
+  .schedule-time-cell {
+    color: var(--text-muted);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .schedule-day-cell.stacked,
+  .schedule-time-cell.stacked {
+    vertical-align: top;
+    white-space: nowrap;
+  }
+
+  .stacked-day,
+  .stacked-time {
+    line-height: 1.6;
+  }
+
+  .stacked-day {
+    font-weight: 600;
+    color: var(--primary-brown);
+  }
+
+  .stacked-time {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .schedule-series-cell a {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .schedule-series-cell a:hover {
+    color: var(--accent-gold);
+  }
+
+  .schedule-lesson-num {
+    display: inline-block;
+    background: var(--accent-gold);
+    color: var(--primary-dark);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 12px;
+    min-width: 45px;
+    text-align: center;
+  }
+
+  .new-badge {
+    display: inline-block;
+    background: var(--sage);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 8px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .schedule-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: var(--space-md);
+  }
+
+  .schedule-tab {
+    padding: 10px 20px;
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    background: white;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-secondary);
+  }
+
+  .schedule-tab:hover {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+  }
+
+  .schedule-tab.active {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: white;
+  }
+
+  .schedule-tab .lucide {
+    width: 16px;
+    height: 16px;
+    margin-inline-end: 6px;
+    vertical-align: -2px;
+    stroke-width: 2;
+  }
+
+  .schedule-tab-count {
+    display: inline-block;
+    background: rgba(193, 154, 107, 0.2);
+    color: var(--accent-gold);
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 6px;
+  }
+
+  .schedule-tab.active .schedule-tab-count {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+
+  .schedule-panel {
+    display: none;
+  }
+
+  .schedule-panel.active {
+    display: block;
+  }
+
+  @media (max-width: 768px) {
+    .schedule-tabs {
+      width: 100%;
+    }
+
+    .schedule-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .schedule-day-cell {
+      white-space: normal;
+      line-height: 1.4;
+    }
+
+    .schedule-day-cell.multi-day {
+      min-width: 70px;
+    }
+
+    .stacked-day,
+    .stacked-time {
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .schedule-lesson-num {
+      font-size: 11px;
+      padding: 3px 8px;
+      min-width: 40px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .schedule-tab {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+
+    .schedule-lesson-num {
+      font-size: 10px;
+      padding: 2px 6px;
+      min-width: 36px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .nav-tab {
+      font-size: 14px;
+      padding: 12px 16px;
+    }
+  }
+
+  /* Small phones (below 480px) */
+  @media (max-width: 480px) {
+    .search-hero {
+      min-height: 180px;
+      padding: var(--space-md) var(--space-sm);
+    }
+
+    .search-hero-quote {
+      font-size: 17px;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .search-hero-subheading {
+      font-size: 13px;
+      margin-bottom: 16px;
+      padding: 0 8px;
+      line-height: 1.4;
+    }
+
+    .search-hero::before {
+      font-size: 80px;
+    }
+
+    .search-container {
+      padding: 0 4px;
+    }
+
+    .search-input {
+      font-size: 15px;
+      padding: 12px 14px;
+    }
+
+    .search-btn {
+      padding: 12px 20px;
+      font-size: 14px;
+    }
+
+    .archive-stats {
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .stat-item {
+      padding: 8px 16px;
+      width: auto;
+    }
+
+    .stat-divider {
+      display: none;
+    }
+
+    .lecture-count-badge {
+      gap: 8px;
+      margin-top: 16px;
+      padding: 12px 0;
+    }
+
+    .count-divider {
+      width: 24px;
+    }
+
+    .count-number {
+      font-size: 18px;
+    }
+
+    .count-label {
+      font-size: 12px;
+    }
+
+    /* Navigation tabs - smaller */
+    .nav-tabs-container {
+      padding: 0 8px;
+    }
+
+    .nav-tab {
+      font-size: 13px;
+      padding: 10px 8px;
+    }
+
+    /* Schedule - compact */
+    .weekly-schedule-section {
+      padding: var(--space-md);
+    }
+
+    .schedule-title {
+      font-size: 18px;
+    }
+
+    .schedule-tab {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+
+    .schedule-lesson-num {
+      font-size: 10px;
+      padding: 2px 6px;
+      min-width: 36px;
+    }
+
+    /* Sections - compact */
+    .homepage-sections {
+      padding: 0 var(--space-sm);
+    }
+
+    .section-header {
+      padding: 10px 12px;
+    }
+
+    .section-title {
+      font-size: 16px;
+    }
+
+    .section-table td {
+      padding: 8px 10px;
+    }
+
+    .section-series-title {
+      font-size: 14px;
+    }
+
+    .section-series-subtitle {
+      font-size: 11px;
+    }
+  }
+
+  /* Very small phones (below 360px) */
+  @media (max-width: 360px) {
+    .search-hero {
+      min-height: 160px;
+      padding: var(--space-sm);
+    }
+
+    .search-hero-quote {
+      font-size: 15px;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .search-hero-subheading {
+      font-size: 12px;
+      margin-bottom: 12px;
+      padding: 0 4px;
+      line-height: 1.3;
+    }
+
+    .search-hero::before {
+      font-size: 60px;
+    }
+
+    .search-input {
+      font-size: 14px;
+      padding: 10px 12px;
+    }
+
+    .search-btn {
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+
+    .lecture-count-badge {
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .count-divider {
+      width: 40px;
+      height: 1px;
+    }
+
+    .count-number {
+      font-size: 16px;
+    }
+
+    .count-label {
+      font-size: 11px;
+    }
+
+    /* Navigation tabs - stack or scroll */
+    .nav-tabs-container {
+      padding: 0 4px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-tab {
+      font-size: 12px;
+      padding: 8px 6px;
+      white-space: nowrap;
+      flex: none;
+      min-width: auto;
+    }
+
+    /* Schedule - minimal */
+    .schedule-title {
+      font-size: 16px;
+    }
+
+    .schedule-tabs {
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .schedule-tab {
+      padding: 5px 8px;
+      font-size: 11px;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+      padding: 5px 6px;
+      font-size: 10px;
+    }
+
+    .schedule-lesson-num {
+      font-size: 9px;
+      padding: 2px 4px;
+      min-width: 32px;
+    }
+
+    /* Sections - minimal */
+    .section-header {
+      padding: 8px 10px;
+    }
+
+    .section-title {
+      font-size: 14px;
+    }
+
+    .section-table td {
+      padding: 6px 8px;
+    }
+
+    .section-series-title {
+      font-size: 13px;
+    }
+
+    .section-series-subtitle {
+      font-size: 10px;
+    }
+
+    .section-show-more {
+      font-size: 12px;
+      padding: 8px;
+    }
+  }
+
+  /* Skeleton loading styles */
+  .series-skeleton {
+    padding: 0 var(--space-lg);
+  }
+  .skeleton-card {
+    background: var(--cream);
+    border: 2px solid var(--border-light);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .skeleton-header {
+    height: 28px;
+    background: linear-gradient(90deg, var(--border-light) 25%, var(--cream) 50%, var(--border-light) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    width: 60%;
+  }
+  .skeleton-line {
+    height: 16px;
+    background: linear-gradient(90deg, var(--border-light) 25%, var(--cream) 50%, var(--border-light) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  .skeleton-line.short {
+    width: 40%;
+  }
+  @keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Enhanced Search Results Section */
+  .enhanced-search-results {
+    display: none;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+    background: linear-gradient(180deg, #FAF7F2 0%, #F5EBE0 100%);
+    border-bottom: 3px solid var(--accent-gold);
+    animation: slideDown 0.3s ease-out;
+  }
+
+  .enhanced-search-results.active {
+    display: block;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .search-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-md);
+    border-bottom: 2px solid #E8DCC8;
+  }
+
+  .search-results-title {
+    font-family: var(--font-arabic-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: #5C4033;
+  }
+
+  .search-results-count {
+    font-family: var(--font-arabic-body);
+    font-size: 15px;
+    color: #8B7355;
+    margin-right: 8px;
+  }
+
+  .clear-search-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-arabic-body);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .clear-search-btn:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+  }
+
+  .clear-search-btn .close-icon {
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .search-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .search-result-card {
+    background: white;
+    border: 2px solid #D4A574;
+    border-radius: 12px;
+    padding: var(--space-lg);
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .search-result-card::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, #C19A6B 0%, #D4A574 100%);
+    border-radius: 0 12px 12px 0;
+  }
+
+  .search-result-card:hover {
+    border-color: #C19A6B;
+    box-shadow: 0 8px 24px rgba(92, 64, 51, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .result-lecture-title {
+    font-family: var(--font-arabic-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: #2C1810;
+    margin-bottom: 8px;
+    padding-right: 12px;
+  }
+
+  .result-meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    font-family: var(--font-arabic-body);
+    font-size: 14px;
+    color: #8B7355;
+  }
+
+  .result-timestamp {
+    background: rgba(193, 154, 107, 0.2);
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+
+  .result-context {
+    font-family: var(--font-arabic-body);
+    font-size: 16px;
+    line-height: 1.9;
+    color: #4A3728;
+    background: #FAF7F2;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    border-right: 4px solid #C19A6B;
+  }
+
+  .result-context .context-before,
+  .result-context .context-after {
+    color: #8B7355;
+  }
+
+  .result-context .hit-text {
+    background: linear-gradient(180deg, transparent 60%, rgba(193, 154, 107, 0.4) 60%);
+    font-weight: 600;
+    color: #2C1810;
+    padding: 0 2px;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .result-play-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--accent-gold);
+    color: var(--primary-dark);
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-arabic-body);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .result-play-btn:hover {
+    background: var(--accent-amber);
+    transform: translateY(-1px);
+  }
+
+  .result-play-btn.playing {
+    background: #28a745;
+    color: white;
+  }
+
+  .goto-lecture-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: transparent;
+    color: var(--accent-gold);
+    border: 2px solid var(--accent-gold);
+    border-radius: 8px;
+    font-family: var(--font-arabic-body);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .goto-lecture-btn:hover {
+    background: var(--accent-gold);
+    color: white;
+    transform: translateY(-1px);
+  }
+
+  .goto-icon {
+    font-size: 16px;
+  }
+
+  .result-expand-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: transparent;
+    color: #5C4033;
+    border: 2px solid #C19A6B;
+    border-radius: 8px;
+    font-family: var(--font-arabic-body);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .result-expand-btn:hover {
+    background: rgba(193, 154, 107, 0.1);
+  }
+
+  .result-expand-btn.expanded {
+    background: rgba(193, 154, 107, 0.2);
+  }
+
+  .result-expand-btn .expand-icon {
+    transition: transform 0.2s ease;
+  }
+
+  .result-expand-btn.expanded .expand-icon {
+    transform: rotate(180deg);
+  }
+
+  .additional-results {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px dashed #E8DCC8;
+  }
+
+  .additional-results.open {
+    display: block;
+  }
+
+  .additional-results-header {
+    font-family: var(--font-arabic-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: #8B7355;
+    margin-bottom: 12px;
+  }
+
+  .additional-hit {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #FAF7F2;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+
+  .additional-hit:last-child {
+    margin-bottom: 0;
+  }
+
+  .additional-hit-text {
+    font-family: var(--font-arabic-body);
+    font-size: 14px;
+    color: #4A3728;
+    flex: 1;
+    margin-left: 12px;
+    line-height: 1.6;
+  }
+
+  .additional-hit-play {
+    padding: 6px 14px;
+    background: rgba(193, 154, 107, 0.3);
+    color: #5C4033;
+    border: none;
+    border-radius: 6px;
+    font-family: var(--font-arabic-body);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+
+  .additional-hit-play:hover {
+    background: var(--accent-gold);
+  }
+
+  .search-no-results {
+    text-align: center;
+    padding: var(--space-2xl);
+  }
+
+  .search-no-results-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .search-no-results-text {
+    font-family: var(--font-arabic-display);
+    font-size: 20px;
+    color: #5C4033;
+    margin-bottom: 8px;
+  }
+
+  .search-no-results-hint {
+    font-family: var(--font-arabic-body);
+    font-size: 15px;
+    color: #8B7355;
+  }
+
+  .search-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: var(--space-2xl);
+    color: #8B7355;
+  }
+
+  .search-loading .spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #E8DCC8;
+    border-top-color: var(--accent-gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  /* Hidden audio player for search results */
+  #searchAudioPlayer {
+    display: none;
+  }
+
+  /* Responsive adjustments for search results */
+  @media (max-width: 768px) {
+    .search-results-header {
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .clear-search-btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .result-actions {
+      flex-direction: column;
+    }
+
+    .result-play-btn,
+    .result-expand-btn,
+    .goto-lecture-btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .additional-hit {
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .additional-hit-play {
+      width: 100%;
+      text-align: center;
+    }
+  }
+
+  /* Search Feedback Prompt Styles */
+  .search-feedback-prompt {
+    display: none;
+    background: linear-gradient(135deg, #F5EBE0 0%, #FAF7F2 100%);
+    border: 2px solid #C19A6B;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: var(--space-lg);
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .search-feedback-prompt.active {
+    display: block;
+  }
+
+  .search-feedback-prompt.submitted {
+    display: none;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .feedback-question {
+    font-family: var(--font-arabic-display);
+    font-size: 16px;
+    font-weight: 600;
+    color: #5C4033;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .feedback-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .feedback-btn {
+    padding: 10px 24px;
+    border: 2px solid #C19A6B;
+    border-radius: 8px;
+    background: transparent;
+    color: #5C4033;
+    font-family: var(--font-arabic-body);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .feedback-btn:hover {
+    background: rgba(193, 154, 107, 0.15);
+    transform: translateY(-1px);
+  }
+
+  .feedback-btn.selected {
+    background: var(--accent-gold);
+    color: var(--primary-dark);
+    font-weight: 600;
+    border-color: var(--accent-gold);
+  }
+
+  .feedback-btn.yes.selected {
+    background: #4CAF50;
+    border-color: #4CAF50;
+    color: white;
+  }
+
+  .feedback-btn.no.selected {
+    background: #dc3545;
+    border-color: #dc3545;
+    color: white;
+  }
+
+  .feedback-comment-section {
+    display: none;
+    margin-top: 12px;
+  }
+
+  .feedback-comment-section.active {
+    display: block;
+  }
+
+  .feedback-comment-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #C19A6B;
+    border-radius: 8px;
+    font-family: var(--font-arabic-body);
+    font-size: 14px;
+    background: white;
+    color: var(--text-primary);
+    resize: vertical;
+    min-height: 60px;
+    max-height: 120px;
+  }
+
+  .feedback-comment-input::placeholder {
+    color: #8B7355;
+  }
+
+  .feedback-comment-input:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 3px rgba(193, 154, 107, 0.2);
+  }
+
+  .feedback-submit-btn {
+    display: block;
+    margin: 12px auto 0;
+    padding: 10px 32px;
+    background: var(--accent-gold);
+    color: var(--primary-dark);
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-arabic-body);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .feedback-submit-btn:hover {
+    background: var(--accent-amber);
+    transform: translateY(-1px);
+  }
+
+  .feedback-submit-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .feedback-thank-you {
+    display: none;
+    text-align: center;
+    padding: 16px;
+    background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+    border: 2px solid #4CAF50;
+    border-radius: 12px;
+    margin-bottom: var(--space-lg);
+  }
+
+  .feedback-thank-you.active {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .feedback-thank-you-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  .feedback-thank-you-text {
+    font-family: var(--font-arabic-display);
+    font-size: 16px;
+    font-weight: 600;
+    color: #2E7D32;
+  }
+
+  /* Responsive feedback styles */
+  @media (max-width: 768px) {
+    .feedback-buttons {
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .feedback-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  /* AI Transcript Disclaimer for Search Results */
+  .search-ai-disclaimer {
+    background: rgba(193, 154, 107, 0.06);
+    border: 1px dashed var(--border-light);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .search-ai-disclaimer-icon {
+    flex-shrink: 0;
+    font-size: 14px;
+    opacity: 0.6;
+    margin-top: 1px;
+  }
+
+  .search-ai-disclaimer-text {
+    flex: 1;
+  }
+
+  .search-ai-disclaimer-text strong {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  @media (max-width: 480px) {
+    .search-ai-disclaimer {
+      padding: 8px 12px;
+      font-size: 11px;
+    }
+  }
+</style>
+
+<!-- Search Hero -->
+<div class="search-hero">
+  <div class="search-hero-quote">
+    <%= locale === 'ar'
+      ? 'البحث في التفريغ الصوتي'
+      : 'Search Audio Transcripts'
+    %>
+  </div>
+  <div class="search-hero-subheading">
+    <%= locale === 'ar'
+      ? 'من الكلمة المكتوبة إلى اللحظة المسموعة.. طريقك الأقصر لضبط المسائل وتحرير الفوائد'
+      : 'From written word to audio moment... your shortest path to precise Islamic scholarship'
+    %>
+  </div>
+  <div class="search-container">
+    <input
+      type="text"
+      class="search-input"
+      id="searchInput"
+      placeholder="<%= locale === 'ar' ? 'ابحث في نصوص الدروس...' : 'Search lecture transcripts...' %>"
+    >
+    <button type="button" class="search-btn" onclick="performSearch()">
+      <%= locale === 'ar' ? 'بحث' : 'Search' %>
+    </button>
+  </div>
+  <% if ((typeof totalLectureCount !== 'undefined' && totalLectureCount > 0) || (typeof totalArticleCount !== 'undefined' && totalArticleCount > 0)) { %>
+  <div class="archive-stats">
+    <% if (typeof totalLectureCount !== 'undefined' && totalLectureCount > 0) { %>
+    <a href="/browse" class="stat-item stat-link">
+      <span class="stat-icon"><i data-lucide="headphones"></i></span>
+      <span class="stat-number"><%= totalLectureCount %></span>
+      <span class="stat-label"><%= locale === 'ar' ? 'درس صوتي' : 'Lectures' %></span>
+    </a>
+    <% } %>
+    <% if ((typeof totalLectureCount !== 'undefined' && totalLectureCount > 0) && (typeof totalArticleCount !== 'undefined' && totalArticleCount > 0)) { %>
+    <span class="stat-divider"></span>
+    <% } %>
+    <% if (typeof totalArticleCount !== 'undefined' && totalArticleCount > 0) { %>
+    <a href="/articles" class="stat-item stat-link">
+      <span class="stat-icon"><i data-lucide="pen-line"></i></span>
+      <span class="stat-number"><%= totalArticleCount %></span>
+      <span class="stat-label"><%= locale === 'ar' ? 'مقال' : 'Articles' %></span>
+    </a>
+    <% } %>
+  </div>
+  <% } %>
+</div>
+
+<!-- Enhanced Search Results Section (Push-Down) -->
+<div class="enhanced-search-results" id="enhancedSearchResults">
+  <div class="search-results-header">
+    <div>
+      <span class="search-results-title"><%= locale === 'ar' ? 'نتائج البحث في النصوص' : 'Transcript Search Results' %></span>
+      <span class="search-results-count" id="searchResultsCount"></span>
+    </div>
+    <button class="clear-search-btn" id="clearSearchBtn" onclick="clearEnhancedSearch()">
+      <span class="close-icon">✕</span>
+      <%= locale === 'ar' ? 'إغلاق البحث' : 'Close Search' %>
+    </button>
+  </div>
+
+  <!-- AI Transcript Disclaimer -->
+  <div class="search-ai-disclaimer">
+    <span class="search-ai-disclaimer-icon">&#9432;</span>
+    <div class="search-ai-disclaimer-text">
+      <% if (locale === 'ar') { %>
+        <strong>تنبيه:</strong> النصوص مُنشأة آليًا وقد تحتوي على أخطاء. للمرجعية الدقيقة، استمع للتسجيل الصوتي.
+      <% } else { %>
+        <strong>Note:</strong> Transcripts are AI-generated and may contain errors. For authoritative reference, listen to the audio.
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Search Feedback Prompt -->
+  <div class="search-feedback-prompt" id="searchFeedbackPrompt">
+    <div class="feedback-question">
+      <%= locale === 'ar' ? 'هل وجدت ما كنت تبحث عنه؟' : 'Did you find what you were looking for?' %>
+    </div>
+    <div class="feedback-buttons">
+      <button type="button" class="feedback-btn yes" onclick="selectFeedback(true)" id="feedbackYesBtn">
+        <span>✓</span>
+        <%= locale === 'ar' ? 'نعم' : 'Yes' %>
+      </button>
+      <button type="button" class="feedback-btn no" onclick="selectFeedback(false)" id="feedbackNoBtn">
+        <span>✕</span>
+        <%= locale === 'ar' ? 'لا' : 'No' %>
+      </button>
+    </div>
+    <div class="feedback-comment-section" id="feedbackCommentSection">
+      <textarea
+        class="feedback-comment-input"
+        id="feedbackCommentInput"
+        placeholder="<%= locale === 'ar' ? 'أضف تعليقاً (اختياري)...' : 'Add a comment (optional)...' %>"
+        maxlength="300"
+      ></textarea>
+      <button type="button" class="feedback-submit-btn" onclick="submitSearchFeedback()" id="feedbackSubmitBtn">
+        <%= locale === 'ar' ? 'إرسال' : 'Submit' %>
+      </button>
+    </div>
+  </div>
+
+  <!-- Thank You Message -->
+  <div class="feedback-thank-you" id="feedbackThankYou">
+    <div class="feedback-thank-you-icon">✓</div>
+    <div class="feedback-thank-you-text">
+      <%= locale === 'ar' ? 'شكراً لتقييمك!' : 'Thank you for your feedback!' %>
+    </div>
+  </div>
+
+  <div class="search-results-list" id="searchResultsList">
+    <!-- Results will be populated by JavaScript -->
+  </div>
+</div>
+
+<!-- Hidden audio player for search results -->
+<audio id="searchAudioPlayer" preload="none"></audio>
+
+<!-- Weekly Schedule Section -->
+<% if (typeof homepageConfig === 'undefined' || homepageConfig.showSchedule !== false) { %>
+<% if (typeof weeklySchedule !== 'undefined' && weeklySchedule && weeklySchedule.length > 0) { %>
+<%
+  // Split schedule into in-person and online
+  const inPersonSchedule = weeklySchedule.filter(item => !item.location.includes('بُعد') && !item.location.includes('بعد'));
+  const onlineSchedule = weeklySchedule.filter(item => item.location.includes('بُعد') || item.location.includes('بعد'));
+
+  // Day translations - Arabic to English
+  const dayTranslations = {
+    'يومي': 'Daily', 'السبت': 'Saturday', 'الأحد': 'Sunday', 'الاثنين': 'Monday',
+    'الثلاثاء': 'Tuesday', 'الأربعاء': 'Wednesday', 'الخميس': 'Thursday', 'الجمعة': 'Friday'
+  };
+
+  // Day abbreviations for mobile (Arabic)
+  const dayShortAr = {
+    'يومي': 'يومي', 'السبت': 'سبت', 'الأحد': 'أحد', 'الاثنين': 'إثن', 'الثلاثاء': 'ثلا',
+    'الأربعاء': 'أرب', 'الخميس': 'خمي', 'الجمعة': 'جمع'
+  };
+
+  // Day abbreviations for mobile (English)
+  const dayShortEn = {
+    'يومي': 'Daily', 'السبت': 'Sat', 'الأحد': 'Sun', 'الاثنين': 'Mon',
+    'الثلاثاء': 'Tue', 'الأربعاء': 'Wed', 'الخميس': 'Thu', 'الجمعة': 'Fri'
+  };
+
+  // Time translations for English
+  const translateTime = (time) => {
+    if (locale === 'en') {
+      return time
+        .replace('بعد صلاة الفجر', 'After Fajr')
+        .replace('بعد صلاة الظهر', 'After Dhuhr')
+        .replace('بعد صلاة العصر', 'After Asr')
+        .replace('بعد صلاة المغرب', 'After Maghrib')
+        .replace('بعد صلاة العشاء', 'After Isha')
+        .replace('خطبة الجمعة', 'Friday Khutbah')
+        .replace('الساعة ', '');
+    }
+    return time;
+  };
+
+  // Time abbreviations
+  const timeShort = (time) => {
+    if (locale === 'en') {
+      return translateTime(time);
+    }
+    return time.replace('بعد صلاة ', '').replace('الساعة ', '').replace('خطبة ', '');
+  };
+
+  // Get day for display
+  const getDay = (day) => locale === 'en' ? (dayTranslations[day] || day) : day;
+  const getDayShort = (day) => locale === 'en' ? (dayShortEn[day] || day) : (dayShortAr[day] || day);
+
+  // Group schedule items by series + location (regardless of time)
+  const groupScheduleItems = (items) => {
+    const dayOrder = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+    const groups = {};
+
+    items.forEach(item => {
+      // Group by series + location only (not time)
+      const key = `${item.seriesId._id}-${item.location}`;
+      if (!groups[key]) {
+        groups[key] = {
+          ...item,
+          dayTimes: [{ day: item.dayOfWeek, time: item.time }],
+          days: [item.dayOfWeek]
+        };
+      } else {
+        groups[key].dayTimes.push({ day: item.dayOfWeek, time: item.time });
+        groups[key].days.push(item.dayOfWeek);
+        // Keep the "newest" isNew flag
+        if (item.isNew) groups[key].isNew = true;
+        // Keep highest lecture count
+        if (item.lectureCount > (groups[key].lectureCount || 0)) {
+          groups[key].lectureCount = item.lectureCount;
+          groups[key].latestLecture = item.latestLecture;
+        }
+      }
+    });
+
+    // Sort days within each group and determine if times vary
+    return Object.values(groups).map(group => {
+      // Sort dayTimes by day order
+      group.dayTimes.sort((a, b) => dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day));
+      group.days.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
+
+      // Check if all times are the same
+      const uniqueTimes = new Set(group.dayTimes.map(dt => dt.time));
+      group.hasVaryingTimes = uniqueTimes.size > 1;
+
+      // If all times same, keep the single time value
+      if (!group.hasVaryingTimes) {
+        group.time = group.dayTimes[0].time;
+      }
+
+      return group;
+    }).sort((a, b) => dayOrder.indexOf(a.days[0]) - dayOrder.indexOf(b.days[0]));
+  };
+
+  // Format combined days for display
+  const formatDays = (days, short = false) => {
+    const getDayFn = short ? getDayShort : getDay;
+    const dayNames = days.map(d => getDayFn(d));
+
+    if (dayNames.length === 1) return dayNames[0];
+    if (dayNames.length === 2) {
+      return locale === 'ar'
+        ? `${dayNames[0]} و${dayNames[1]}`
+        : `${dayNames[0]} & ${dayNames[1]}`;
+    }
+    // 3+ days
+    const last = dayNames.pop();
+    return locale === 'ar'
+      ? `${dayNames.join('، ')} و${last}`
+      : `${dayNames.join(', ')} & ${last}`;
+  };
+
+  // Create grouped schedules
+  const groupedInPerson = groupScheduleItems(inPersonSchedule);
+  const groupedOnline = groupScheduleItems(onlineSchedule);
+%>
+<%
+  // Group schedule items by day for card display
+  const dayOrderList = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+
+  const groupByDay = (items) => {
+    const byDay = {};
+    dayOrderList.forEach(day => { byDay[day] = []; });
+
+    items.forEach(item => {
+      item.days.forEach(day => {
+        if (byDay[day]) {
+          byDay[day].push({
+            ...item,
+            displayTime: item.hasVaryingTimes
+              ? translateTime(item.dayTimes.find(dt => dt.day === day)?.time || item.time)
+              : translateTime(item.time)
+          });
+        }
+      });
+    });
+
+    return byDay;
+  };
+
+  const inPersonByDay = groupByDay(groupedInPerson);
+  const onlineByDay = groupByDay(groupedOnline);
+
+  const getDayCount = (byDay) => {
+    const counts = {};
+    dayOrderList.forEach(day => { counts[day] = byDay[day].length; });
+    return counts;
+  };
+
+  const inPersonCounts = getDayCount(inPersonByDay);
+  const onlineCounts = getDayCount(onlineByDay);
+
+  // Find first day with sessions for default tab
+  const getFirstActiveDay = (counts) => {
+    for (const day of dayOrderList) {
+      if (counts[day] > 0) return day;
+    }
+    return dayOrderList[0];
+  };
+%>
+<% if (typeof homepageConfig !== 'undefined' && homepageConfig.scheduleLayout === 'table') { %>
+<!-- Classic Table Layout -->
+<section class="weekly-schedule-section">
+  <div class="schedule-header">
+    <h2 class="schedule-title">
+      <i data-lucide="calendar-days"></i> <%= locale === 'ar' ? 'جدول الدروس الأسبوعي' : 'Weekly Class Schedule' %>
+    </h2>
+  </div>
+
+  <div class="schedule-tabs">
+    <button class="schedule-tab active" onclick="switchScheduleTab('inperson')">
+      <i data-lucide="building-2"></i> <%= locale === 'ar' ? 'جامع الورود' : 'In-Person' %>
+      <span class="schedule-tab-count"><%= groupedInPerson.length %></span>
+    </button>
+    <button class="schedule-tab" onclick="switchScheduleTab('online')">
+      <i data-lucide="monitor"></i> <%= locale === 'ar' ? 'عن بُعد' : 'Online' %>
+      <span class="schedule-tab-count"><%= groupedOnline.length %></span>
+    </button>
+  </div>
+
+  <!-- In-Person Classes Panel -->
+  <div id="schedule-inperson" class="schedule-panel active">
+    <% if (groupedInPerson.length > 0) { %>
+    <div class="schedule-table-wrapper">
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th><%= locale === 'ar' ? 'اليوم' : 'Day' %></th>
+            <th><%= locale === 'ar' ? 'الوقت' : 'Time' %></th>
+            <th><%= locale === 'ar' ? 'السلسلة' : 'Series' %></th>
+            <th><%= locale === 'ar' ? 'الدرس #' : 'Lesson #' %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% groupedInPerson.forEach(function(item) { %>
+          <tr>
+            <% if (item.hasVaryingTimes) { %>
+            <td class="schedule-day-cell multi-day stacked">
+              <% item.dayTimes.forEach(function(dt) { %>
+              <div class="stacked-day"><%= getDay(dt.day) %></div>
+              <% }); %>
+            </td>
+            <td class="schedule-time-cell stacked">
+              <% item.dayTimes.forEach(function(dt) { %>
+              <div class="stacked-time"><%= translateTime(dt.time) %></div>
+              <% }); %>
+            </td>
+            <% } else { %>
+            <td class="schedule-day-cell<%= item.days.length > 1 ? ' multi-day' : '' %>">
+              <span class="day-full"><%= formatDays(item.days, false) %></span>
+            </td>
+            <td class="schedule-time-cell">
+              <span class="time-full"><%= translateTime(item.time) %></span>
+            </td>
+            <% } %>
+            <td class="schedule-series-cell">
+              <% if (item.isNew) { %><span class="new-badge"><%= locale === 'ar' ? 'جديد' : 'NEW' %></span><% } %>
+              <a href="/series/<%= item.seriesId.slug ? encodeURIComponent(item.seriesId.slug) : item.seriesId._id %>">
+                <%= locale === 'ar' ? item.seriesId.titleArabic : (item.seriesId.titleEnglish || item.seriesId.titleArabic) %>
+              </a>
+            </td>
+            <td style="text-align: center;">
+              <% if (item.lectureCount > 0) { %>
+              <a href="<%= item.latestLecture ? '/lectures/' + (item.latestLecture.slug ? encodeURIComponent(item.latestLecture.slug) : item.latestLecture._id) : '/series/' + (item.seriesId.slug ? encodeURIComponent(item.seriesId.slug) : item.seriesId._id) %>" style="text-decoration: none;">
+                <span class="schedule-lesson-num"><%= item.lectureCount %></span>
+              </a>
+              <% } else { %>
+              <span style="color: var(--text-muted);">-</span>
+              <% } %>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+    <% } else { %>
+    <p style="text-align: center; color: var(--text-muted); padding: 24px;"><%= locale === 'ar' ? 'لا توجد دروس حضورية حالياً' : 'No in-person classes currently' %></p>
+    <% } %>
+  </div>
+
+  <!-- Online Classes Panel -->
+  <div id="schedule-online" class="schedule-panel">
+    <% if (groupedOnline.length > 0) { %>
+    <div class="schedule-table-wrapper">
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th><%= locale === 'ar' ? 'اليوم' : 'Day' %></th>
+            <th><%= locale === 'ar' ? 'الوقت' : 'Time' %></th>
+            <th><%= locale === 'ar' ? 'السلسلة' : 'Series' %></th>
+            <th><%= locale === 'ar' ? 'الدرس #' : 'Lesson #' %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% groupedOnline.forEach(function(item) { %>
+          <tr>
+            <% if (item.hasVaryingTimes) { %>
+            <td class="schedule-day-cell multi-day stacked">
+              <% item.dayTimes.forEach(function(dt) { %>
+              <div class="stacked-day"><%= getDay(dt.day) %></div>
+              <% }); %>
+            </td>
+            <td class="schedule-time-cell stacked">
+              <% item.dayTimes.forEach(function(dt) { %>
+              <div class="stacked-time"><%= translateTime(dt.time) %></div>
+              <% }); %>
+            </td>
+            <% } else { %>
+            <td class="schedule-day-cell<%= item.days.length > 1 ? ' multi-day' : '' %>">
+              <span class="day-full"><%= formatDays(item.days, false) %></span>
+            </td>
+            <td class="schedule-time-cell">
+              <span class="time-full"><%= translateTime(item.time) %></span>
+            </td>
+            <% } %>
+            <td class="schedule-series-cell">
+              <% if (item.isNew) { %><span class="new-badge"><%= locale === 'ar' ? 'جديد' : 'NEW' %></span><% } %>
+              <a href="/series/<%= item.seriesId.slug ? encodeURIComponent(item.seriesId.slug) : item.seriesId._id %>">
+                <%= locale === 'ar' ? item.seriesId.titleArabic : (item.seriesId.titleEnglish || item.seriesId.titleArabic) %>
+              </a>
+            </td>
+            <td style="text-align: center;">
+              <% if (item.lectureCount > 0) { %>
+              <a href="<%= item.latestLecture ? '/lectures/' + (item.latestLecture.slug ? encodeURIComponent(item.latestLecture.slug) : item.latestLecture._id) : '/series/' + (item.seriesId.slug ? encodeURIComponent(item.seriesId.slug) : item.seriesId._id) %>" style="text-decoration: none;">
+                <span class="schedule-lesson-num"><%= item.lectureCount %></span>
+              </a>
+              <% } else { %>
+              <span style="color: var(--text-muted);">-</span>
+              <% } %>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+    <% } else { %>
+    <p style="text-align: center; color: var(--text-muted); padding: 24px;"><%= locale === 'ar' ? 'لا توجد دروس عن بُعد حالياً' : 'No online classes currently' %></p>
+    <% } %>
+  </div>
+</section>
+
+<script>
+function switchScheduleTab(tab) {
+  document.querySelectorAll('.schedule-tab').forEach(btn => btn.classList.remove('active'));
+  event.target.closest('.schedule-tab').classList.add('active');
+  document.querySelectorAll('.schedule-panel').forEach(panel => panel.classList.remove('active'));
+  document.getElementById('schedule-' + tab).classList.add('active');
+}
+</script>
+<% } else { %>
+<!-- New Card Layout (Default) -->
+<section class="weekly-schedule-section">
+  <div class="schedule-header">
+    <h2 class="schedule-title">
+      <i data-lucide="calendar-days"></i> <%= locale === 'ar' ? 'جدول الدروس الأسبوعي' : 'Weekly Class Schedule' %>
+    </h2>
+  </div>
+
+  <!-- Location Toggle -->
+  <div class="schedule-location-toggle">
+    <button class="location-toggle-btn active" onclick="switchLocation('inperson')">
+      <i data-lucide="building-2"></i> <%= locale === 'ar' ? 'جامع الورود' : 'In-Person' %>
+      <span class="location-toggle-count"><%= groupedInPerson.length %></span>
+    </button>
+    <button class="location-toggle-btn" onclick="switchLocation('online')">
+      <i data-lucide="monitor"></i> <%= locale === 'ar' ? 'عن بُعد' : 'Online' %>
+      <span class="location-toggle-count"><%= groupedOnline.length %></span>
+    </button>
+  </div>
+
+  <!-- In-Person Panel -->
+  <div id="location-inperson" class="schedule-location-panel active">
+    <% if (groupedInPerson.length > 0) { %>
+    <div class="schedule-day-tabs" id="inperson-day-tabs">
+      <% dayOrderList.forEach((day, idx) => { %>
+      <button class="day-tab<%= idx === 0 || day === getFirstActiveDay(inPersonCounts) ? ' active' : '' %><%= inPersonCounts[day] === 0 ? ' disabled' : '' %>"
+              onclick="switchDayTab('inperson', '<%= day %>')"
+              <%= inPersonCounts[day] === 0 ? 'disabled' : '' %>>
+        <span class="day-tab-name"><%= getDayShort(day) %></span>
+        <span class="day-tab-count"><%= inPersonCounts[day] %> <%= locale === 'ar' ? 'درس' : '' %></span>
+      </button>
+      <% }); %>
+    </div>
+    <% dayOrderList.forEach((day, idx) => { %>
+    <div id="inperson-day-<%= day %>" class="schedule-day-panel<%= idx === 0 || day === getFirstActiveDay(inPersonCounts) ? ' active' : '' %>">
+      <% if (inPersonByDay[day].length > 0) { %>
+      <div class="session-cards">
+        <% inPersonByDay[day].forEach(item => { %>
+        <a href="/series/<%= item.seriesId.slug ? encodeURIComponent(item.seriesId.slug) : item.seriesId._id %>" class="session-card">
+          <div class="session-card-header">
+            <span class="session-time">
+              <span class="session-time-icon">🕐</span>
+              <%= item.displayTime %>
+            </span>
+            <% if (item.isNew) { %>
+            <span class="session-badge"><%= locale === 'ar' ? 'جديد' : 'NEW' %></span>
+            <% } %>
+          </div>
+          <h3 class="session-title">
+            <%= locale === 'ar' ? item.seriesId.titleArabic : (item.seriesId.titleEnglish || item.seriesId.titleArabic) %>
+          </h3>
+          <div class="session-meta">
+            <% if (item.lectureCount > 0) { %>
+            <span class="session-lesson-count">
+              <i data-lucide="book-open"></i> <%= item.lectureCount %> <%= locale === 'ar' ? 'درس' : 'lessons' %>
+            </span>
+            <% } %>
+          </div>
+        </a>
+        <% }); %>
+      </div>
+      <% } else { %>
+      <div class="schedule-empty">
+        <div class="schedule-empty-icon"><i data-lucide="inbox"></i></div>
+        <p><%= locale === 'ar' ? 'لا توجد دروس في هذا اليوم' : 'No classes on this day' %></p>
+      </div>
+      <% } %>
+    </div>
+    <% }); %>
+    <% } else { %>
+    <div class="schedule-empty">
+      <div class="schedule-empty-icon"><i data-lucide="building-2"></i></div>
+      <p><%= locale === 'ar' ? 'لا توجد دروس حضورية حالياً' : 'No in-person classes currently' %></p>
+    </div>
+    <% } %>
+  </div>
+
+  <!-- Online Panel -->
+  <div id="location-online" class="schedule-location-panel">
+    <% if (groupedOnline.length > 0) { %>
+    <div class="schedule-day-tabs" id="online-day-tabs">
+      <% dayOrderList.forEach((day, idx) => { %>
+      <button class="day-tab<%= idx === 0 || day === getFirstActiveDay(onlineCounts) ? ' active' : '' %><%= onlineCounts[day] === 0 ? ' disabled' : '' %>"
+              onclick="switchDayTab('online', '<%= day %>')"
+              <%= onlineCounts[day] === 0 ? 'disabled' : '' %>>
+        <span class="day-tab-name"><%= getDayShort(day) %></span>
+        <span class="day-tab-count"><%= onlineCounts[day] %> <%= locale === 'ar' ? 'درس' : '' %></span>
+      </button>
+      <% }); %>
+    </div>
+    <% dayOrderList.forEach((day, idx) => { %>
+    <div id="online-day-<%= day %>" class="schedule-day-panel<%= idx === 0 || day === getFirstActiveDay(onlineCounts) ? ' active' : '' %>">
+      <% if (onlineByDay[day].length > 0) { %>
+      <div class="session-cards">
+        <% onlineByDay[day].forEach(item => { %>
+        <a href="/series/<%= item.seriesId.slug ? encodeURIComponent(item.seriesId.slug) : item.seriesId._id %>" class="session-card">
+          <div class="session-card-header">
+            <span class="session-time">
+              <span class="session-time-icon">🕐</span>
+              <%= item.displayTime %>
+            </span>
+            <% if (item.isNew) { %>
+            <span class="session-badge"><%= locale === 'ar' ? 'جديد' : 'NEW' %></span>
+            <% } %>
+          </div>
+          <h3 class="session-title">
+            <%= locale === 'ar' ? item.seriesId.titleArabic : (item.seriesId.titleEnglish || item.seriesId.titleArabic) %>
+          </h3>
+          <div class="session-meta">
+            <% if (item.lectureCount > 0) { %>
+            <span class="session-lesson-count">
+              <i data-lucide="book-open"></i> <%= item.lectureCount %> <%= locale === 'ar' ? 'درس' : 'lessons' %>
+            </span>
+            <% } %>
+          </div>
+        </a>
+        <% }); %>
+      </div>
+      <% } else { %>
+      <div class="schedule-empty">
+        <div class="schedule-empty-icon"><i data-lucide="inbox"></i></div>
+        <p><%= locale === 'ar' ? 'لا توجد دروس في هذا اليوم' : 'No classes on this day' %></p>
+      </div>
+      <% } %>
+    </div>
+    <% }); %>
+    <% } else { %>
+    <div class="schedule-empty">
+      <div class="schedule-empty-icon"><i data-lucide="monitor"></i></div>
+      <p><%= locale === 'ar' ? 'لا توجد دروس عن بُعد حالياً' : 'No online classes currently' %></p>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<script>
+function switchLocation(location) {
+  document.querySelectorAll('.location-toggle-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.closest('.location-toggle-btn').classList.add('active');
+
+  document.querySelectorAll('.schedule-location-panel').forEach(panel => panel.classList.remove('active'));
+  document.getElementById('location-' + location).classList.add('active');
+}
+
+function switchDayTab(location, day) {
+  const container = document.getElementById('location-' + location);
+
+  container.querySelectorAll('.day-tab').forEach(btn => btn.classList.remove('active'));
+  event.target.closest('.day-tab').classList.add('active');
+
+  container.querySelectorAll('.schedule-day-panel').forEach(panel => panel.classList.remove('active'));
+  document.getElementById(location + '-day-' + day).classList.add('active');
+}
+</script>
+<% } %>
+<% } %>
+<% } %>
+
+<!-- Featured Articles Section (Redesigned per design handoff) -->
+<% if (typeof recentArticles !== 'undefined' && recentArticles && recentArticles.length > 0) { %>
+<section class="featured-articles-section">
+  <div class="container">
+    <div class="featured-articles-divider"></div>
+    <div class="featured-articles-header">
+      <a href="/articles" class="featured-articles-link">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,18 9,12 15,6"/></svg>
+        <%= locale === 'ar' ? 'عرض الكل' : 'View All' %>
+      </a>
+      <h2 class="featured-articles-title">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <%= locale === 'ar' ? 'أحدث المقالات' : 'Latest Articles' %>
+      </h2>
+    </div>
+    <div class="featured-articles-grid">
+      <% recentArticles.slice(0, 4).forEach(function(article) { %>
+        <a href="/articles/<%= article.slug || article.shortId || article._id %>" class="featured-article-card">
+          <div class="featured-article-meta">
+            <span class="featured-article-date">
+              <%
+                const pubDate = new Date(article.publishedAt);
+                const hijriFormatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+                  day: 'numeric',
+                  month: 'short'
+                });
+              %>
+              <%= hijriFormatter.format(pubDate) %>
+            </span>
+            <span class="featured-article-type <%= article.type === 'TelegramArticle' ? 'telegram' : '' %>">
+              <%= article.type === 'TelegramArticle' ? 'تليجرام' : 'أصداء' %>
+            </span>
+          </div>
+          <h3 class="featured-article-title"><%= article.title %></h3>
+          <% if (article.summary) { %>
+            <p class="featured-article-summary"><%= article.summary %></p>
+          <% } %>
+          <div class="featured-article-footer">
+            <span class="featured-article-read">
+              <%= locale === 'ar' ? 'قراءة المقال' : 'Read Article' %>
+            </span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,18 9,12 15,6"/></svg>
+          </div>
+        </a>
+      <% }); %>
+    </div>
+  </div>
+</section>
+<style>
+  .featured-articles-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 32px 44px;
+  }
+  .featured-articles-divider {
+    height: 1px;
+    background: linear-gradient(to left, transparent, var(--redesign-gold-light, #DEC99A) 20%, var(--redesign-gold-light, #DEC99A) 80%, transparent);
+    margin-bottom: 32px;
+  }
+  .featured-articles-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .featured-articles-title {
+    color: var(--redesign-brown-dark, #2C1508);
+    font-size: 20px;
+    font-weight: 800;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .featured-articles-title svg {
+    stroke: var(--redesign-brown-dark, #2C1508);
+  }
+  .featured-articles-link {
+    color: var(--redesign-gold-primary, #C49A3C);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .featured-articles-link:hover {
+    text-decoration: underline;
+  }
+  .featured-articles-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .featured-article-card {
+    background: var(--redesign-card-bg, #FDF8F2);
+    border: 1px solid var(--redesign-gold-light, #DEC99A);
+    border-radius: 13px;
+    padding: 16px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .featured-article-card:hover {
+    border-color: var(--redesign-gold-primary, #C49A3C);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(44, 21, 8, 0.08);
+  }
+  .featured-article-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 11px;
+  }
+  .featured-article-type {
+    background: var(--redesign-badge-bg, #E8D5A0);
+    color: var(--redesign-text-mid, #7A5C3A);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 7px;
+    white-space: nowrap;
+  }
+  .featured-article-type.telegram {
+    background: var(--redesign-sage, #6B7A4E);
+    color: var(--redesign-card-bg, #FDF8F2);
+  }
+  .featured-article-date {
+    color: #B0997A;
+    font-size: 10px;
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+  .featured-article-title {
+    color: var(--redesign-brown-dark, #2C1508);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.55;
+    margin: 0 0 9px 0;
+    flex: 1;
+    text-wrap: pretty;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .featured-article-summary {
+    color: var(--redesign-text-mid, #7A5C3A);
+    font-size: 12px;
+    line-height: 1.7;
+    margin: 0 0 13px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .featured-article-footer {
+    border-top: 1px solid #EDE4D3;
+    padding-top: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    margin-top: auto;
+  }
+  .featured-article-read {
+    color: var(--redesign-gold-primary, #C49A3C);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .featured-article-footer svg {
+    stroke: var(--redesign-gold-primary, #C49A3C);
+  }
+  @media (max-width: 1024px) {
+    .featured-articles-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 768px) {
+    .featured-articles-section {
+      padding: 4px 14px 10px;
+    }
+    .featured-articles-divider {
+      margin-bottom: 14px;
+    }
+    /* Fix 5: RTL alignment for articles section */
+    .featured-articles-header {
+      margin-bottom: 11px;
+      flex-direction: row-reverse;
+    }
+    .featured-articles-title {
+      font-size: 14px;
+      font-weight: 700;
+      gap: 5px;
+    }
+    .featured-articles-title svg {
+      width: 13px;
+      height: 13px;
+    }
+    .featured-articles-link {
+      font-size: 11px;
+      gap: 3px;
+    }
+    .featured-articles-link svg {
+      width: 11px;
+      height: 11px;
+    }
+    .featured-articles-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .featured-article-card {
+      padding: 13px;
+      border-radius: 11px;
+    }
+    .featured-article-meta {
+      margin-bottom: 7px;
+    }
+    .featured-article-type {
+      padding: 2px 8px;
+    }
+    .featured-article-title {
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 5px;
+    }
+    .featured-article-summary {
+      font-size: 11px;
+      line-height: 1.6;
+    }
+    .featured-article-footer {
+      margin-top: 9px;
+      padding-top: 8px;
+      gap: 3px;
+    }
+    .featured-article-read {
+      font-size: 11px;
+    }
+    .featured-article-footer svg {
+      width: 10px;
+      height: 10px;
+    }
+  }
+  /* LTR overrides */
+  html[dir="ltr"] .featured-articles-link svg,
+  html[dir="ltr"] .featured-article-footer svg {
+    transform: rotate(180deg);
+  }
+</style>
+<% } %>
+
+<!-- Homepage Sections (All from database, controlled via admin panel) -->
+<% if (typeof homepageSections !== 'undefined' && homepageSections && homepageSections.length > 0) { %>
+<div class="homepage-sections">
+  <% homepageSections.forEach(function(section) { %>
+  <div class="section-block" id="section-<%= section.slug %>">
+    <div class="section-header" onclick="toggleSection('<%= section.slug %>')">
+      <div class="section-header-left">
+        <h2 class="section-title"><%= (locale === 'ar' ? section.title.ar : section.title.en).replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{2300}-\u{23FF}]|[\u{2B50}]|[\u{2705}]|[\u{274C}]|[\u{274E}]|[\u{1F4C5}]/gu, '').trim() %></h2>
+        <span class="section-count"><%= section.totalSeriesCount %> <%= locale === 'ar' ? 'سلاسل' : 'series' %></span>
+      </div>
+      <svg class="section-chevron <%= section.collapsedByDefault ? 'collapsed' : '' %>" id="toggle-<%= section.slug %>" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18,15 12,9 6,15"/></svg>
+    </div>
+    <div class="section-content <%= section.collapsedByDefault ? 'collapsed' : '' %>" id="content-<%= section.slug %>">
+      <table class="section-table">
+        <% const visibleSeries = section.series.slice(0, section.maxVisible || 5); %>
+        <% const hiddenSeries = section.series.slice(section.maxVisible || 5); %>
+        <% visibleSeries.forEach(function(s) { %>
+        <tr>
+          <td style="width:60%">
+            <a href="/series/<%= s.slug ? encodeURIComponent(s.slug) : s._id %>" class="section-series-title"><%= locale === 'ar' ? s.titleArabic : (s.titleEnglish || s.titleArabic) %></a>
+            <% if (locale === 'en' && s.titleArabic) { %>
+              <div class="section-series-subtitle"><%= s.titleArabic %></div>
+            <% } %>
+          </td>
+          <td class="hide-mobile" style="width:20%">
+            <% if (s.sheikh) { %>
+              <span style="color:#666;font-size:14px;"><%= locale === 'ar' ? s.sheikh.nameArabic : (s.sheikh.nameEnglish || s.sheikh.nameArabic) %></span>
+            <% } %>
+          </td>
+          <td style="width:10%;text-align:center;">
+            <span class="section-lecture-count"><%= s.lectureCount %> <%= locale === 'ar' ? 'درس' : '' %></span>
+          </td>
+          <td class="hide-mobile" style="width:10%;text-align:center;">
+            <a href="/series/<%= s.slug ? encodeURIComponent(s.slug) : s._id %>" class="section-view-btn"><%= locale === 'ar' ? 'عرض' : 'View' %></a>
+          </td>
+        </tr>
+        <% }) %>
+        <% hiddenSeries.forEach(function(s) { %>
+        <tr class="section-hidden-row" data-section="<%= section.slug %>" style="display:none;">
+          <td style="width:60%">
+            <a href="/series/<%= s.slug ? encodeURIComponent(s.slug) : s._id %>" class="section-series-title"><%= locale === 'ar' ? s.titleArabic : (s.titleEnglish || s.titleArabic) %></a>
+            <% if (locale === 'en' && s.titleArabic) { %>
+              <div class="section-series-subtitle"><%= s.titleArabic %></div>
+            <% } %>
+          </td>
+          <td class="hide-mobile" style="width:20%">
+            <% if (s.sheikh) { %>
+              <span style="color:#666;font-size:14px;"><%= locale === 'ar' ? s.sheikh.nameArabic : (s.sheikh.nameEnglish || s.sheikh.nameArabic) %></span>
+            <% } %>
+          </td>
+          <td style="width:10%;text-align:center;">
+            <span class="section-lecture-count"><%= s.lectureCount %> <%= locale === 'ar' ? 'درس' : '' %></span>
+          </td>
+          <td class="hide-mobile" style="width:10%;text-align:center;">
+            <a href="/series/<%= s.slug ? encodeURIComponent(s.slug) : s._id %>" class="section-view-btn"><%= locale === 'ar' ? 'عرض' : 'View' %></a>
+          </td>
+        </tr>
+        <% }) %>
+      </table>
+      <% if (hiddenSeries.length > 0) { %>
+        <button class="section-show-more" id="showmore-<%= section.slug %>" onclick="showMoreSeries('<%= section.slug %>')">
+          <%= locale === 'ar' ? 'عرض المزيد' : 'Show more' %> (<%= hiddenSeries.length %>)
+        </button>
+      <% } %>
+    </div>
+  </div>
+  <% }) %>
+</div>
+
+<script>
+function toggleSection(slug) {
+  const content = document.getElementById('content-' + slug);
+  const toggle = document.getElementById('toggle-' + slug);
+  content.classList.toggle('collapsed');
+  toggle.classList.toggle('collapsed');
+  // Persist state
+  try {
+    const state = JSON.parse(localStorage.getItem('sectionState') || '{}');
+    state[slug] = content.classList.contains('collapsed');
+    localStorage.setItem('sectionState', JSON.stringify(state));
+  } catch(e) {}
+}
+
+function showMoreSeries(slug) {
+  const rows = document.querySelectorAll('.section-hidden-row[data-section="' + slug + '"]');
+  rows.forEach(row => row.style.display = '');
+  const btn = document.getElementById('showmore-' + slug);
+  if (btn) btn.style.display = 'none';
+}
+
+// Restore collapsed state from localStorage
+(function() {
+  try {
+    const state = JSON.parse(localStorage.getItem('sectionState') || '{}');
+    Object.keys(state).forEach(slug => {
+      const content = document.getElementById('content-' + slug);
+      const toggle = document.getElementById('toggle-' + slug);
+      if (content && toggle) {
+        if (state[slug]) {
+          content.classList.add('collapsed');
+          toggle.classList.add('collapsed');
+        } else {
+          content.classList.remove('collapsed');
+          toggle.classList.remove('collapsed');
+        }
+      }
+    });
+  } catch(e) {}
+})();
+</script>
+<% } %>
+
+<!-- Navigation Tabs -->
+<%
+  const showSeriesTab = typeof homepageConfig === 'undefined' || homepageConfig.showSeriesTab !== false;
+  const showStandaloneTab = typeof homepageConfig === 'undefined' || homepageConfig.showStandaloneTab !== false;
+  const showKhutbasTab = typeof homepageConfig === 'undefined' || homepageConfig.showKhutbasTab !== false;
+  const anyTabVisible = showSeriesTab || showStandaloneTab || showKhutbasTab;
+%>
+<% if (anyTabVisible) { %>
+<div class="nav-tabs">
+  <div class="nav-tabs-container">
+    <% if (showSeriesTab) { %>
+    <button class="nav-tab<%= activeTab === 'series' ? ' active' : '' %>" id="tab-series">
+      <i data-lucide="library"></i> <%= locale === 'ar' ? 'السلاسل' : 'Series' %>
+    </button>
+    <% } %>
+    <% if (showStandaloneTab) { %>
+    <button class="nav-tab<%= activeTab === 'lectures' ? ' active' : '' %>" id="tab-lectures">
+      <i data-lucide="mic"></i> <%= locale === 'ar' ? 'المحاضرات' : 'Standalone' %>
+    </button>
+    <% } %>
+    <% if (showKhutbasTab) { %>
+    <button class="nav-tab<%= activeTab === 'khutbas' ? ' active' : '' %>" id="tab-khutbas">
+      <i data-lucide="building-2"></i> <%= locale === 'ar' ? 'الخطب' : 'Khutbahs' %>
+    </button>
+    <% } %>
+  </div>
+</div>
+
+<!-- Filter Panel (includes search) -->
+<div class="title-search-section">
+  <div class="title-search-wrapper">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--redesign-text-muted, #A89070)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input
+      type="text"
+      class="title-search-input"
+      id="titleSearchInput"
+      placeholder="<%= locale === 'ar' ? 'ابحث عن سلسلة أو درس...' : 'Search series or lesson...' %>"
+    >
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-section">
+  <div class="filter-group">
+    <span class="filter-label"><%= locale === 'ar' ? 'التصنيف:' : 'Category:' %></span>
+    <div class="filter-chips">
+      <button class="chip active" data-filter="all" data-type="category">
+        <%= locale === 'ar' ? 'الكل' : 'All' %>
+      </button>
+      <button class="chip" data-filter="Fiqh" data-type="category">
+        <%= locale === 'ar' ? 'الفقه' : 'Fiqh' %>
+      </button>
+      <button class="chip" data-filter="Aqeedah" data-type="category">
+        <%= locale === 'ar' ? 'العقيدة' : 'Aqeedah' %>
+      </button>
+      <button class="chip" data-filter="Tafsir" data-type="category">
+        <%= locale === 'ar' ? 'التفسير' : 'Tafsir' %>
+      </button>
+      <button class="chip" data-filter="Hadith" data-type="category">
+        <%= locale === 'ar' ? 'الحديث' : 'Hadith' %>
+      </button>
+      <button class="chip" data-filter="Seerah" data-type="category">
+        <%= locale === 'ar' ? 'السيرة' : 'Seerah' %>
+      </button>
+      <button class="chip" data-filter="Other" data-type="category">
+        <%= locale === 'ar' ? 'أخرى' : 'Other' %>
+      </button>
+    </div>
+  </div>
+
+  <div class="filter-group">
+    <span class="filter-label"><%= locale === 'ar' ? 'النوع:' : 'Type:' %></span>
+    <div class="filter-chips">
+      <button class="chip active" data-filter="all" data-type="seriesType">
+        <%= locale === 'ar' ? 'الكل' : 'All' %>
+      </button>
+      <button class="chip" data-filter="online" data-type="seriesType">
+        <%= locale === 'ar' ? 'عن بعد' : 'Online' %>
+      </button>
+      <button class="chip" data-filter="archive-ramadan" data-type="seriesType">
+        <%= locale === 'ar' ? 'أرشيف رمضان' : 'Ramadan Archive' %>
+      </button>
+      <button class="chip" data-filter="archive" data-type="seriesType">
+        <%= locale === 'ar' ? 'أرشيف' : 'Archive' %>
+      </button>
+      <button class="chip" data-filter="masjid" data-type="seriesType">
+        <%= locale === 'ar' ? 'جامع الورود' : 'Masjid Al-Wurud' %>
+      </button>
+    </div>
+  </div>
+
+  <div class="filter-group">
+    <span class="filter-label"><%= locale === 'ar' ? 'الترتيب:' : 'Sort:' %></span>
+    <div class="filter-chips">
+      <button class="chip active" data-sort="newest">
+        <%= locale === 'ar' ? 'الأحدث أولاً' : 'Newest First' %>
+      </button>
+      <button class="chip" data-sort="oldest">
+        <%= locale === 'ar' ? 'الأقدم أولاً' : 'Oldest First' %>
+      </button>
+    </div>
+  </div>
+
+  <button class="clear-filters-btn" id="clearFiltersBtn" style="display: none;">
+    <%= locale === 'ar' ? 'مسح الفلاتر ✕' : 'Clear Filters ✕' %>
+  </button>
+</div>
+
+<!-- Series Tab Content -->
+<div id="content-series" class="tab-content<%= activeTab === 'series' ? ' active' : '' %>">
+<div class="series-list">
+  <% if (typeof lazyLoadSeries !== 'undefined' && lazyLoadSeries) { %>
+    <!-- Loading skeleton - series will be loaded via API -->
+    <div class="series-skeleton" id="seriesLoadingSkeleton">
+      <div class="skeleton-card">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line short"></div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line short"></div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line short"></div>
+      </div>
+      <p style="text-align: center; color: var(--text-muted); padding: 20px;"><%= locale === 'ar' ? 'جاري تحميل السلاسل...' : 'Loading series...' %></p>
+    </div>
+  <% } else if (seriesList && seriesList.length > 0) { %>
+    <% seriesList.forEach(series => {
+      // Get the most recent lecture date for sorting
+      // Find the lecture with the latest dateRecorded
+      let latestLecture = null;
+      let latestDate = 0;
+
+      if (series.lectures.length > 0) {
+        // Find lecture with most recent dateRecorded
+        for (const lecture of series.lectures) {
+          if (lecture.dateRecorded) {
+            const lectureTime = new Date(lecture.dateRecorded).getTime();
+            if (lectureTime > latestDate) {
+              latestDate = lectureTime;
+              latestLecture = lecture;
+            }
+          }
+        }
+
+        // If no lectures have dateRecorded, use createdAt as fallback
+        if (latestDate === 0) {
+          for (const lecture of series.lectures) {
+            if (lecture.createdAt) {
+              const lectureTime = new Date(lecture.createdAt).getTime();
+              if (lectureTime > latestDate) {
+                latestDate = lectureTime;
+                latestLecture = lecture;
+              }
+            }
+          }
+        }
+
+        // Last resort: use Date.now()
+        if (latestDate === 0) {
+          latestDate = Date.now();
+        }
+      } else {
+        latestDate = Date.now();
+      }
+
+      const hijriDate = latestLecture?.dateRecordedHijri || '';
+
+      // Determine series type based on tags or title suffix
+      let seriesType = 'masjid'; // default
+      if (series.tags && series.tags.includes('online')) {
+        seriesType = 'online';
+      } else if (series.tags && series.tags.includes('ramadan')) {
+        seriesType = 'archive-ramadan';
+      } else if (series.tags && series.tags.includes('archive')) {
+        seriesType = 'archive';
+      } else if (series.titleArabic && series.titleArabic.includes('عن بعد')) {
+        seriesType = 'online';
+      } else if (series.titleArabic && series.titleArabic.includes('أرشيف رمضان')) {
+        seriesType = 'archive-ramadan';
+      } else if (series.titleArabic && series.titleArabic.includes('أرشيف')) {
+        seriesType = 'archive';
+      }
+    %>
+      <div class="series-card" data-category="<%= series.category %>" data-date="<%= latestDate %>" data-hijri="<%= hijriDate %>" data-series-type="<%= seriesType %>">
+        <div class="series-header" onclick="toggleSeries('<%= series._id %>')">
+          <button class="expand-btn" id="btn-<%= series._id %>" aria-label="<%= locale === 'ar' ? 'عرض الدروس' : 'Show Lessons' %>">
+            <i data-lucide="plus" class="expand-icon"></i>
+          </button>
+          <div class="series-content">
+            <h2 class="series-title"><a href="/series/<%= series.slug ? encodeURIComponent(series.slug) : series._id %>" onclick="event.stopPropagation()"><%= locale === 'ar' ? series.titleArabic : (series.titleEnglish || series.titleArabic) %></a></h2>
+            <div class="series-sheikh">
+              <%= series.sheikh ? (locale === 'ar' ? series.sheikh.nameArabic : (series.sheikh.nameEnglish || series.sheikh.nameArabic)) : '' %>
+            </div>
+            <div class="series-info">
+              <span class="series-lesson-count"><%= series.lectureCount %> <%= locale === 'ar' ? 'درس' : 'lessons' %></span>
+              <span class="category-badge"><%= translateCategory(series.category) %></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="episodes-list" id="episodes-<%= series._id %>">
+          <!-- Sort controls for lectures within this series -->
+          <div class="episode-sort-bar">
+            <span class="episode-sort-label"><%= locale === 'ar' ? 'ترتيب الدروس:' : 'Sort:' %></span>
+            <div class="episode-sort-chips">
+              <button class="sort-chip active" onclick="sortSeriesLectures('<%= series._id %>', 'number'); event.stopPropagation();">
+                <%= locale === 'ar' ? 'حسب الرقم' : 'By Number' %>
+              </button>
+              <button class="sort-chip" onclick="sortSeriesLectures('<%= series._id %>', 'oldest'); event.stopPropagation();">
+                <%= locale === 'ar' ? 'الأقدم' : 'Oldest' %>
+              </button>
+              <button class="sort-chip" onclick="sortSeriesLectures('<%= series._id %>', 'newest'); event.stopPropagation();">
+                <%= locale === 'ar' ? 'الأحدث' : 'Newest' %>
+              </button>
+            </div>
+          </div>
+
+          <div class="episodes-container">
+          <% series.lectures.forEach((lecture, index) => { %>
+            <div class="episode-item" data-lecture-number="<%= index + 1 %>" data-date="<%= lecture.dateRecorded ? new Date(lecture.dateRecorded).getTime() : 0 %>">
+              <div class="episode-header">
+                <div class="episode-number"><%= index + 1 %></div>
+                <div class="episode-title">
+                  <%= locale === 'ar' ? lecture.titleArabic : (lecture.titleEnglish || lecture.titleArabic) %>
+                </div>
+              </div>
+              <div class="episode-meta">
+                <% if (lecture.duration && lecture.duration > 0) { %>
+                  <span><i data-lucide="clock"></i> <%= Math.floor(lecture.duration / 60) %>:<%= String(lecture.duration % 60).padStart(2, '0') %></span>
+                <% } %>
+                <% if (lecture.location) { %>
+                  <span><%= lecture.location %></span>
+                <% } %>
+                <% if (lecture.dateRecordedHijri) { %>
+                  <span class="hijri-date"><i data-lucide="calendar"></i> <%= formatHijriDate(lecture.dateRecordedHijri) %></span>
+                <% } %>
+              </div>
+              <div class="episode-actions">
+                <button class="btn-play" onclick="playAudio('<%= lecture._id %>', '<%= lecture.titleArabic.replace(/'/g, "\\'") %>', '<%= series.sheikh ? series.sheikh.nameArabic.replace(/'/g, "\\'") : "" %>')">
+                  <i data-lucide="play"></i> <%= locale === 'ar' ? 'تشغيل' : 'Play' %>
+                </button>
+                <a href="/download/<%= lecture._id %>" class="btn-download">
+                  <i data-lucide="download"></i> <%= locale === 'ar' ? 'تحميل' : 'Download' %>
+                </a>
+              </div>
+            </div>
+          <% }); %>
+          </div><!-- Close episodes-container -->
+        </div>
+      </div>
+    <% }); %>
+  <% } else { %>
+    <div class="empty-state">
+      <div class="empty-icon"><i data-lucide="book-open"></i></div>
+      <h3 class="empty-title">
+        <%= locale === 'ar' ? 'لا توجد محاضرات' : 'No lectures found' %>
+      </h3>
+      <p class="empty-text">
+        <%= locale === 'ar' ? 'جرب بحثاً آخر' : 'Try another search' %>
+      </p>
+    </div>
+  <% } %>
+</div>
+</div>
+
+<!-- Lectures Tab Content -->
+<div id="content-lectures" class="tab-content<%= activeTab === 'lectures' ? ' active' : '' %>">
+  <div class="series-list">
+    <% if (standaloneLectures && standaloneLectures.length > 0) { %>
+      <% standaloneLectures.forEach(lecture => {
+        // Use dateRecorded if available, otherwise createdAt, otherwise Date.now()
+        let lectureDate;
+        if (lecture.dateRecorded) {
+          lectureDate = new Date(lecture.dateRecorded).getTime();
+        } else if (lecture.createdAt) {
+          lectureDate = new Date(lecture.createdAt).getTime();
+        } else {
+          lectureDate = Date.now();
+        }
+
+        const hijriDate = lecture.dateRecordedHijri || '';
+      %>
+        <div class="series-card" data-date="<%= lectureDate %>" data-hijri="<%= hijriDate %>">
+          <div class="series-header">
+            <h2 class="series-title"><%= locale === 'ar' ? lecture.titleArabic : (lecture.titleEnglish || lecture.titleArabic) %></h2>
+            <div class="series-meta">
+              <div class="series-sheikh">
+                <%= locale === 'ar' ? 'الشيخ:' : 'Sheikh:' %> <%= lecture.sheikhId ? (locale === 'ar' ? lecture.sheikhId.nameArabic : (lecture.sheikhId.nameEnglish || lecture.sheikhId.nameArabic)) : '' %>
+              </div>
+            </div>
+            <div class="series-info">
+              <% if (lecture.duration && lecture.duration > 0) { %>
+                <span><i data-lucide="clock"></i> <%= Math.floor(lecture.duration / 60) %>:<%= String(lecture.duration % 60).padStart(2, '0') %></span>
+              <% } %>
+              <% if (lecture.dateRecordedHijri) { %>
+                <span class="hijri-date"><i data-lucide="calendar"></i> <%= formatHijriDate(lecture.dateRecordedHijri) %></span>
+              <% } %>
+            </div>
+            <div class="episode-actions" style="margin-top: 16px;">
+              <% if (lecture.audioFileName) { %>
+                <button class="btn-play" onclick="playAudio('<%= lecture._id %>', '<%= lecture.titleArabic.replace(/'/g, "\\'") %>', '<%= lecture.sheikhId ? lecture.sheikhId.nameArabic.replace(/'/g, "\\'") : "" %>')">
+                  <i data-lucide="play"></i> <%= locale === 'ar' ? 'تشغيل' : 'Play' %>
+                </button>
+                <a href="/download/<%= lecture._id %>" class="btn-download">
+                  <i data-lucide="download"></i> <%= locale === 'ar' ? 'تحميل' : 'Download' %>
+                </a>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <div class="empty-state">
+        <div class="empty-icon"><i data-lucide="mic"></i></div>
+        <h3 class="empty-title"><%= locale === 'ar' ? 'لا توجد محاضرات منفصلة' : 'No standalone lectures' %></h3>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- Khutbas Tab Content -->
+<div id="content-khutbas" class="tab-content<%= activeTab === 'khutbas' ? ' active' : '' %>">
+  <div class="series-list">
+    <% if (khutbaSeries && khutbaSeries.length > 0) { %>
+      <% khutbaSeries.forEach(series => {
+        // Get the most recent lecture date for sorting
+        // Find the lecture with the latest dateRecorded
+        let latestLecture = null;
+        let latestDate = 0;
+
+        if (series.lectures.length > 0) {
+          // Find lecture with most recent dateRecorded
+          for (const lecture of series.lectures) {
+            if (lecture.dateRecorded) {
+              const lectureTime = new Date(lecture.dateRecorded).getTime();
+              if (lectureTime > latestDate) {
+                latestDate = lectureTime;
+                latestLecture = lecture;
+              }
+            }
+          }
+
+          // If no lectures have dateRecorded, use createdAt as fallback
+          if (latestDate === 0) {
+            for (const lecture of series.lectures) {
+              if (lecture.createdAt) {
+                const lectureTime = new Date(lecture.createdAt).getTime();
+                if (lectureTime > latestDate) {
+                  latestDate = lectureTime;
+                  latestLecture = lecture;
+                }
+              }
+            }
+          }
+
+          // Last resort: use Date.now()
+          if (latestDate === 0) {
+            latestDate = Date.now();
+          }
+        } else {
+          latestDate = Date.now();
+        }
+
+        const hijriDate = latestLecture?.dateRecordedHijri || '';
+      %>
+        <div class="series-card" data-category="<%= series.category %>" data-date="<%= latestDate %>" data-hijri="<%= hijriDate %>">
+          <div class="series-header" onclick="toggleKhutba('<%= series._id %>')">
+            <h2 class="series-title"><a href="/series/<%= series.slug ? encodeURIComponent(series.slug) : series._id %>" onclick="event.stopPropagation()"><%= locale === 'ar' ? series.titleArabic : (series.titleEnglish || series.titleArabic) %></a></h2>
+            <div class="series-meta">
+              <div class="series-sheikh">
+                <%= locale === 'ar' ? 'الشيخ:' : 'Sheikh:' %> <%= series.sheikh ? (locale === 'ar' ? series.sheikh.nameArabic : (series.sheikh.nameEnglish || series.sheikh.nameArabic)) : '' %>
+              </div>
+            </div>
+            <div class="series-info">
+              <span><%= series.lectureCount %> <%= locale === 'ar' ? 'خطبة' : 'khutbahs' %></span>
+            </div>
+            <button class="expand-btn" id="khutba-btn-<%= series._id %>" aria-label="<%= locale === 'ar' ? 'عرض الخطب' : 'Show Khutbahs' %>">
+              <i data-lucide="plus" class="expand-icon"></i>
+            </button>
+          </div>
+          <div class="episodes-list" id="khutba-episodes-<%= series._id %>">
+            <!-- Sort controls for khutbas within this series -->
+            <div class="episode-sort-bar">
+              <span class="episode-sort-label"><%= locale === 'ar' ? 'ترتيب الخطب:' : 'Sort:' %></span>
+              <div class="episode-sort-chips">
+                <button class="sort-chip active" onclick="sortSeriesLectures('khutba-<%= series._id %>', 'number'); event.stopPropagation();">
+                  <%= locale === 'ar' ? 'حسب الرقم' : 'By Number' %>
+                </button>
+                <button class="sort-chip" onclick="sortSeriesLectures('khutba-<%= series._id %>', 'oldest'); event.stopPropagation();">
+                  <%= locale === 'ar' ? 'الأقدم' : 'Oldest' %>
+                </button>
+                <button class="sort-chip" onclick="sortSeriesLectures('khutba-<%= series._id %>', 'newest'); event.stopPropagation();">
+                  <%= locale === 'ar' ? 'الأحدث' : 'Newest' %>
+                </button>
+              </div>
+            </div>
+
+            <div class="episodes-container">
+            <% if (series.lectures && series.lectures.length > 0) { %>
+              <% series.lectures.forEach((lecture, index) => { %>
+                <div class="episode-item" data-lecture-number="<%= index + 1 %>" data-date="<%= lecture.dateRecorded ? new Date(lecture.dateRecorded).getTime() : 0 %>">
+                  <div class="episode-header">
+                    <div class="episode-number"><%= index + 1 %></div>
+                    <div class="episode-title"><%= locale === 'ar' ? lecture.titleArabic : (lecture.titleEnglish || lecture.titleArabic) %></div>
+                  </div>
+                  <div class="episode-meta">
+                    <% if (lecture.duration && lecture.duration > 0) { %>
+                      <span><i data-lucide="clock"></i> <%= Math.floor(lecture.duration / 60) %>:<%= String(lecture.duration % 60).padStart(2, '0') %></span>
+                    <% } %>
+                    <% if (lecture.location) { %>
+                      <span><%= lecture.location %></span>
+                    <% } %>
+                    <% if (lecture.dateRecordedHijri) { %>
+                      <span class="hijri-date"><i data-lucide="calendar"></i> <%= formatHijriDate(lecture.dateRecordedHijri) %></span>
+                    <% } %>
+                  </div>
+                  <div class="episode-actions">
+                    <% if (lecture.audioFileName) { %>
+                      <button class="btn-play" onclick="playAudio('<%= lecture._id %>', '<%= lecture.titleArabic.replace(/'/g, "\\'") %>', '<%= series.sheikh ? series.sheikh.nameArabic.replace(/'/g, "\\'") : "" %>')">
+                        <i data-lucide="play"></i> <%= locale === 'ar' ? 'تشغيل' : 'Play' %>
+                      </button>
+                      <a href="/download/<%= lecture._id %>" class="btn-download">
+                        <i data-lucide="download"></i> <%= locale === 'ar' ? 'تحميل' : 'Download' %>
+                      </a>
+                    <% } %>
+                  </div>
+                </div>
+              <% }) %>
+            <% } %>
+            </div><!-- Close episodes-container -->
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <div class="empty-state">
+        <div class="empty-icon"><i data-lucide="building-2"></i></div>
+        <h3 class="empty-title"><%= locale === 'ar' ? 'لا توجد خطب' : 'No Khutbahs' %></h3>
+      </div>
+    <% } %>
+  </div>
+</div>
+<% } %><!-- end anyTabVisible -->
+
+<script>
+  // Locale for JavaScript
+  const currentLocale = '<%= locale %>';
+
+  // Toggle series expansion
+  function toggleSeries(seriesId) {
+    const episodesList = document.getElementById('episodes-' + seriesId);
+    const btn = document.getElementById('btn-' + seriesId);
+
+    if (!episodesList || !btn) return;
+
+    episodesList.classList.toggle('show');
+    btn.classList.toggle('expanded');
+
+    // Toggle between plus and minus icons
+    const icon = btn.querySelector('.expand-icon');
+    if (icon) {
+      icon.setAttribute('data-lucide', episodesList.classList.contains('show') ? 'minus' : 'plus');
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+  }
+
+  // Toggle Khutba expansion
+  function toggleKhutba(seriesId) {
+    const episodesList = document.getElementById('khutba-episodes-' + seriesId);
+    const btn = document.getElementById('khutba-btn-' + seriesId);
+
+    if (!episodesList || !btn) return;
+
+    episodesList.classList.toggle('show');
+    btn.classList.toggle('expanded');
+
+    // Toggle between plus and minus icons
+    const icon = btn.querySelector('.expand-icon');
+    if (icon) {
+      icon.setAttribute('data-lucide', episodesList.classList.contains('show') ? 'minus' : 'plus');
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+  }
+
+  // Play audio using sticky audio player
+  function playAudio(lectureId, title, sheikh) {
+    if (window.audioPlayer) {
+      window.audioPlayer.play(lectureId, {
+        title: title,
+        titleArabic: title,
+        sheikh: sheikh || ''
+      });
+    } else {
+      alert(currentLocale === 'ar' ? 'جاري تحميل المشغل، يرجى المحاولة مرة أخرى.' : 'Loading audio player, please try again.');
+    }
+  }
+
+  // Sort lectures within a specific series
+  function sortSeriesLectures(seriesId, sortType) {
+    // Get the episodes container for this series
+    let episodesListId;
+    if (seriesId.startsWith('khutba-')) {
+      episodesListId = `khutba-episodes-${seriesId.substring(7)}`;
+    } else {
+      episodesListId = `episodes-${seriesId}`;
+    }
+    const episodesList = document.getElementById(episodesListId);
+    if (!episodesList) return;
+
+    const container = episodesList.querySelector('.episodes-container');
+    if (!container) return;
+
+    // Get all episode items
+    const episodes = Array.from(container.querySelectorAll('.episode-item'));
+
+    // Sort episodes based on type
+    episodes.sort((a, b) => {
+      if (sortType === 'number') {
+        const numA = parseInt(a.dataset.lectureNumber) || 999;
+        const numB = parseInt(b.dataset.lectureNumber) || 999;
+        return numA - numB;
+      } else if (sortType === 'oldest') {
+        const dateA = parseInt(a.dataset.date) || 0;
+        const dateB = parseInt(b.dataset.date) || 0;
+        return dateA - dateB;
+      } else if (sortType === 'newest') {
+        const dateA = parseInt(a.dataset.date) || 0;
+        const dateB = parseInt(b.dataset.date) || 0;
+        return dateB - dateA;
+      }
+      return 0;
+    });
+
+    // Re-append episodes in sorted order
+    episodes.forEach(episode => container.appendChild(episode));
+  }
+
+  // Initialize Lucide icons when DOM is ready
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  } else {
+    // Wait for Lucide to load
+    window.addEventListener('load', function() {
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+  }
+</script>
+
+<!-- Server-side filtering and pagination module (minified) -->
+<script src="/js/homepage.min.js<%= typeof v !== 'undefined' ? v : '' %>" defer></script>

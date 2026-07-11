@@ -1,0 +1,161 @@
+<!-- Bottom Navigation Bar (Mobile Only) -->
+<nav class="bottom-nav" id="bottomNav">
+  <a href="/" class="bottom-nav-item<%= typeof currentPath !== 'undefined' && currentPath === '/' ? ' active' : '' %>">
+    <span class="bottom-nav-icon"><i data-lucide="home"></i></span>
+    <span class="bottom-nav-label"><%= locale === 'ar' ? 'الرئيسية' : 'Home' %></span>
+  </a>
+  <a href="/series" class="bottom-nav-item<%= typeof currentPath !== 'undefined' && currentPath.startsWith('/series') ? ' active' : '' %>">
+    <span class="bottom-nav-icon"><i data-lucide="library"></i></span>
+    <span class="bottom-nav-label"><%= locale === 'ar' ? 'السلاسل' : 'Series' %></span>
+  </a>
+  <a href="/#search" class="bottom-nav-item bottom-nav-search" onclick="focusSearch(event)">
+    <span class="bottom-nav-icon"><i data-lucide="search"></i></span>
+    <span class="bottom-nav-label"><%= locale === 'ar' ? 'بحث' : 'Search' %></span>
+  </a>
+  <a href="/articles" class="bottom-nav-item<%= typeof currentPath !== 'undefined' && currentPath.startsWith('/articles') ? ' active' : '' %>">
+    <span class="bottom-nav-icon"><i data-lucide="pen-line"></i></span>
+    <span class="bottom-nav-label"><%= locale === 'ar' ? 'مقالات' : 'Articles' %></span>
+  </a>
+  <a href="/#schedule" class="bottom-nav-item" onclick="scrollToSchedule(event)">
+    <span class="bottom-nav-icon"><i data-lucide="calendar-days"></i></span>
+    <span class="bottom-nav-label"><%= locale === 'ar' ? 'الجدول' : 'Schedule' %></span>
+  </a>
+</nav>
+
+<style>
+  /* Bottom Navigation - Mobile Only */
+  .bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 70px;
+    background: #2C1508;
+    border-top: 1px solid rgba(196, 154, 60, 0.15);
+    z-index: 9999;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    /* RTL fix: ensure consistent flex direction */
+    direction: ltr;
+    /* Prevent rendering glitches */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .bottom-nav {
+      display: flex;
+      align-items: stretch;
+      /* RTL fix: add horizontal padding to prevent overflow */
+      padding-left: 8px;
+      padding-right: 8px;
+      box-sizing: border-box;
+    }
+
+    /* Adjust body padding for bottom nav */
+    body {
+      padding-bottom: calc(70px + env(safe-area-inset-bottom, 0)) !important;
+    }
+
+    /* Ensure main content doesn't overlap */
+    main {
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  .bottom-nav-item {
+    flex: 1;
+    min-width: 0; /* RTL fix: allow flex items to shrink */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding-bottom: 5px;
+    text-decoration: none;
+    /* Only transition color, not all properties */
+    transition: color 0.15s ease;
+  }
+
+  .bottom-nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(222, 201, 154, 0.5);
+  }
+
+  .bottom-nav-icon .lucide {
+    width: 22px;
+    height: 22px;
+    stroke-width: 1.75;
+  }
+
+  .bottom-nav-item.active .bottom-nav-icon {
+    color: #C49A3C;
+  }
+
+  .bottom-nav-label {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 9px;
+    font-weight: 400;
+    color: rgba(222, 201, 154, 0.38);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .bottom-nav-item.active .bottom-nav-label {
+    color: #C49A3C;
+    font-weight: 700;
+  }
+
+  .bottom-nav-item.active::after {
+    content: '';
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: #C49A3C;
+    border-radius: 1px;
+    margin-top: 1px;
+  }
+
+  /* Search button highlight */
+  .bottom-nav-search .bottom-nav-icon {
+    background: rgba(196, 154, 60, 0.15);
+    padding: 8px;
+    border-radius: 50%;
+    margin-bottom: 2px;
+  }
+</style>
+
+<script>
+  function focusSearch(e) {
+    e.preventDefault();
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => searchInput.focus(), 500);
+    } else {
+      window.location.href = '/#search';
+    }
+  }
+
+  function scrollToSchedule(e) {
+    e.preventDefault();
+    const scheduleSection = document.querySelector('.weekly-schedule-section');
+    if (scheduleSection) {
+      scheduleSection.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.location.href = '/#schedule';
+    }
+  }
+</script>

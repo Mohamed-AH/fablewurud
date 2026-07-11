@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>البحث في النصوص</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/search.css<%= typeof v !== 'undefined' ? v : '' %>">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-container">
+      <a href="https://rasmihassan.com" class="logo">موقع الشيخ رسمي حسن</a>
+      <nav class="nav-links">
+        <a href="https://rasmihassan.com/lectures">المحاضرات</a>
+        <a href="https://rasmihassan.com/series">السلاسل</a>
+        <a href="/search" class="active">البحث</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>البحث في نصوص المحاضرات</h1>
+    <p class="subtitle">ابحث في نصوص المحاضرات للعثور على المقاطع التي تحتاجها</p>
+  </section>
+
+  <!-- Search Section -->
+  <main class="main-content">
+    <div class="search-container">
+      <form action="/search/results" method="GET" class="search-form">
+        <div class="search-input-wrapper">
+          <input
+            type="text"
+            name="q"
+            value="<%= query %>"
+            placeholder="اكتب كلمات البحث..."
+            class="search-input"
+            autocomplete="off"
+          >
+          <button type="submit" class="search-btn">بحث</button>
+        </div>
+      </form>
+
+      <% if (searched && searchLogId) { %>
+      <!-- Feedback Section -->
+      <div class="feedback-section" id="feedbackSection">
+        <button type="button" class="feedback-toggle" id="feedbackToggle">
+          <span class="feedback-icon">&#9733;</span>
+          قيّم نتائج البحث
+        </button>
+
+        <div class="feedback-panel" id="feedbackPanel">
+          <p class="feedback-question">هل كانت نتائج البحث مفيدة؟</p>
+          <div class="feedback-buttons">
+            <button type="button" class="feedback-btn relevant" data-relevant="true">
+              <span class="btn-icon">&#10003;</span>
+              نعم، مفيدة
+            </button>
+            <button type="button" class="feedback-btn not-relevant" data-relevant="false">
+              <span class="btn-icon">&#10007;</span>
+              لا، غير مفيدة
+            </button>
+          </div>
+          <div class="feedback-comment">
+            <textarea
+              id="feedbackComment"
+              placeholder="أضف تعليقاً (اختياري)..."
+              maxlength="300"
+            ></textarea>
+          </div>
+          <button type="button" class="feedback-submit" id="feedbackSubmit" disabled>
+            إرسال التقييم
+          </button>
+        </div>
+      </div>
+      <% } %>
+    </div>
+
+    <% if (error) { %>
+    <div class="error-message">
+      <p><%= error %></p>
+    </div>
+    <% } %>
+
+    <% if (searched && results.length === 0 && !error) { %>
+    <div class="no-results">
+      <p>لم يتم العثور على نتائج للبحث: "<%= query %>"</p>
+      <p class="no-results-hint">جرّب استخدام كلمات مختلفة أو أقل</p>
+    </div>
+    <% } %>
+
+    <% if (results.length > 0) { %>
+    <div class="results-header">
+      <p>تم العثور على نتائج في <strong><%= results.length %></strong> محاضرة</p>
+    </div>
+
+    <div class="results-list">
+      <% results.forEach(function(result, index) { %>
+      <article class="result-card">
+        <h2 class="result-title"><%= result.lectureTitle || 'محاضرة' %></h2>
+
+        <div class="result-meta">
+          <% if (result.speaker) { %>
+          <span class="speaker"><%= result.speaker %></span>
+          <% } %>
+          <span class="timestamp"><%= result.formattedTime %></span>
+        </div>
+
+        <div class="result-context">
+          <% if (result.contextBefore) { %>
+          <span class="context-before"><%= result.contextBefore %></span>
+          <% } %>
+          <strong class="hit-text"><%= result.text %></strong>
+          <% if (result.contextAfter) { %>
+          <span class="context-after"><%= result.contextAfter %></span>
+          <% } %>
+        </div>
+
+        <div class="result-actions">
+          <% if (result.audioUrl) { %>
+          <button
+            type="button"
+            class="play-btn"
+            data-audio-url="<%= result.audioUrl %>"
+            data-start-time="<%= result.startTimeSec %>"
+          >
+            <span class="play-icon">&#9658;</span>
+            تشغيل من هنا
+          </button>
+          <% } %>
+          <% if (result.lectureShortId) { %>
+          <a
+            href="https://rasmihassan.com/lectures/<%= result.lectureShortId %><%= result.lectureSlugEn ? '/' + result.lectureSlugEn : '' %>"
+            class="goto-lecture-btn"
+            target="_blank"
+          >
+            <span class="goto-icon">&#8599;</span>
+            الذهاب للمحاضرة
+          </a>
+          <% } %>
+
+          <% if (result.additionalHits && result.additionalHits.length > 0) { %>
+          <button
+            type="button"
+            class="deep-dive-btn"
+            data-target="additional-<%= index %>"
+          >
+            <span class="deep-dive-icon">&#9662;</span>
+            عرض <%= result.additionalHits.length %> نتائج أخرى من هذه المحاضرة
+          </button>
+          <% } %>
+        </div>
+
+        <% if (result.additionalHits && result.additionalHits.length > 0) { %>
+        <div class="additional-hits" id="additional-<%= index %>">
+          <div class="additional-hits-header">نتائج أخرى في نفس المحاضرة:</div>
+          <% result.additionalHits.forEach(function(hit) { %>
+          <div class="additional-hit">
+            <div class="additional-hit-meta">
+              <span class="timestamp"><%= hit.formattedTime %></span>
+            </div>
+            <div class="additional-hit-text"><%= hit.text %></div>
+            <% if (result.audioUrl) { %>
+            <button
+              type="button"
+              class="play-btn play-btn-small"
+              data-audio-url="<%= result.audioUrl %>"
+              data-start-time="<%= hit.startTimeSec %>"
+            >
+              <span class="play-icon">&#9658;</span>
+              تشغيل
+            </button>
+            <% } %>
+          </div>
+          <% }); %>
+        </div>
+        <% } %>
+      </article>
+      <% }); %>
+    </div>
+    <% } %>
+  </main>
+
+  <!-- Audio Player (hidden, used for playback) -->
+  <audio id="audioPlayer" preload="none"></audio>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; <%= new Date().getFullYear() %> موقع الشيخ رسمي حسن</p>
+  </footer>
+
+  <script>
+    // Pass searchLogId to client
+    window.searchLogId = '<%= searchLogId || "" %>';
+  </script>
+  <script src="/js/search.js"></script>
+</body>
+</html>

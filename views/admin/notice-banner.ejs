@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= t('admin_notice_banner_title') %> - <%= t('admin_title') %></title>
+  <style>
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    [dir="rtl"] .page-header {
+      flex-direction: row-reverse;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 600;
+      color: #1A5F5A;
+    }
+
+    .back-link {
+      color: #1A5F5A;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .config-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      max-width: 800px;
+    }
+
+    .config-section {
+      margin-bottom: 28px;
+    }
+
+    .config-section h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1A5F5A;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+
+    [dir="rtl"] .toggle-row {
+      flex-direction: row-reverse;
+    }
+
+    .toggle-row:last-child {
+      border-bottom: none;
+    }
+
+    .toggle-info {
+      flex: 1;
+    }
+
+    .toggle-info .toggle-title {
+      font-weight: 500;
+      font-size: 15px;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .toggle-info .toggle-desc {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      border-radius: 26px;
+      transition: .3s;
+    }
+
+    .toggle-slider::before {
+      content: "";
+      position: absolute;
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .3s;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #1A5F5A;
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(22px);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="url"],
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input[type="text"]:focus,
+    .form-group input[type="url"]:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #1A5F5A;
+    }
+
+    .form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .form-group .hint {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .language-section {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .language-section h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1A5F5A;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    [dir="rtl"] .language-section h4 {
+      flex-direction: row-reverse;
+    }
+
+    .language-flag {
+      font-size: 20px;
+    }
+
+    .btn-save {
+      background: #1A5F5A;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+
+    .btn-save:hover {
+      background: #155450;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .preview-section {
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .preview-section h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1A5F5A;
+      margin-bottom: 12px;
+    }
+
+    .banner-preview {
+      background: #F5EBE0;
+      border: 1px solid #E8DCC8;
+      padding: 12px 24px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #2C1810;
+      border-radius: 6px;
+    }
+
+    .banner-preview.disabled {
+      opacity: 0.5;
+      background: #eee;
+      border-color: #ccc;
+      color: #666;
+    }
+
+    .banner-preview a {
+      color: #5C4033;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    [dir="rtl"] .status-badge {
+      margin-left: 0;
+      margin-right: 8px;
+    }
+
+    .status-badge.active {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-badge.inactive {
+      background: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'sections' }) %>
+
+  <main class="admin-container">
+    <div class="page-header">
+      <h2 class="page-title">
+        <%= t('admin_notice_banner_title') %>
+        <span class="status-badge <%= settings.enabled !== false ? 'active' : 'inactive' %>" id="statusBadge">
+          <%= settings.enabled !== false ? t('admin_status_active') : t('admin_status_inactive') %>
+        </span>
+      </h2>
+      <a href="/admin/dashboard" class="back-link"><%= adminLocale === 'ar' ? '← العودة للوحة التحكم' : '← Back to Dashboard' %></a>
+    </div>
+
+    <% if (success) { %>
+      <div class="alert alert-success">
+        <%= t('admin_msg_saved') %>
+      </div>
+    <% } %>
+
+    <% if (error) { %>
+      <div class="alert alert-danger">
+        <%= t('admin_msg_error') %>
+      </div>
+    <% } %>
+
+    <div class="preview-section">
+      <h4><%= adminLocale === 'ar' ? 'معاينة الشريط' : 'Banner Preview' %></h4>
+      <div class="banner-preview <%= settings.enabled !== false ? '' : 'disabled' %>" id="bannerPreview" dir="<%= adminLocale === 'ar' ? 'rtl' : 'ltr' %>">
+        <span id="previewMessage"><%= adminLocale === 'ar' ? settings.messageAr : settings.messageEn %></span>
+        <% if (settings.linkUrl) { %>
+          <a href="<%= settings.linkUrl %>" target="_blank" id="previewLink"><%= adminLocale === 'ar' ? settings.linkTextAr : settings.linkTextEn %></a>.
+        <% } %>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <form method="POST" action="/admin/notice-banner">
+
+        <div class="config-section">
+          <h3><%= adminLocale === 'ar' ? 'حالة الشريط' : 'Banner Status' %></h3>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-title"><%= adminLocale === 'ar' ? 'تفعيل شريط التنبيه' : 'Enable Notice Banner' %></div>
+              <div class="toggle-desc"><%= adminLocale === 'ar' ? 'إظهار شريط التنبيه في أعلى جميع الصفحات' : 'Show the notice banner at the top of all pages' %></div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="enabled" <%= settings.enabled !== false ? 'checked' : '' %> onchange="updateBannerStatus(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h3><%= adminLocale === 'ar' ? 'الرسائل' : 'Messages' %></h3>
+
+          <div class="language-section">
+            <h4><span class="language-flag">🇸🇦</span> <%= adminLocale === 'ar' ? 'الرسالة بالعربية' : 'Arabic Message' %></h4>
+            <div class="form-group">
+              <label for="messageAr"><%= adminLocale === 'ar' ? 'نص الرسالة' : 'Message Text' %></label>
+              <textarea id="messageAr" name="messageAr" dir="rtl"><%= settings.messageAr || '' %></textarea>
+              <div class="hint"><%= adminLocale === 'ar' ? 'الرسالة الرئيسية التي ستظهر للزوار الناطقين بالعربية' : 'The main message shown to Arabic-speaking visitors' %></div>
+            </div>
+            <div class="form-group">
+              <label for="linkTextAr"><%= adminLocale === 'ar' ? 'نص الرابط' : 'Link Text' %></label>
+              <input type="text" id="linkTextAr" name="linkTextAr" dir="rtl" value="<%= settings.linkTextAr || '' %>">
+              <div class="hint"><%= adminLocale === 'ar' ? 'النص القابل للنقر (مثال: تيليجرام)' : 'The clickable text (e.g., Telegram)' %></div>
+            </div>
+          </div>
+
+          <div class="language-section">
+            <h4><span class="language-flag">🇺🇸</span> <%= adminLocale === 'ar' ? 'الرسالة بالإنجليزية' : 'English Message' %></h4>
+            <div class="form-group">
+              <label for="messageEn"><%= adminLocale === 'ar' ? 'نص الرسالة' : 'Message Text' %></label>
+              <textarea id="messageEn" name="messageEn" dir="ltr"><%= settings.messageEn || '' %></textarea>
+              <div class="hint"><%= adminLocale === 'ar' ? 'الرسالة الرئيسية التي ستظهر للزوار الناطقين بالإنجليزية' : 'The main message shown to English-speaking visitors' %></div>
+            </div>
+            <div class="form-group">
+              <label for="linkTextEn"><%= adminLocale === 'ar' ? 'نص الرابط' : 'Link Text' %></label>
+              <input type="text" id="linkTextEn" name="linkTextEn" dir="ltr" value="<%= settings.linkTextEn || '' %>">
+              <div class="hint"><%= adminLocale === 'ar' ? 'النص القابل للنقر (مثال: Telegram channel)' : 'The clickable text (e.g., Telegram channel)' %></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h3><%= adminLocale === 'ar' ? 'إعدادات الرابط' : 'Link Settings' %></h3>
+
+          <div class="form-group">
+            <label for="linkUrl"><%= adminLocale === 'ar' ? 'رابط URL' : 'Link URL' %></label>
+            <input type="url" id="linkUrl" name="linkUrl" dir="ltr" value="<%= settings.linkUrl || '' %>" placeholder="https://t.me/example">
+            <div class="hint"><%= adminLocale === 'ar' ? 'اتركه فارغاً إذا لم ترد إضافة رابط' : 'Leave empty if you don\'t want to include a link' %></div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-save"><%= t('admin_btn_save') %></button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    function updateBannerStatus(isEnabled) {
+      const preview = document.getElementById('bannerPreview');
+      const badge = document.getElementById('statusBadge');
+
+      if (isEnabled) {
+        preview.classList.remove('disabled');
+        badge.className = 'status-badge active';
+        badge.textContent = '<%= adminLocale === "ar" ? "نشط" : "Active" %>';
+      } else {
+        preview.classList.add('disabled');
+        badge.className = 'status-badge inactive';
+        badge.textContent = '<%= adminLocale === "ar" ? "غير نشط" : "Inactive" %>';
+      }
+    }
+
+    // Live preview update
+    document.getElementById('messageAr')?.addEventListener('input', function() {
+      if ('<%= adminLocale %>' === 'ar') {
+        document.getElementById('previewMessage').textContent = this.value;
+      }
+    });
+
+    document.getElementById('messageEn')?.addEventListener('input', function() {
+      if ('<%= adminLocale %>' === 'en') {
+        document.getElementById('previewMessage').textContent = this.value;
+      }
+    });
+
+    document.getElementById('linkTextAr')?.addEventListener('input', function() {
+      if ('<%= adminLocale %>' === 'ar') {
+        const link = document.getElementById('previewLink');
+        if (link) link.textContent = this.value;
+      }
+    });
+
+    document.getElementById('linkTextEn')?.addEventListener('input', function() {
+      if ('<%= adminLocale %>' === 'en') {
+        const link = document.getElementById('previewLink');
+        if (link) link.textContent = this.value;
+      }
+    });
+  </script>
+</body>
+</html>

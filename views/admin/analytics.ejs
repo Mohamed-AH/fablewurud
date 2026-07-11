@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= t('admin_analytics') %> - <%= t('admin_title') %></title>
+  <style>
+    .page-title {
+      font-size: 28px;
+      margin-bottom: 24px;
+      color: #2C3E35;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .stat-card h3 {
+      color: #666;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1A5F5A;
+    }
+
+    .stat-card .sub-value {
+      font-size: 14px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .section {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #2C3E35;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    [dir="rtl"] .section h2 {
+      flex-direction: row-reverse;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .rank {
+      color: #888;
+      font-weight: 600;
+    }
+
+    .toggle-section {
+      background: #fafafa;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+
+    .toggle-section h3 {
+      font-size: 16px;
+      margin-bottom: 16px;
+      color: #333;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    [dir="rtl"] .checkbox-label {
+      flex-direction: row-reverse;
+    }
+
+    .checkbox-label input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .status-public {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-hidden {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .threshold-info {
+      font-size: 13px;
+      color: #666;
+      margin-top: 8px;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    [dir="rtl"] .btn-secondary {
+      margin-right: 10px;
+      margin-left: 0;
+    }
+
+    [dir="ltr"] .btn-secondary {
+      margin-left: 10px;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'analytics' }) %>
+
+  <main class="admin-container">
+    <h1 class="page-title"><%= t('admin_analytics') %></h1>
+
+    <!-- Overview Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3><%= adminLocale === 'ar' ? 'إجمالي المشاهدات' : 'Total Page Views' %></h3>
+        <div class="value"><%= summary.pageViews.total.toLocaleString() %></div>
+        <div class="sub-value"><%= adminLocale === 'ar' ? 'آخر 7 أيام:' : 'Last 7 days:' %> <%= summary.pageViews.last7Days.toLocaleString() %></div>
+      </div>
+      <div class="stat-card">
+        <h3><%= adminLocale === 'ar' ? 'إجمالي التشغيلات' : 'Total Plays' %></h3>
+        <div class="value"><%= summary.lectures.totalPlays.toLocaleString() %></div>
+      </div>
+      <div class="stat-card">
+        <h3><%= adminLocale === 'ar' ? 'إجمالي التحميلات' : 'Total Downloads' %></h3>
+        <div class="value"><%= summary.lectures.totalDownloads.toLocaleString() %></div>
+      </div>
+      <div class="stat-card">
+        <h3><%= adminLocale === 'ar' ? 'المحاضرات المنشورة' : 'Published Lectures' %></h3>
+        <div class="value"><%= summary.lectures.total %></div>
+      </div>
+    </div>
+
+    <!-- Page Views by Type -->
+    <div class="section">
+      <h2><%= adminLocale === 'ar' ? '📄 المشاهدات حسب القسم' : '📄 Page Views by Section' %></h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3><%= adminLocale === 'ar' ? 'الصفحة الرئيسية' : 'Homepage' %></h3>
+          <div class="value"><%= (summary.pageViews.byType.homepage || 0).toLocaleString() %></div>
+        </div>
+        <div class="stat-card">
+          <h3><%= t('admin_lectures') %></h3>
+          <div class="value"><%= (summary.pageViews.byType.lecture || 0).toLocaleString() %></div>
+        </div>
+        <div class="stat-card">
+          <h3><%= t('admin_series') %></h3>
+          <div class="value"><%= (summary.pageViews.byType.series || 0).toLocaleString() %></div>
+        </div>
+        <div class="stat-card">
+          <h3><%= adminLocale === 'ar' ? 'التصفح' : 'Browse' %></h3>
+          <div class="value"><%= (summary.pageViews.byType.browse || 0).toLocaleString() %></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Content -->
+    <div class="grid-2">
+      <div class="section">
+        <h2><%= adminLocale === 'ar' ? '🎧 أكثر المحاضرات تشغيلاً' : '🎧 Top Lectures by Plays' %></h2>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th><%= adminLocale === 'ar' ? 'العنوان' : 'Title' %></th>
+              <th><%= adminLocale === 'ar' ? 'التشغيلات' : 'Plays' %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% topLectures.forEach((lecture, index) => { %>
+              <tr>
+                <td class="rank"><%= index + 1 %></td>
+                <td><%= lecture.titleArabic %></td>
+                <td><%= lecture.playCount.toLocaleString() %></td>
+              </tr>
+            <% }) %>
+            <% if (topLectures.length === 0) { %>
+              <tr><td colspan="3" style="text-align: center; color: #888;"><%= adminLocale === 'ar' ? 'لا توجد بيانات بعد' : 'No data yet' %></td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2><%= adminLocale === 'ar' ? '📥 أكثر المحاضرات تحميلاً' : '📥 Top Lectures by Downloads' %></h2>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th><%= adminLocale === 'ar' ? 'العنوان' : 'Title' %></th>
+              <th><%= adminLocale === 'ar' ? 'التحميلات' : 'Downloads' %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% topDownloads.forEach((lecture, index) => { %>
+              <tr>
+                <td class="rank"><%= index + 1 %></td>
+                <td><%= lecture.titleArabic %></td>
+                <td><%= lecture.downloadCount.toLocaleString() %></td>
+              </tr>
+            <% }) %>
+            <% if (topDownloads.length === 0) { %>
+              <tr><td colspan="3" style="text-align: center; color: #888;"><%= adminLocale === 'ar' ? 'لا توجد بيانات بعد' : 'No data yet' %></td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Top Pages -->
+    <div class="section">
+      <h2><%= adminLocale === 'ar' ? '🔝 أكثر الصفحات زيارة' : '🔝 Top Pages' %></h2>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th><%= adminLocale === 'ar' ? 'الصفحة' : 'Page' %></th>
+            <th><%= adminLocale === 'ar' ? 'النوع' : 'Type' %></th>
+            <th><%= adminLocale === 'ar' ? 'المشاهدات' : 'Views' %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% topPages.forEach((page, index) => { %>
+            <tr>
+              <td class="rank"><%= index + 1 %></td>
+              <td><%= page._id %></td>
+              <td><%= page.pageType %></td>
+              <td><%= page.totalViews.toLocaleString() %></td>
+            </tr>
+          <% }) %>
+          <% if (topPages.length === 0) { %>
+            <tr><td colspan="4" style="text-align: center; color: #888;"><%= adminLocale === 'ar' ? 'لا توجد بيانات بعد' : 'No data yet' %></td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Visibility Settings -->
+    <div class="section">
+      <h2><%= adminLocale === 'ar' ? '⚙️ إعدادات ظهور الإحصائيات العامة' : '⚙️ Public Stats Visibility' %></h2>
+      <p style="margin-bottom: 16px; color: #666;">
+        <%= adminLocale === 'ar' ? 'التحكم في ظهور الإحصائيات للعامة على الموقع.' : 'Control whether analytics stats are displayed publicly on the website.' %>
+        <%= adminLocale === 'ar' ? 'الحالة الحالية:' : 'Current status:' %>
+        <% if (shouldShowPublic) { %>
+          <span class="badge badge-success"><%= adminLocale === 'ar' ? 'مرئي للعامة' : 'Visible to Public' %></span>
+        <% } else { %>
+          <span class="badge badge-warning"><%= adminLocale === 'ar' ? 'مخفي عن العامة' : 'Hidden from Public' %></span>
+        <% } %>
+      </p>
+
+      <div class="toggle-section">
+        <h3><%= adminLocale === 'ar' ? 'الإعدادات' : 'Settings' %></h3>
+        <form action="/admin/analytics/settings" method="POST">
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" name="showPublicStats" <%= settings.showPublicStats ? 'checked' : '' %>>
+              <span><%= adminLocale === 'ar' ? 'إظهار الإحصائيات للعامة (تجاوز الحدود الدنيا)' : 'Force show stats publicly (override thresholds)' %></span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label><%= adminLocale === 'ar' ? 'الحد الأدنى للتشغيلات للإظهار التلقائي' : 'Minimum Plays to Auto-Show' %></label>
+            <input type="number" name="minPlaysToDisplay" value="<%= settings.minPlaysToDisplay %>" min="0" class="form-control" style="width: 150px;">
+            <div class="threshold-info"><%= adminLocale === 'ar' ? 'الحالي:' : 'Current:' %> <%= summary.lectures.totalPlays.toLocaleString() %> <%= adminLocale === 'ar' ? 'تشغيل' : 'plays' %></div>
+          </div>
+
+          <div class="form-group">
+            <label><%= adminLocale === 'ar' ? 'الحد الأدنى للتحميلات للإظهار التلقائي' : 'Minimum Downloads to Auto-Show' %></label>
+            <input type="number" name="minDownloadsToDisplay" value="<%= settings.minDownloadsToDisplay %>" min="0" class="form-control" style="width: 150px;">
+            <div class="threshold-info"><%= adminLocale === 'ar' ? 'الحالي:' : 'Current:' %> <%= summary.lectures.totalDownloads.toLocaleString() %> <%= adminLocale === 'ar' ? 'تحميل' : 'downloads' %></div>
+          </div>
+
+          <div class="form-group">
+            <label><%= adminLocale === 'ar' ? 'الحد الأدنى للمشاهدات للإظهار التلقائي' : 'Minimum Page Views to Auto-Show' %></label>
+            <input type="number" name="minPageViewsToDisplay" value="<%= settings.minPageViewsToDisplay %>" min="0" class="form-control" style="width: 150px;">
+            <div class="threshold-info"><%= adminLocale === 'ar' ? 'الحالي:' : 'Current:' %> <%= summary.pageViews.total.toLocaleString() %> <%= adminLocale === 'ar' ? 'مشاهدة' : 'page views' %></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary"><%= t('admin_btn_save') %></button>
+        </form>
+
+        <form action="/admin/analytics/refresh-stats" method="POST" style="display: inline; margin-top: 16px;">
+          <button type="submit" class="btn-secondary"><%= adminLocale === 'ar' ? 'تحديث الإحصائيات المخزنة' : 'Refresh Cached Stats' %></button>
+        </form>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= t('admin_manage') %> - <%= t('admin_title') %></title>
+  <style>
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    [dir="rtl"] .section-header { flex-direction: row-reverse; }
+    .message { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; display: none; }
+    .message.show { display: block; }
+    .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'manage' }) %>
+
+  <main class="admin-container">
+    <div class="message" id="message"></div>
+
+    <!-- Quick Actions -->
+    <section class="admin-section">
+      <h2><%= t('admin_manage_quick_actions') %></h2>
+      <div class="quick-actions">
+        <% if (user && user.role === 'admin') { %>
+          <a href="/admin/users" class="btn btn-primary">👥 <%= t('admin_users') %></a>
+        <% } %>
+        <a href="/admin/sheikhs" class="btn btn-primary">👨‍🏫 <%= t('admin_sheikhs') %></a>
+        <a href="/admin/lectures" class="btn btn-primary">🎙️ <%= t('admin_lectures') %></a>
+        <a href="/admin/lectures/unpublished" class="btn btn-primary">📝 <%= t('admin_unpublished') %></a>
+        <a href="/admin/lectures/no-audio" class="btn btn-primary">🔇 <%= t('admin_manage_no_audio') %></a>
+        <a href="/admin/duration-status" class="btn btn-primary">⏱️ <%= t('admin_manage_duration_status') %></a>
+        <a href="/admin/bulk-upload" class="btn btn-primary">📦 <%= t('admin_bulk_upload') %></a>
+        <a href="/admin/schedule" class="btn btn-primary">📅 <%= t('admin_schedule') %></a>
+        <a href="/admin/analytics" class="btn btn-primary">📊 <%= t('admin_analytics') %></a>
+        <a href="/admin/sections" class="btn btn-primary">📑 <%= adminLocale === 'ar' ? 'الأقسام' : 'Sections' %></a>
+        <a href="/admin/homepage-config" class="btn btn-primary">🏠 <%= adminLocale === 'ar' ? 'إعدادات الصفحة' : 'Homepage Config' %></a>
+        <a href="/admin/notice-banner" class="btn btn-primary">📢 <%= t('admin_notice_banner_title') %></a>
+        <a href="/admin/maintenance-mode" class="btn btn-primary">🔧 <%= adminLocale === 'ar' ? 'وضع الصيانة' : 'Maintenance Mode' %></a>
+        <a href="/admin/series/new" class="btn btn-primary">📚 <%= t('admin_series_add') %></a>
+      </div>
+    </section>
+
+    <!-- Series Section -->
+    <section class="admin-section">
+      <div class="section-header">
+        <h2><%= t('admin_series') %> (<%= series.length %>)</h2>
+        <button class="btn btn-primary" onclick="exportSeriesToExcel()">📊 Export</button>
+      </div>
+      <% if (series.length > 0) { %>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th><%= t('admin_th_title_ar') %></th>
+              <th><%= t('admin_th_title_en') %></th>
+              <th><%= t('admin_th_sheikh') %></th>
+              <th><%= t('admin_th_category') %></th>
+              <th><%= t('admin_th_status') %></th>
+              <th><%= t('admin_th_date') %></th>
+              <th><%= t('admin_th_actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% series.forEach(s => { %>
+              <tr>
+                <td><%= s.titleArabic %></td>
+                <td><%= s.titleEnglish || '-' %></td>
+                <td><%= s.sheikhId?.nameArabic || '-' %></td>
+                <td><%= translateCategory(s.category) || '-' %></td>
+                <td>
+                  <% if (s.isVisible === false) { %>
+                    <span class="badge badge-danger">🚫 <%= t('admin_status_hidden') %></span>
+                  <% } else { %>
+                    <span class="badge badge-success">👁️ <%= t('admin_status_visible') %></span>
+                  <% } %>
+                </td>
+                <td><%= new Date(s.createdAt).toLocaleDateString(adminLocale === 'ar' ? 'ar-SA' : 'en-US') %></td>
+                <td class="action-links">
+                  <a href="/admin/series/<%= s._id %>/edit">✏️ <%= t('admin_btn_edit') %></a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } else { %>
+        <div class="empty-state">
+          <p><%= t('admin_msg_no_results') %></p>
+        </div>
+      <% } %>
+    </section>
+
+    <!-- Lectures Section -->
+    <section class="admin-section">
+      <h2><%= t('admin_lectures') %> (<%= lectures.length %>)</h2>
+      <% if (lectures.length > 0) { %>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th><%= t('admin_th_title_ar') %></th>
+              <th><%= t('admin_th_sheikh') %></th>
+              <th><%= t('admin_th_series') %></th>
+              <th><%= t('admin_th_status') %></th>
+              <th><%= t('admin_th_plays') %></th>
+              <th><%= t('admin_th_actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% lectures.forEach(lecture => { %>
+              <tr id="lecture-<%= lecture._id %>">
+                <td><%= lecture.titleArabic %></td>
+                <td><%= lecture.sheikhId?.nameArabic || '-' %></td>
+                <td><%= lecture.seriesId?.titleArabic || '-' %></td>
+                <td>
+                  <span class="badge <%= lecture.published ? 'badge-success' : 'badge-warning' %>" id="status-badge-<%= lecture._id %>">
+                    <%= lecture.published ? t('admin_status_published') : t('admin_status_draft') %>
+                  </span>
+                </td>
+                <td><%= lecture.playCount %></td>
+                <td class="action-links">
+                  <a href="/admin/lectures/<%= lecture._id %>/edit">✏️ <%= t('admin_btn_edit') %></a>
+                  <a href="#" onclick="togglePublished('<%= lecture._id %>', <%= lecture.published %>); return false;">
+                    <%= lecture.published ? '🔒 ' + t('admin_btn_unpublish') : '✅ ' + t('admin_btn_publish') %>
+                  </a>
+                  <a href="#" class="delete-link" onclick="deleteLecture('<%= lecture._id %>', '<%= lecture.titleArabic %>'); return false;">
+                    🗑️ <%= t('admin_btn_delete') %>
+                  </a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } else { %>
+        <div class="empty-state">
+          <p><%= t('admin_no_lectures') %></p>
+        </div>
+      <% } %>
+    </section>
+  </main>
+
+  <script>
+    const message = document.getElementById('message');
+    const confirmDeleteMsg = '<%= t("admin_msg_confirm_delete") %>';
+    const successMsg = '<%= t("admin_msg_saved") %>';
+    const deletedMsg = '<%= t("admin_msg_deleted") %>';
+    const errorMsg = '<%= t("admin_msg_error") %>';
+
+    async function togglePublished(id, currentlyPublished) {
+      try {
+        const response = await fetch(`/admin/lectures/${id}/toggle-published`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showMessage(successMsg, 'success');
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showMessage(data.message || errorMsg, 'error');
+        }
+      } catch (error) {
+        showMessage(errorMsg + ': ' + error.message, 'error');
+      }
+    }
+
+    async function deleteLecture(id, title) {
+      if (!confirm(confirmDeleteMsg + ` "${title}"?`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/lectures/${id}`, { method: 'DELETE' });
+        const data = await response.json();
+
+        if (data.success) {
+          showMessage(deletedMsg, 'success');
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          showMessage(data.message || errorMsg, 'error');
+        }
+      } catch (error) {
+        showMessage(errorMsg + ': ' + error.message, 'error');
+      }
+    }
+
+    async function exportSeriesToExcel() {
+      try {
+        showMessage('Exporting...', 'success');
+        const response = await fetch('/api/series/export');
+
+        if (!response.ok) throw new Error('Export failed');
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `series-export-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        showMessage(successMsg, 'success');
+      } catch (error) {
+        showMessage(errorMsg + ': ' + error.message, 'error');
+      }
+    }
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = 'message show ' + type;
+      setTimeout(() => message.classList.remove('show'), 5000);
+    }
+  </script>
+</body>
+</html>

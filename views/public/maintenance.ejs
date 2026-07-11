@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>صيانة الموقع | Site Maintenance</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    @font-face {
+      font-family: 'Noto Naskh Arabic';
+      src: url('/fonts/NotoNaskhArabic-400.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Noto Naskh Arabic';
+      src: url('/fonts/NotoNaskhArabic-700.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      font-family: 'Noto Naskh Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a472a 0%, #2d5016 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 600px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .arabic-section {
+      margin-bottom: 40px;
+      padding-bottom: 30px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .english-section {
+      direction: ltr;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+
+    p {
+      font-size: 1.1em;
+      line-height: 1.8;
+      opacity: 0.9;
+      margin-bottom: 10px;
+    }
+
+    .telegram-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #0088cc;
+      color: #fff;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 50px;
+      font-size: 1em;
+      font-weight: 600;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 136, 204, 0.4);
+    }
+
+    .telegram-link:hover {
+      background: #006699;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 136, 204, 0.5);
+    }
+
+    .telegram-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    .site-name {
+      font-size: 0.9em;
+      opacity: 0.7;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 1.5em;
+      }
+
+      p {
+        font-size: 1em;
+      }
+
+      .icon {
+        font-size: 48px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Arabic Section -->
+    <div class="arabic-section">
+      <div class="icon">🛠️</div>
+      <h1>الموقع قيد الصيانة</h1>
+      <p>نعتذر عن هذا الانقطاع المؤقت. نعمل على إصلاح المشكلة وسيعود الموقع قريباً بإذن الله.</p>
+      <p>للتواصل والاستفسار، تفضلوا بزيارة قناة الشيخ على تيليجرام:</p>
+      <a href="https://t.me/daririhasan" class="telegram-link" target="_blank" rel="noopener noreferrer">
+        <svg class="telegram-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+        </svg>
+        قناة الشيخ حسن الدغريري
+      </a>
+    </div>
+
+    <!-- English Section -->
+    <div class="english-section">
+      <h1>Site Under Maintenance</h1>
+      <p>We apologize for this temporary interruption. We are working to fix the issue and the site will be back soon, in sha Allah.</p>
+      <p>For updates, please visit the Sheikh's Telegram channel:</p>
+      <a href="https://t.me/daririhasan" class="telegram-link" target="_blank" rel="noopener noreferrer">
+        <svg class="telegram-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+        </svg>
+        Sheikh Hasan Dhaghriri Channel
+      </a>
+    </div>
+
+    <p class="site-name">rasmihassan.com</p>
+  </div>
+</body>
+</html>

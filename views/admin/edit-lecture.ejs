@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= adminLocale === 'ar' ? 'تعديل المحاضرة' : 'Edit Lecture' %> - <%= t('admin_title') %></title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .container { max-width: 800px; margin: 0 auto; padding: 32px 24px; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 32px;
+    }
+    .form-group {
+      margin-bottom: 24px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #2C3E35;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    [dir="rtl"] .btn {
+      margin-left: 8px;
+    }
+
+    [dir="ltr"] .btn {
+      margin-right: 8px;
+    }
+
+    .btn-primary {
+      background: #1A5F5A;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #145047;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    [dir="rtl"] .actions {
+      flex-direction: row-reverse;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    [dir="rtl"] .checkbox-group {
+      flex-direction: row-reverse;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'manage' }) %>
+
+  <main class="admin-container">
+    <% if (typeof success !== 'undefined' && success === 'audio-uploaded') { %>
+      <div style="padding: 16px; background: #e8f5e9; border-radius: 8px; margin-bottom: 16px; color: #2e7d32;">
+        <%= adminLocale === 'ar' ? '✓ تم رفع الملف الصوتي بنجاح' : '✓ Audio file uploaded successfully' %>
+      </div>
+    <% } %>
+
+    <div class="card">
+      <form method="POST" action="/admin/lectures/<%= lecture._id %>/edit">
+        <div class="form-group">
+          <label for="titleArabic"><%= adminLocale === 'ar' ? 'العنوان بالعربية' : 'Title (Arabic)' %> *</label>
+          <input
+            type="text"
+            id="titleArabic"
+            name="titleArabic"
+            value="<%= lecture.titleArabic %>"
+            required
+            dir="rtl"
+            class="form-control"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="titleEnglish"><%= adminLocale === 'ar' ? 'العنوان بالإنجليزية' : 'Title (English)' %></label>
+          <input
+            type="text"
+            id="titleEnglish"
+            name="titleEnglish"
+            value="<%= lecture.titleEnglish || '' %>"
+            dir="ltr"
+            class="form-control"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="lectureNumber"><%= adminLocale === 'ar' ? 'رقم المحاضرة' : 'Lecture Number' %></label>
+          <input
+            type="number"
+            id="lectureNumber"
+            name="lectureNumber"
+            value="<%= lecture.lectureNumber || '' %>"
+            min="1"
+            class="form-control"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="seriesId"><%= adminLocale === 'ar' ? 'السلسلة' : 'Series' %></label>
+          <select id="seriesId" name="seriesId" class="form-control">
+            <option value=""><%= adminLocale === 'ar' ? 'لا يوجد (محاضرة منفصلة)' : 'None (standalone lecture)' %></option>
+            <% series.forEach(s => { %>
+              <option value="<%= s._id %>" <%= lecture.seriesId && lecture.seriesId._id.toString() === s._id.toString() ? 'selected' : '' %>>
+                <%= adminLocale === 'ar' ? s.titleArabic : (s.titleEnglish || s.titleArabic) %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="category"><%= adminLocale === 'ar' ? 'التصنيف' : 'Category' %></label>
+          <select id="category" name="category" class="form-control">
+            <option value="Other" <%= lecture.category === 'Other' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'أخرى' : 'Other' %></option>
+            <option value="Tafsir" <%= lecture.category === 'Tafsir' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'تفسير' : 'Tafsir' %></option>
+            <option value="Hadith" <%= lecture.category === 'Hadith' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'حديث' : 'Hadith' %></option>
+            <option value="Fiqh" <%= lecture.category === 'Fiqh' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'فقه' : 'Fiqh' %></option>
+            <option value="Aqeedah" <%= lecture.category === 'Aqeedah' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'عقيدة' : 'Aqeedah' %></option>
+            <option value="Seerah" <%= lecture.category === 'Seerah' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'سيرة' : 'Seerah' %></option>
+            <option value="Akhlaq" <%= lecture.category === 'Akhlaq' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'أخلاق' : 'Akhlaq' %></option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="location"><%= adminLocale === 'ar' ? 'المكان' : 'Location' %></label>
+          <select id="location" name="location" class="form-control">
+            <%
+              const currentLocation = lecture.location || 'غير محدد';
+              const locationOptions = adminLocale === 'ar' ? [
+                { value: 'جامع الورود', label: 'جامع الورود' },
+                { value: 'عن بعد', label: 'عن بعد (أونلاين)' },
+                { value: 'غير محدد', label: 'غير محدد' }
+              ] : [
+                { value: 'جامع الورود', label: 'Al-Wurud Mosque' },
+                { value: 'عن بعد', label: 'Online (Remote)' },
+                { value: 'غير محدد', label: 'Unspecified' }
+              ];
+            %>
+            <% locationOptions.forEach(opt => { %>
+              <option value="<%= opt.value %>" <%= currentLocation === opt.value ? 'selected' : '' %>><%= opt.label %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="dateRecorded"><%= adminLocale === 'ar' ? 'تاريخ التسجيل' : 'Recording Date' %></label>
+          <input
+            type="date"
+            id="dateRecorded"
+            name="dateRecorded"
+            value="<%= lecture.dateRecorded ? new Date(lecture.dateRecorded).toISOString().split('T')[0] : '' %>"
+            class="form-control"
+          >
+        </div>
+
+        <div class="form-group">
+          <label><%= adminLocale === 'ar' ? 'نوع المحتوى' : 'Content Type' %></label>
+          <div style="display: flex; gap: 24px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+            <%
+              // Content TYPE tags only - subject is handled by Category
+              const availableTags = ['series', 'lecture', 'khutba'];
+              const tagLabels = adminLocale === 'ar' ? {
+                'series': 'سلسلة دروس',
+                'lecture': 'محاضرة منفردة',
+                'khutba': 'خطبة جمعة'
+              } : {
+                'series': 'Lecture Series',
+                'lecture': 'Single Lecture',
+                'khutba': 'Friday Sermon'
+              };
+              const lectureTags = lecture.tags || [];
+            %>
+            <% availableTags.forEach(tag => { %>
+              <div class="checkbox-group">
+                <input
+                  type="checkbox"
+                  id="tag-<%= tag %>"
+                  name="tags"
+                  value="<%= tag %>"
+                  <%= lectureTags.includes(tag) ? 'checked' : '' %>
+                >
+                <label for="tag-<%= tag %>" style="margin-bottom: 0;"><%= tagLabels[tag] %></label>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="descriptionArabic"><%= adminLocale === 'ar' ? 'الوصف بالعربية' : 'Description (Arabic)' %></label>
+          <textarea
+            id="descriptionArabic"
+            name="descriptionArabic"
+            dir="rtl"
+            class="form-control"
+          ><%= lecture.descriptionArabic || '' %></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="descriptionEnglish"><%= adminLocale === 'ar' ? 'الوصف بالإنجليزية' : 'Description (English)' %></label>
+          <textarea
+            id="descriptionEnglish"
+            name="descriptionEnglish"
+            dir="ltr"
+            class="form-control"
+          ><%= lecture.descriptionEnglish || '' %></textarea>
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; gap: 32px;">
+            <div class="checkbox-group">
+              <input
+                type="checkbox"
+                id="published"
+                name="published"
+                value="true"
+                <%= lecture.published ? 'checked' : '' %>
+              >
+              <label for="published" style="margin-bottom: 0;"><%= adminLocale === 'ar' ? 'منشورة' : 'Published' %></label>
+            </div>
+            <div class="checkbox-group">
+              <input
+                type="checkbox"
+                id="featured"
+                name="featured"
+                value="true"
+                <%= lecture.featured ? 'checked' : '' %>
+              >
+              <label for="featured" style="margin-bottom: 0;"><%= adminLocale === 'ar' ? '⭐ مميزة' : '⭐ Featured' %></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary"><%= adminLocale === 'ar' ? '💾 حفظ التغييرات' : '💾 Save Changes' %></button>
+          <a href="/admin/manage" class="btn btn-secondary"><%= adminLocale === 'ar' ? '↩️ إلغاء' : '↩️ Cancel' %></a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Audio Upload Section -->
+    <div class="card" style="margin-top: 24px;">
+      <h3 style="margin-bottom: 16px; color: #1A5F5A;"><%= adminLocale === 'ar' ? '🎵 ملف الصوت' : '🎵 Audio File' %></h3>
+
+      <div id="currentAudioSection">
+        <% if (lecture.audioUrl) { %>
+          <div id="audioStatus" style="padding: 16px; background: #e8f5e9; border-radius: 8px; margin-bottom: 16px;">
+            <p style="margin: 0; color: #2e7d32;">
+              <%= adminLocale === 'ar' ? '✓ الصوت متاح:' : '✓ Audio available:' %> <strong id="currentFileName"><%= lecture.audioFileName || (adminLocale === 'ar' ? 'ملف صوتي' : 'Audio file') %></strong>
+              <% if (lecture.durationVerified) { %>
+                <span style="background: #c8e6c9; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-<%= adminDir === 'rtl' ? 'right' : 'left' %>: 8px;"><%= adminLocale === 'ar' ? '✓ المدة موثقة' : '✓ Duration verified' %></span>
+              <% } %>
+            </p>
+            <audio id="currentAudio" controls style="width: 100%; margin-top: 12px;">
+              <source src="<%= lecture.audioUrl %>" type="audio/mp4">
+            </audio>
+            <p style="font-size: 12px; color: #666; margin-top: 8px;">
+              <%= adminLocale === 'ar' ? 'المدة:' : 'Duration:' %> <span id="currentDuration"><% if (lecture.durationSeconds) { const hrs = Math.floor(lecture.durationSeconds / 3600); const mins = Math.floor((lecture.durationSeconds % 3600) / 60); const secs = lecture.durationSeconds % 60; %><%= hrs > 0 ? hrs + ':' + String(mins).padStart(2, '0') : mins %>:<%= String(secs).padStart(2, '0') %><% } else { %><%= adminLocale === 'ar' ? 'غير معروفة' : 'Unknown' %><% } %></span>
+              | <%= adminLocale === 'ar' ? 'الحجم:' : 'Size:' %> <%= lecture.fileSize ? (lecture.fileSize / (1024 * 1024)).toFixed(2) + ' MB' : (adminLocale === 'ar' ? 'غير معروف' : 'Unknown') %>
+            </p>
+          </div>
+        <% } else { %>
+          <div id="audioStatus" style="padding: 16px; background: #fff3e0; border-radius: 8px; margin-bottom: 16px;">
+            <p style="margin: 0; color: #e65100;"><%= adminLocale === 'ar' ? '⚠️ لا يوجد ملف صوتي مرتبط بهذه المحاضرة' : '⚠️ No audio file linked to this lecture' %></p>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="form-group">
+        <label for="audioFile"><%= lecture.audioUrl ? (adminLocale === 'ar' ? 'استبدال ملف الصوت' : 'Replace audio file') : (adminLocale === 'ar' ? 'رفع ملف صوتي' : 'Upload audio file') %></label>
+        <input
+          type="file"
+          id="audioFile"
+          name="audioFile"
+          accept=".mp3,.m4a,.aac,.wav,.ogg,.flac"
+          style="padding: 12px; background: #f8f9fa; border: 2px dashed #ddd; border-radius: 8px; cursor: pointer; width: 100%;"
+          onchange="handleFileSelect(this)"
+        >
+        <p style="font-size: 12px; color: #666; margin-top: 8px;">
+          <%= adminLocale === 'ar' ? 'الصيغ المدعومة: MP3, M4A, AAC, WAV, OGG, FLAC (الحد الأقصى: 60MB)' : 'Supported formats: MP3, M4A, AAC, WAV, OGG, FLAC (Max: 60MB)' %>
+          <br>
+          <span style="color: #1A5F5A;"><%= adminLocale === 'ar' ? '💡 يُفضل رفع ملفات HE-AAC (.m4a) للحصول على أفضل جودة وأقل حجم' : '💡 HE-AAC (.m4a) files recommended for best quality and smallest size' %></span>
+        </p>
+      </div>
+
+      <div id="fileInfo" style="display: none; padding: 12px; background: #e3f2fd; border-radius: 8px; margin-bottom: 16px;">
+        <p style="margin: 0;"><strong><%= adminLocale === 'ar' ? 'الملف:' : 'File:' %></strong> <span id="fileName"></span></p>
+        <p style="margin: 4px 0 0;"><strong><%= adminLocale === 'ar' ? 'الحجم:' : 'Size:' %></strong> <span id="fileSize"></span></p>
+        <p id="localDuration" style="margin: 4px 0 0; display: none;"><strong><%= adminLocale === 'ar' ? 'المدة:' : 'Duration:' %></strong> <span id="localDurationValue"></span></p>
+      </div>
+
+      <div id="uploadProgress" style="display: none; margin-bottom: 16px;">
+        <div style="background: #e0e0e0; border-radius: 4px; height: 12px; overflow: hidden; position: relative;">
+          <div id="progressBar" style="background: linear-gradient(90deg, #1A5F5A, #2E8B57); height: 100%; width: 0%; transition: width 0.2s;"></div>
+        </div>
+        <p id="progressText" style="text-align: center; margin-top: 8px; color: #666;"><%= adminLocale === 'ar' ? 'جاري الرفع...' : 'Uploading...' %></p>
+      </div>
+
+      <div id="uploadResult" style="display: none; margin-bottom: 16px;"></div>
+
+      <button type="button" id="uploadBtn" class="btn btn-primary" disabled style="background: #C19A6B;" onclick="uploadAudio()">
+        <%= adminLocale === 'ar' ? '📤 رفع إلى السحابة' : '📤 Upload to Cloud' %>
+      </button>
+    </div>
+
+    <!-- Transcript Editing Section -->
+    <div class="card" style="margin-top: 24px;">
+      <h3 style="margin-bottom: 16px; color: #1A5F5A; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <span><%= adminLocale === 'ar' ? '📝 تعديل النص المكتوب' : '📝 Edit Transcript' %></span>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;" onclick="loadTranscript()">
+            <%= adminLocale === 'ar' ? '🔄 تحميل' : '🔄 Load' %>
+          </button>
+          <button type="button" class="btn btn-primary" style="font-size: 12px; padding: 6px 12px;" onclick="saveAllChanges()" id="saveTranscriptBtn" disabled>
+            <%= adminLocale === 'ar' ? '💾 حفظ الكل' : '💾 Save All' %>
+          </button>
+          <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; background: #6c757d;" onclick="exportTranscriptCsv()">
+            <%= adminLocale === 'ar' ? '📥 تصدير CSV' : '📥 Export CSV' %>
+          </button>
+        </div>
+      </h3>
+
+      <div id="transcriptStatus" style="padding: 16px; background: #f5f5f5; border-radius: 8px; margin-bottom: 16px; text-align: center;">
+        <p style="margin: 0; color: #666;">
+          <%= adminLocale === 'ar' ? 'انقر على "تحميل" لعرض النص المكتوب للمحاضرة' : 'Click "Load" to view the lecture transcript' %>
+        </p>
+      </div>
+
+      <div id="transcriptEditor" style="display: none;">
+        <div style="margin-bottom: 16px; padding: 12px; background: #e3f2fd; border-radius: 8px; font-size: 14px;">
+          <strong><%= adminLocale === 'ar' ? 'تلميحات:' : 'Tips:' %></strong>
+          <ul style="margin: 8px 0 0 20px; padding: 0;">
+            <li><%= adminLocale === 'ar' ? 'انقر على أي نص لتعديله مباشرة' : 'Click any text to edit it directly' %></li>
+            <li><%= adminLocale === 'ar' ? 'اضغط Enter للحفظ أو Escape للإلغاء' : 'Press Enter to save or Escape to cancel' %></li>
+            <li><%= adminLocale === 'ar' ? 'انقر على الطابع الزمني للاستماع من تلك النقطة' : 'Click timestamp to listen from that point' %></li>
+          </ul>
+        </div>
+
+        <div id="transcriptSegments" style="max-height: 500px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px;">
+          <!-- Segments will be loaded here -->
+        </div>
+
+        <div id="transcriptStats" style="margin-top: 12px; font-size: 14px; color: #666; text-align: center;">
+          <!-- Stats will show here -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const lectureId = '<%= lecture._id %>';
+    const isArabic = '<%= adminLocale %>' === 'ar';
+    let selectedFile = null;
+
+    // Translated messages
+    const msgs = {
+      uploading: isArabic ? 'جاري الرفع...' : 'Uploading...',
+      uploadProgress: isArabic ? 'جاري الرفع... {percent}% ({uploaded}/{total} MB)' : 'Uploading... {percent}% ({uploaded}/{total} MB)',
+      processing: isArabic ? '⏳ جاري المعالجة في السحابة...' : '⏳ Processing in cloud...',
+      uploadSuccess: isArabic ? '✓ تم الرفع بنجاح!' : '✓ Upload successful!',
+      uploadFailed: isArabic ? '✗ فشل الرفع' : '✗ Upload failed',
+      unknownError: isArabic ? 'حدث خطأ غير معروف' : 'Unknown error occurred',
+      responseError: isArabic ? 'خطأ في معالجة الاستجابة' : 'Error processing response',
+      connectionFailed: isArabic ? 'فشل الاتصال بالخادم' : 'Connection to server failed',
+      timeout: isArabic ? 'انتهت مهلة الرفع. حاول مرة أخرى' : 'Upload timeout. Please try again',
+      uploadToCloud: isArabic ? '📤 رفع إلى السحابة' : '📤 Upload to Cloud',
+      uploadingBtn: isArabic ? '⏳ جاري الرفع...' : '⏳ Uploading...',
+      audioAvailable: isArabic ? '✓ الصوت متاح:' : '✓ Audio available:',
+      duration: isArabic ? 'المدة:' : 'Duration:',
+      size: isArabic ? 'الحجم:' : 'Size:',
+      calculating: isArabic ? 'جاري الحساب...' : 'Calculating...',
+      durationVerified: isArabic ? '✓ المدة موثقة' : '✓ Duration verified',
+      fileName: isArabic ? 'اسم الملف:' : 'File name:',
+      verified: isArabic ? '✓ تم التحقق من الملف في السحابة' : '✓ File verified in cloud'
+    };
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    function handleFileSelect(input) {
+      const file = input.files[0];
+      const fileInfo = document.getElementById('fileInfo');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const localDuration = document.getElementById('localDuration');
+      const localDurationValue = document.getElementById('localDurationValue');
+
+      if (file) {
+        selectedFile = file;
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+        fileInfo.style.display = 'block';
+        uploadBtn.disabled = false;
+
+        // Extract duration from local file using Audio API
+        const audioUrl = URL.createObjectURL(file);
+        const audio = new Audio();
+        audio.src = audioUrl;
+        audio.addEventListener('loadedmetadata', () => {
+          const duration = Math.floor(audio.duration);
+          const hrs = Math.floor(duration / 3600);
+          const mins = Math.floor((duration % 3600) / 60);
+          const secs = duration % 60;
+          const timeStr = hrs > 0
+            ? hrs + ':' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0')
+            : mins + ':' + String(secs).padStart(2, '0');
+          localDurationValue.textContent = timeStr;
+          localDuration.style.display = 'block';
+          URL.revokeObjectURL(audioUrl);
+        });
+        audio.addEventListener('error', () => {
+          localDuration.style.display = 'none';
+          URL.revokeObjectURL(audioUrl);
+        });
+      } else {
+        selectedFile = null;
+        fileInfo.style.display = 'none';
+        localDuration.style.display = 'none';
+        uploadBtn.disabled = true;
+      }
+    }
+
+    function uploadAudio() {
+      if (!selectedFile) return;
+
+      const uploadBtn = document.getElementById('uploadBtn');
+      const progressDiv = document.getElementById('uploadProgress');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      const resultDiv = document.getElementById('uploadResult');
+      const fileInput = document.getElementById('audioFile');
+
+      // Disable controls
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = msgs.uploadingBtn;
+      fileInput.disabled = true;
+      progressDiv.style.display = 'block';
+      resultDiv.style.display = 'none';
+
+      // Create FormData
+      const formData = new FormData();
+      formData.append('audioFile', selectedFile);
+
+      // Create XHR for real progress tracking
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          progressBar.style.width = percent + '%';
+
+          if (percent < 100) {
+            const uploaded = (e.loaded / (1024 * 1024)).toFixed(1);
+            const total = (e.total / (1024 * 1024)).toFixed(1);
+            progressText.textContent = msgs.uploadProgress
+              .replace('{percent}', percent)
+              .replace('{uploaded}', uploaded)
+              .replace('{total}', total);
+          } else {
+            progressText.textContent = msgs.processing;
+            progressBar.style.background = 'linear-gradient(90deg, #2E8B57, #3CB371)';
+          }
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        try {
+          const response = JSON.parse(xhr.responseText);
+
+          if (xhr.status === 200 && response.success) {
+            // Success
+            progressBar.style.width = '100%';
+            progressBar.style.background = '#4CAF50';
+            progressText.textContent = msgs.uploadSuccess;
+
+            resultDiv.innerHTML = `
+              <div style="padding: 16px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;">
+                <p style="margin: 0;">✓ ${escapeHtml(response.message)}</p>
+                <p style="margin: 8px 0 0; font-size: 14px;">
+                  <strong>${msgs.fileName}</strong> ${escapeHtml(response.audioFileName)}<br>
+                  <strong>${msgs.size}</strong> ${(response.fileSize / (1024 * 1024)).toFixed(2)} MB
+                  ${response.verified ? '<br><span style="color: #1A5F5A;">' + msgs.verified + '</span>' : ''}
+                </p>
+              </div>
+            `;
+            resultDiv.style.display = 'block';
+
+            // Update audio player with new URL
+            updateAudioPlayer(response.audioUrl, response.audioFileName, response.fileSize);
+
+            // Extract and verify duration from the uploaded file
+            verifyDurationFromUrl(response.audioUrl);
+
+          } else {
+            // Error from server
+            showUploadError(response.error || msgs.unknownError);
+          }
+        } catch (e) {
+          showUploadError(msgs.responseError);
+        }
+
+        // Re-enable controls
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = msgs.uploadToCloud;
+        fileInput.disabled = false;
+        fileInput.value = '';
+        selectedFile = null;
+        document.getElementById('fileInfo').style.display = 'none';
+      });
+
+      xhr.addEventListener('error', () => {
+        showUploadError(msgs.connectionFailed);
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = msgs.uploadToCloud;
+        fileInput.disabled = false;
+      });
+
+      xhr.addEventListener('timeout', () => {
+        showUploadError(msgs.timeout);
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = msgs.uploadToCloud;
+        fileInput.disabled = false;
+      });
+
+      // Send request
+      xhr.open('POST', `/admin/api/lectures/${lectureId}/upload-audio`);
+      xhr.timeout = 600000; // 10 minutes timeout for large files
+      xhr.send(formData);
+    }
+
+    function showUploadError(message) {
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      const resultDiv = document.getElementById('uploadResult');
+
+      progressBar.style.background = '#f44336';
+      progressText.textContent = msgs.uploadFailed;
+
+      resultDiv.innerHTML = `
+        <div style="padding: 16px; background: #ffebee; border-radius: 8px; color: #c62828;">
+          <p style="margin: 0;">✗ ${escapeHtml(message)}</p>
+        </div>
+      `;
+      resultDiv.style.display = 'block';
+    }
+
+    function updateAudioPlayer(audioUrl, fileName, fileSize) {
+      const statusDiv = document.getElementById('audioStatus');
+      statusDiv.style.background = '#e8f5e9';
+      statusDiv.innerHTML = `
+        <p style="margin: 0; color: #2e7d32;">
+          ${msgs.audioAvailable} <strong id="currentFileName">${escapeHtml(fileName)}</strong>
+        </p>
+        <audio id="currentAudio" controls style="width: 100%; margin-top: 12px;">
+          <source src="${escapeHtml(audioUrl)}" type="audio/mp4">
+        </audio>
+        <p style="font-size: 12px; color: #666; margin-top: 8px;">
+          ${msgs.duration} <span id="currentDuration">${msgs.calculating}</span>
+          | ${msgs.size} ${(fileSize / (1024 * 1024)).toFixed(2)} MB
+        </p>
+      `;
+    }
+
+    function verifyDurationFromUrl(audioUrl) {
+      const audio = new Audio();
+      audio.src = audioUrl;
+      audio.addEventListener('loadedmetadata', () => {
+        const duration = Math.floor(audio.duration);
+        const hrs = Math.floor(duration / 3600);
+        const mins = Math.floor((duration % 3600) / 60);
+        const secs = duration % 60;
+        const timeStr = hrs > 0
+          ? hrs + ':' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0')
+          : mins + ':' + String(secs).padStart(2, '0');
+
+        // Update display
+        const durationSpan = document.getElementById('currentDuration');
+        if (durationSpan) {
+          durationSpan.textContent = timeStr;
+        }
+
+        // Send to server to update database
+        fetch(`/api/lectures/${lectureId}/verify-duration`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ duration: duration })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.updated) {
+            console.log('Duration verified and updated:', duration);
+            // Add verified badge
+            const fileName = document.getElementById('currentFileName');
+            if (fileName && !fileName.parentElement.innerHTML.includes(msgs.durationVerified)) {
+              const marginDir = isArabic ? 'right' : 'left';
+              fileName.insertAdjacentHTML('afterend',
+                `<span style="background: #c8e6c9; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-${marginDir}: 8px;">${msgs.durationVerified}</span>`
+              );
+            }
+          }
+        })
+        .catch(err => console.error('Failed to verify duration:', err));
+      });
+    }
+
+    // =============================================================================
+    // TRANSCRIPT EDITING
+    // =============================================================================
+
+    let transcriptData = [];
+    let pendingChanges = new Map(); // Track changes before saving
+
+    const transcriptMsgs = {
+      loading: isArabic ? 'جاري تحميل النص...' : 'Loading transcript...',
+      noTranscript: isArabic ? 'لا يوجد نص مكتوب لهذه المحاضرة' : 'No transcript available for this lecture',
+      loadError: isArabic ? 'خطأ في تحميل النص' : 'Error loading transcript',
+      segments: isArabic ? 'مقاطع' : 'segments',
+      unsavedChanges: isArabic ? 'تغييرات غير محفوظة' : 'unsaved changes',
+      saving: isArabic ? 'جاري الحفظ...' : 'Saving...',
+      saved: isArabic ? 'تم الحفظ' : 'Saved',
+      saveError: isArabic ? 'خطأ في الحفظ' : 'Save error',
+      exportSuccess: isArabic ? 'تم تصدير CSV بنجاح' : 'CSV exported successfully',
+      exportError: isArabic ? 'خطأ في التصدير' : 'Export error',
+      confirmDelete: isArabic ? 'هل أنت متأكد من حذف هذا المقطع؟' : 'Are you sure you want to delete this segment?'
+    };
+
+    function formatTimestamp(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      if (h > 0) {
+        return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      }
+      return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function loadTranscript() {
+      const statusEl = document.getElementById('transcriptStatus');
+      const editorEl = document.getElementById('transcriptEditor');
+      const segmentsEl = document.getElementById('transcriptSegments');
+
+      statusEl.innerHTML = `<p style="margin: 0; color: #1A5F5A;">${transcriptMsgs.loading}</p>`;
+      statusEl.style.display = 'block';
+      editorEl.style.display = 'none';
+
+      fetch(`/admin/api/lectures/${lectureId}/transcript`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.segments && data.segments.length > 0) {
+            transcriptData = data.segments;
+            pendingChanges.clear();
+            renderTranscriptEditor();
+            statusEl.style.display = 'none';
+            editorEl.style.display = 'block';
+            updateTranscriptStats();
+          } else {
+            statusEl.innerHTML = `<p style="margin: 0; color: #e65100;">${transcriptMsgs.noTranscript}</p>`;
+          }
+        })
+        .catch(err => {
+          console.error('Load transcript error:', err);
+          statusEl.innerHTML = `<p style="margin: 0; color: #c62828;">${transcriptMsgs.loadError}</p>`;
+        });
+    }
+
+    function renderTranscriptEditor() {
+      const segmentsEl = document.getElementById('transcriptSegments');
+
+      const html = transcriptData.map((seg, index) => `
+        <div class="transcript-row" data-id="${seg._id}" data-index="${index}" style="display: flex; gap: 12px; padding: 12px; border-bottom: 1px solid #eee; align-items: flex-start; ${pendingChanges.has(seg._id) ? 'background: #fff3e0;' : ''}">
+          <button type="button" class="timestamp-btn" onclick="playFromTime(${seg.startTimeSec})" style="flex-shrink: 0; padding: 4px 8px; background: #1A5F5A; color: white; border: none; border-radius: 4px; font-size: 12px; font-family: monospace; cursor: pointer;" title="${isArabic ? 'تشغيل من هذا الوقت' : 'Play from this time'}">
+            ${formatTimestamp(seg.startTimeSec)}
+          </button>
+          <div class="segment-text" contenteditable="true" data-original="${escapeHtml(seg.text)}" style="flex: 1; min-height: 24px; padding: 4px 8px; border: 1px solid transparent; border-radius: 4px; direction: rtl; font-family: 'Segoe UI', Tahoma, sans-serif; line-height: 1.6; cursor: text;" onfocus="this.style.borderColor='#1A5F5A'; this.style.background='white';" onblur="handleSegmentBlur(this, '${seg._id}')" onkeydown="handleSegmentKeydown(event, this, '${seg._id}')">${escapeHtml(seg.text)}</div>
+          <button type="button" onclick="deleteSegment('${seg._id}')" style="flex-shrink: 0; padding: 4px 8px; background: #ffebee; color: #c62828; border: none; border-radius: 4px; font-size: 14px; cursor: pointer;" title="${isArabic ? 'حذف' : 'Delete'}">×</button>
+        </div>
+      `).join('');
+
+      segmentsEl.innerHTML = html;
+    }
+
+    function handleSegmentBlur(el, segmentId) {
+      el.style.borderColor = 'transparent';
+      el.style.background = 'transparent';
+
+      const original = el.dataset.original;
+      const current = el.textContent.trim();
+
+      if (current !== original) {
+        pendingChanges.set(segmentId, current);
+        el.closest('.transcript-row').style.background = '#fff3e0';
+      } else {
+        pendingChanges.delete(segmentId);
+        el.closest('.transcript-row').style.background = '';
+      }
+
+      updateTranscriptStats();
+      document.getElementById('saveTranscriptBtn').disabled = pendingChanges.size === 0;
+    }
+
+    function handleSegmentKeydown(event, el, segmentId) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        el.blur();
+      } else if (event.key === 'Escape') {
+        el.textContent = el.dataset.original;
+        el.blur();
+      }
+    }
+
+    function updateTranscriptStats() {
+      const statsEl = document.getElementById('transcriptStats');
+      let text = `${transcriptData.length} ${transcriptMsgs.segments}`;
+      if (pendingChanges.size > 0) {
+        text += ` | <span style="color: #e65100; font-weight: 600;">${pendingChanges.size} ${transcriptMsgs.unsavedChanges}</span>`;
+      }
+      statsEl.innerHTML = text;
+    }
+
+    async function saveAllChanges() {
+      if (pendingChanges.size === 0) return;
+
+      const saveBtn = document.getElementById('saveTranscriptBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = transcriptMsgs.saving;
+
+      const segments = [];
+      pendingChanges.forEach((text, id) => {
+        segments.push({ _id: id, text });
+      });
+
+      try {
+        const res = await fetch(`/admin/api/lectures/${lectureId}/transcript`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ segments })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          // Update local data and clear pending changes
+          segments.forEach(seg => {
+            const idx = transcriptData.findIndex(s => s._id === seg._id);
+            if (idx !== -1) {
+              transcriptData[idx].text = seg.text;
+            }
+          });
+          pendingChanges.clear();
+          renderTranscriptEditor();
+          updateTranscriptStats();
+
+          saveBtn.textContent = transcriptMsgs.saved;
+          saveBtn.style.background = '#4CAF50';
+          setTimeout(() => {
+            saveBtn.textContent = isArabic ? '💾 حفظ الكل' : '💾 Save All';
+            saveBtn.style.background = '';
+          }, 2000);
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (err) {
+        console.error('Save error:', err);
+        saveBtn.textContent = transcriptMsgs.saveError;
+        saveBtn.style.background = '#f44336';
+        setTimeout(() => {
+          saveBtn.textContent = isArabic ? '💾 حفظ الكل' : '💾 Save All';
+          saveBtn.style.background = '';
+          saveBtn.disabled = false;
+        }, 2000);
+      }
+    }
+
+    async function deleteSegment(segmentId) {
+      if (!confirm(transcriptMsgs.confirmDelete)) return;
+
+      try {
+        const res = await fetch(`/admin/api/lectures/${lectureId}/transcript/${segmentId}`, {
+          method: 'DELETE'
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          transcriptData = transcriptData.filter(s => s._id !== segmentId);
+          pendingChanges.delete(segmentId);
+          renderTranscriptEditor();
+          updateTranscriptStats();
+        } else {
+          alert(data.error || 'Delete failed');
+        }
+      } catch (err) {
+        console.error('Delete error:', err);
+        alert(transcriptMsgs.saveError);
+      }
+    }
+
+    async function exportTranscriptCsv() {
+      try {
+        // First save any pending changes
+        if (pendingChanges.size > 0) {
+          await saveAllChanges();
+        }
+
+        // Download CSV
+        window.location.href = `/admin/api/lectures/${lectureId}/transcript/export-csv`;
+      } catch (err) {
+        console.error('Export error:', err);
+        alert(transcriptMsgs.exportError);
+      }
+    }
+
+    function playFromTime(seconds) {
+      const audioEl = document.getElementById('currentAudio');
+      if (audioEl) {
+        audioEl.currentTime = seconds;
+        audioEl.play();
+      }
+    }
+
+    // Warn before leaving with unsaved changes
+    window.addEventListener('beforeunload', (e) => {
+      if (pendingChanges.size > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+  </script>
+</body>
+</html>

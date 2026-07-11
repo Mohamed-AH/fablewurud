@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= isEdit ? (adminLocale === 'ar' ? 'تعديل السلسلة' : 'Edit Series') : (adminLocale === 'ar' ? 'إضافة سلسلة جديدة' : 'Add New Series') %> - <%= t('admin_title') %></title>
+  <style>
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 32px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    [dir="rtl"] .actions {
+      flex-direction: row-reverse;
+    }
+
+    .required {
+      color: #dc3545;
+    }
+
+    [dir="rtl"] .required {
+      margin-right: 4px;
+    }
+
+    [dir="ltr"] .required {
+      margin-left: 4px;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .label-help {
+      font-size: 12px;
+      color: #6c757d;
+      font-weight: 400;
+    }
+
+    [dir="rtl"] .label-help {
+      margin-right: 8px;
+    }
+
+    [dir="ltr"] .label-help {
+      margin-left: 8px;
+    }
+
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      background: white;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'manage' }) %>
+
+  <main class="admin-container">
+    <div class="card">
+      <form method="POST" action="<%= isEdit ? `/admin/series/${series._id}/edit` : '/admin/series/new' %>">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="titleArabic">
+              <%= adminLocale === 'ar' ? 'العنوان بالعربية' : 'Title (Arabic)' %>
+              <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="titleArabic"
+              name="titleArabic"
+              value="<%= series ? series.titleArabic : '' %>"
+              required
+              placeholder="<%= adminLocale === 'ar' ? 'مثال: شرح كتاب التوحيد' : 'Example: شرح كتاب التوحيد' %>"
+              dir="rtl"
+              class="form-control"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="titleEnglish"><%= adminLocale === 'ar' ? 'العنوان بالإنجليزية' : 'Title (English)' %></label>
+            <input
+              type="text"
+              id="titleEnglish"
+              name="titleEnglish"
+              value="<%= series ? (series.titleEnglish || '') : '' %>"
+              placeholder="Example: Explanation of Kitab at-Tawhid"
+              dir="ltr"
+              class="form-control"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="sheikhId">
+            <%= adminLocale === 'ar' ? 'الشيخ' : 'Sheikh' %>
+            <span class="required">*</span>
+          </label>
+          <select id="sheikhId" name="sheikhId" required class="form-control">
+            <option value=""><%= adminLocale === 'ar' ? '-- اختر الشيخ --' : '-- Select Sheikh --' %></option>
+            <% sheikhs.forEach(sheikh => { %>
+              <option value="<%= sheikh._id %>" <%= series && series.sheikhId && (series.sheikhId._id || series.sheikhId).toString() === sheikh._id.toString() ? 'selected' : '' %>>
+                <%= sheikh.nameArabic %><%= sheikh.nameEnglish ? ` (${sheikh.nameEnglish})` : '' %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="category"><%= adminLocale === 'ar' ? 'التصنيف' : 'Category' %></label>
+            <select id="category" name="category" class="form-control">
+              <option value="Other" <%= !series || series.category === 'Other' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'أخرى' : 'Other' %></option>
+              <option value="Aqeedah" <%= series && series.category === 'Aqeedah' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'العقيدة' : 'Aqeedah' %></option>
+              <option value="Fiqh" <%= series && series.category === 'Fiqh' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'الفقه' : 'Fiqh' %></option>
+              <option value="Tafsir" <%= series && series.category === 'Tafsir' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'التفسير' : 'Tafsir' %></option>
+              <option value="Hadith" <%= series && series.category === 'Hadith' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'الحديث' : 'Hadith' %></option>
+              <option value="Seerah" <%= series && series.category === 'Seerah' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'السيرة' : 'Seerah' %></option>
+              <option value="Akhlaq" <%= series && series.category === 'Akhlaq' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'الأخلاق' : 'Akhlaq' %></option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="sectionId">
+              <%= adminLocale === 'ar' ? 'القسم' : 'Section' %>
+              <span class="label-help">(<%= adminLocale === 'ar' ? 'للصفحة الرئيسية' : 'For homepage' %>)</span>
+            </label>
+            <select id="sectionId" name="sectionId" class="form-control">
+              <option value=""><%= adminLocale === 'ar' ? '-- بدون قسم --' : '-- No Section --' %></option>
+              <% sections.forEach(section => { %>
+                <option value="<%= section._id %>" <%= series && series.sectionId && series.sectionId.toString() === section._id.toString() ? 'selected' : '' %>>
+                  <%= section.titleArabic %><%= section.titleEnglish ? ` (${section.titleEnglish})` : '' %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="descriptionArabic"><%= adminLocale === 'ar' ? 'الوصف بالعربية' : 'Description (Arabic)' %></label>
+          <textarea
+            id="descriptionArabic"
+            name="descriptionArabic"
+            rows="3"
+            placeholder="<%= adminLocale === 'ar' ? 'وصف مختصر للسلسلة...' : 'Brief description of the series...' %>"
+            dir="rtl"
+            class="form-control"
+          ><%= series ? (series.descriptionArabic || '') : '' %></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="descriptionEnglish"><%= adminLocale === 'ar' ? 'الوصف بالإنجليزية' : 'Description (English)' %></label>
+          <textarea
+            id="descriptionEnglish"
+            name="descriptionEnglish"
+            rows="3"
+            placeholder="Brief description of the series..."
+            dir="ltr"
+            class="form-control"
+          ><%= series ? (series.descriptionEnglish || '') : '' %></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bookTitle">
+              <%= adminLocale === 'ar' ? 'عنوان الكتاب' : 'Book Title' %>
+              <span class="label-help">(<%= adminLocale === 'ar' ? 'إن وجد' : 'If applicable' %>)</span>
+            </label>
+            <input
+              type="text"
+              id="bookTitle"
+              name="bookTitle"
+              value="<%= series ? (series.bookTitle || '') : '' %>"
+              placeholder="<%= adminLocale === 'ar' ? 'مثال: كتاب التوحيد' : 'Example: Kitab at-Tawhid' %>"
+              dir="rtl"
+              class="form-control"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="bookAuthor">
+              <%= adminLocale === 'ar' ? 'مؤلف الكتاب' : 'Book Author' %>
+              <span class="label-help">(<%= adminLocale === 'ar' ? 'إن وجد' : 'If applicable' %>)</span>
+            </label>
+            <input
+              type="text"
+              id="bookAuthor"
+              name="bookAuthor"
+              value="<%= series ? (series.bookAuthor || '') : '' %>"
+              placeholder="<%= adminLocale === 'ar' ? 'مثال: الإمام محمد بن عبدالوهاب' : 'Example: Imam Muhammad ibn Abd al-Wahhab' %>"
+              dir="rtl"
+              class="form-control"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="isVisible"
+              name="isVisible"
+              value="true"
+              <%= !series || series.isVisible !== false ? 'checked' : '' %>
+            >
+            <label for="isVisible" style="margin-bottom: 0;">
+              <%= adminLocale === 'ar' ? 'مرئي للزوار' : 'Visible to visitors' %>
+            </label>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary">
+            <%= isEdit ? (adminLocale === 'ar' ? 'حفظ التغييرات' : 'Save Changes') : (adminLocale === 'ar' ? 'إنشاء السلسلة' : 'Create Series') %>
+          </button>
+          <a href="/admin/manage" class="btn-secondary"><%= adminLocale === 'ar' ? 'إلغاء' : 'Cancel' %></a>
+        </div>
+      </form>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<header class="admin-header">
+  <h1>🎙️ <%= t('admin_title') %></h1>
+  <nav class="admin-nav">
+    <a href="/admin/dashboard" class="<%= typeof activePage !== 'undefined' && activePage === 'dashboard' ? 'active' : '' %>"><%= t('admin_dashboard') %></a>
+    <a href="/admin/upload" class="<%= typeof activePage !== 'undefined' && activePage === 'upload' ? 'active' : '' %>"><%= t('admin_upload') %></a>
+    <a href="/admin/manage" class="<%= typeof activePage !== 'undefined' && activePage === 'manage' ? 'active' : '' %>"><%= t('admin_manage') %></a>
+    <a href="/admin/articles" class="<%= typeof activePage !== 'undefined' && activePage === 'articles' ? 'active' : '' %>"><%= t('admin_articles') %></a>
+    <a href="/admin/schedule" class="<%= typeof activePage !== 'undefined' && activePage === 'schedule' ? 'active' : '' %>"><%= t('admin_schedule') %></a>
+    <a href="/admin/analytics" class="<%= typeof activePage !== 'undefined' && activePage === 'analytics' ? 'active' : '' %>"><%= t('admin_analytics') %></a>
+    <% if (typeof user !== 'undefined' && user && user.role === 'admin') { %>
+      <a href="/admin/article-editors" class="<%= typeof activePage !== 'undefined' && activePage === 'article-editors' ? 'active' : '' %>"><%= t('admin_article_editors') || '📝 Editors' %></a>
+    <% } %>
+  </nav>
+  <div class="admin-user-section">
+    <div class="lang-toggle">
+      <a href="?lang=en" class="<%= adminLocale === 'en' ? 'active' : '' %>">EN</a>
+      <a href="?lang=ar" class="<%= adminLocale === 'ar' ? 'active' : '' %>">عربي</a>
+    </div>
+    <div class="user-info">
+      <% if (typeof user !== 'undefined' && user && user.profilePhoto) { %>
+        <img src="<%= user.profilePhoto %>" alt="<%= user.displayName %>" class="user-photo">
+      <% } %>
+      <% if (typeof user !== 'undefined' && user) { %>
+        <span><%= user.displayName %></span>
+      <% } %>
+      <a href="/auth/logout" class="logout-btn"><%= t('admin_logout') %></a>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= adminLocale === 'ar' ? 'إضافة درس سريع' : 'Quick Add Lecture' %> - <%= t('admin_title') %></title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .container { max-width: 600px; margin: 0 auto; padding: 32px 24px; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 32px;
+    }
+    .series-info {
+      background: #e8f5e9;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+    .series-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1A5F5A;
+    }
+    .series-meta {
+      font-size: 14px;
+      color: #666;
+      margin-top: 4px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #2C3E35;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #1A5F5A;
+      box-shadow: 0 0 0 3px rgba(26, 95, 90, 0.1);
+    }
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .preview-title {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #555;
+      margin-top: 8px;
+    }
+    .preview-title strong {
+      color: #1A5F5A;
+    }
+    .btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary {
+      background: #1A5F5A;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #145047;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    [dir="rtl"] .btn-secondary {
+      margin-right: 12px;
+    }
+
+    [dir="ltr"] .btn-secondary {
+      margin-left: 12px;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    [dir="rtl"] .actions {
+      flex-direction: row-reverse;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .quick-badge {
+      display: inline-block;
+      background: #D4AF37;
+      color: #2C1810;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    [dir="rtl"] .quick-badge {
+      margin-right: 8px;
+    }
+
+    [dir="ltr"] .quick-badge {
+      margin-left: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'manage' }) %>
+
+  <main class="admin-container">
+    <div class="card">
+      <div class="series-info">
+        <div class="series-name"><%= adminLocale === 'ar' ? series.titleArabic : (series.titleEnglish || series.titleArabic) %></div>
+        <div class="series-meta">
+          <%= adminLocale === 'ar' ? 'الشيخ:' : 'Sheikh:' %> <%= series.sheikhId ? (adminLocale === 'ar' ? series.sheikhId.nameArabic : (series.sheikhId.nameEnglish || series.sheikhId.nameArabic)) : (adminLocale === 'ar' ? 'غير محدد' : 'Unspecified') %> |
+          <%= adminLocale === 'ar' ? 'التصنيف:' : 'Category:' %> <%= translateCategory ? translateCategory(series.category || 'Other') : (series.category || 'Other') %>
+        </div>
+      </div>
+
+      <form method="POST" action="/admin/series/<%= series._id %>/quick-add-lecture" id="quickAddForm">
+        <input type="hidden" name="sortOrder" value="<%= nextSortOrder %>">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="lectureNumber"><%= adminLocale === 'ar' ? 'رقم الدرس' : 'Lecture Number' %> *</label>
+            <input
+              type="number"
+              id="lectureNumber"
+              name="lectureNumber"
+              value="<%= nextLectureNumber %>"
+              min="1"
+              required
+              onchange="updatePreview()"
+              class="form-control"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="dateRecorded"><%= adminLocale === 'ar' ? 'تاريخ التسجيل' : 'Recording Date' %></label>
+            <input
+              type="date"
+              id="dateRecorded"
+              name="dateRecorded"
+              value="<%= today %>"
+              class="form-control"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="titleSuffix"><%= adminLocale === 'ar' ? 'عنوان إضافي (اختياري)' : 'Additional Title (optional)' %></label>
+          <input
+            type="text"
+            id="titleSuffix"
+            name="titleSuffix"
+            placeholder="<%= adminLocale === 'ar' ? 'مثال: باب الصلاة' : 'Example: Chapter on Prayer' %>"
+            onkeyup="updatePreview()"
+            class="form-control"
+          >
+          <div class="hint"><%= adminLocale === 'ar' ? 'يُضاف بعد رقم الدرس في العنوان' : 'Added after the lecture number in the title' %></div>
+        </div>
+
+        <div class="form-group">
+          <label><%= adminLocale === 'ar' ? 'معاينة العنوان' : 'Title Preview' %></label>
+          <div class="preview-title" id="titlePreview">
+            <strong><%= series.titleArabic %> - <%= adminLocale === 'ar' ? 'الدرس' : 'Lecture' %> <%= nextLectureNumber %></strong>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="notes"><%= adminLocale === 'ar' ? 'ملاحظات (اختياري)' : 'Notes (optional)' %></label>
+          <textarea
+            id="notes"
+            name="notes"
+            placeholder="<%= adminLocale === 'ar' ? 'أي ملاحظات إضافية...' : 'Any additional notes...' %>"
+            class="form-control"
+          ></textarea>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary"><%= adminLocale === 'ar' ? '✓ إضافة الدرس' : '✓ Add Lecture' %></button>
+          <a href="/admin/series/<%= series._id %>/edit" class="btn btn-secondary"><%= adminLocale === 'ar' ? 'إلغاء' : 'Cancel' %></a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    const seriesTitle = '<%- JSON.stringify(series.titleArabic || "").slice(1, -1) %>';
+    const isArabic = '<%= adminLocale %>' === 'ar';
+    const lectureLabel = isArabic ? 'الدرس' : 'Lecture';
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function updatePreview() {
+      const lectureNumber = document.getElementById('lectureNumber').value;
+      const titleSuffix = document.getElementById('titleSuffix').value.trim();
+
+      let preview = seriesTitle + ' - ' + lectureLabel + ' ' + lectureNumber;
+      if (titleSuffix) {
+        preview += ' - ' + titleSuffix;
+      }
+
+      document.getElementById('titlePreview').innerHTML = '<strong>' + escapeHtml(preview) + '</strong>';
+    }
+  </script>
+</body>
+</html>

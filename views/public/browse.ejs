@@ -1,0 +1,523 @@
+
+<style>
+  /* Page background to match design system */
+  .browse-page-wrapper {
+    background-color: #F5EDE0;
+    min-height: 100vh;
+  }
+
+  .page-header {
+    background: linear-gradient(to left, #2C1508 0%, #3D2815 30%, #5A6944 70%, #6B7A4E 100%);
+    padding: 48px 0;
+    margin-bottom: 40px;
+    border-bottom: none;
+  }
+
+  html[dir="ltr"] .page-header {
+    background: linear-gradient(to right, #2C1508 0%, #3D2815 30%, #5A6944 70%, #6B7A4E 100%);
+  }
+
+  .page-title {
+    font-size: 36px;
+    font-family: var(--font-cairo), var(--font-arabic-display);
+    color: #FFFFFF;
+    margin-bottom: 8px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+    font-weight: 700;
+  }
+
+  .page-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    font-family: var(--font-cairo), var(--font-arabic-body);
+  }
+
+  .content-wrapper {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 32px;
+    margin-bottom: 60px;
+  }
+
+  .filters-sidebar {
+    background: #FDF8F2;
+    border-radius: 12px;
+    padding: 24px;
+    height: fit-content;
+    position: sticky;
+    top: 88px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #DEC99A;
+  }
+
+  .filter-section {
+    margin-bottom: 24px;
+  }
+
+  .filter-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .filter-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #2C1508;
+    font-family: var(--font-cairo), var(--font-arabic-body);
+  }
+
+  .filter-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #DEC99A;
+    border-radius: 6px;
+    font-family: var(--font-cairo), var(--font-arabic-body);
+    font-size: 14px;
+    background: #FFFFFF;
+    color: #2C1508;
+  }
+
+  .filter-btn {
+    width: 100%;
+    padding: 12px;
+    background: #C49A3C;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-cairo), var(--font-arabic-body);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 16px;
+    box-shadow: 0 2px 8px rgba(196, 154, 60, 0.25);
+  }
+
+  .filter-btn:hover {
+    background: #B38A2C;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(196, 154, 60, 0.35);
+  }
+
+  .clear-filters {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    color: #7A5C3A;
+    border: 1px solid #DEC99A;
+    border-radius: 6px;
+    font-family: var(--font-cairo), var(--font-arabic-body);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 8px;
+  }
+
+  .clear-filters:hover {
+    border-color: #C49A3C;
+    color: #2C1508;
+    background: #FDF8F2;
+  }
+
+  .lectures-content {
+    min-height: 400px;
+  }
+
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #DEC99A;
+  }
+
+  .results-count {
+    font-size: 16px;
+    color: #7A5C3A;
+    font-family: var(--font-cairo), var(--font-arabic-body);
+  }
+
+  .sort-select {
+    padding: 8px 12px;
+    border: 1px solid #DEC99A;
+    border-radius: 6px;
+    font-family: var(--font-cairo), var(--font-arabic-body);
+    font-size: 14px;
+    background: #FDF8F2;
+    color: #2C1508;
+  }
+
+  .lectures-grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: #7A5C3A;
+    font-family: var(--font-cairo), var(--font-arabic-body);
+  }
+
+  .empty-state h3 {
+    color: #2C1508;
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+
+  .empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 40px;
+  }
+
+  .pagination a,
+  .pagination span {
+    padding: 10px 16px;
+    background: #FDF8F2;
+    border: 1px solid #DEC99A;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #2C1508;
+    transition: all 0.3s;
+    font-family: var(--font-cairo), var(--font-arabic-body);
+  }
+
+  .pagination a:hover {
+    background: #C49A3C;
+    color: #FFFFFF;
+    border-color: #C49A3C;
+  }
+
+  .pagination .active {
+    background: #C49A3C;
+    color: #FFFFFF;
+    border-color: #C49A3C;
+  }
+
+  @media (max-width: 968px) {
+    .content-wrapper {
+      grid-template-columns: 1fr;
+    }
+
+    .filters-sidebar {
+      position: static;
+    }
+
+    .page-title {
+      font-size: 28px;
+    }
+  }
+
+  /* Tablets and smaller (768px) */
+  @media (max-width: 768px) {
+    .page-header {
+      padding: 32px 0;
+      margin-bottom: 24px;
+    }
+
+    .page-title {
+      font-size: 26px;
+    }
+
+    .page-subtitle {
+      font-size: 14px;
+    }
+
+    .filters-sidebar {
+      padding: 16px;
+    }
+
+    .filter-section {
+      margin-bottom: 16px;
+    }
+
+    .results-header {
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .pagination {
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .pagination a,
+    .pagination span {
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+  }
+
+  /* Small phones (below 480px) */
+  @media (max-width: 480px) {
+    .page-header {
+      padding: 24px 0;
+      margin-bottom: 16px;
+    }
+
+    .page-title {
+      font-size: 22px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+    }
+
+    .content-wrapper {
+      gap: 16px;
+    }
+
+    .filters-sidebar {
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    .filter-title {
+      font-size: 14px;
+    }
+
+    .filter-select {
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .filter-btn {
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    .clear-filters {
+      padding: 8px;
+      font-size: 13px;
+    }
+
+    .results-count {
+      font-size: 14px;
+    }
+
+    .sort-select {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .pagination a,
+    .pagination span {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+  }
+
+  /* Very small phones (below 360px) */
+  @media (max-width: 360px) {
+    .page-title {
+      font-size: 20px;
+    }
+
+    .filters-sidebar {
+      padding: 10px;
+    }
+
+    .filter-title {
+      font-size: 13px;
+    }
+
+    .filter-select {
+      font-size: 12px;
+    }
+
+    .pagination a,
+    .pagination span {
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+  }
+</style>
+
+<div class="browse-page-wrapper">
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title"><%= locale === 'ar' ? 'جميع المحاضرات' : 'All Lectures' %></h1>
+    <p class="page-subtitle"><%= locale === 'ar' ? 'تصفح وابحث عن المحاضرات الإسلامية' : 'Browse and search Islamic lectures' %></p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="content-wrapper">
+    <!-- Filters Sidebar -->
+    <aside class="filters-sidebar">
+      <form action="/browse" method="GET" id="filtersForm">
+        <div class="filter-section">
+          <h3 class="filter-title"><%= locale === 'ar' ? 'التصنيف' : 'Category' %></h3>
+          <select name="category" class="filter-select">
+            <option value=""><%= locale === 'ar' ? 'جميع التصنيفات' : 'All Categories' %></option>
+            <option value="Aqeedah" <%= category === 'Aqeedah' ? 'selected' : '' %>><%= locale === 'ar' ? 'العقيدة' : 'Aqeedah' %></option>
+            <option value="Fiqh" <%= category === 'Fiqh' ? 'selected' : '' %>><%= locale === 'ar' ? 'الفقه' : 'Fiqh' %></option>
+            <option value="Tafsir" <%= category === 'Tafsir' ? 'selected' : '' %>><%= locale === 'ar' ? 'التفسير' : 'Tafsir' %></option>
+            <option value="Hadith" <%= category === 'Hadith' ? 'selected' : '' %>><%= locale === 'ar' ? 'الحديث' : 'Hadith' %></option>
+            <option value="Seerah" <%= category === 'Seerah' ? 'selected' : '' %>><%= locale === 'ar' ? 'السيرة' : 'Seerah' %></option>
+            <option value="Akhlaq" <%= category === 'Akhlaq' ? 'selected' : '' %>><%= locale === 'ar' ? 'الأخلاق' : 'Akhlaq' %></option>
+          </select>
+        </div>
+
+        <div class="filter-section">
+          <h3 class="filter-title"><%= locale === 'ar' ? 'تاريخ التسجيل (هجري)' : 'Date Recorded (Hijri)' %></h3>
+          <label style="font-size: 12px; color: #7A5C3A; margin-bottom: 4px; display: block;"><%= locale === 'ar' ? 'من تاريخ' : 'From Date' %></label>
+          <input
+            type="text"
+            name="fromDateHijri"
+            class="filter-select hijri-input"
+            value="<%= typeof fromDateHijri !== 'undefined' ? fromDateHijri : '' %>"
+            placeholder="<%= locale === 'ar' ? '١٤٤٧/٠١/٠١' : '1447/01/01' %>"
+            style="margin-bottom: 12px;"
+            pattern="[0-9٠-٩]{4}/[0-9٠-٩]{1,2}/[0-9٠-٩]{1,2}"
+            title="<%= locale === 'ar' ? 'أدخل التاريخ بصيغة: سنة/شهر/يوم' : 'Enter date as: YYYY/MM/DD' %>"
+          >
+          <label style="font-size: 12px; color: #7A5C3A; margin-bottom: 4px; display: block;"><%= locale === 'ar' ? 'إلى تاريخ' : 'To Date' %></label>
+          <input
+            type="text"
+            name="toDateHijri"
+            class="filter-select hijri-input"
+            value="<%= typeof toDateHijri !== 'undefined' ? toDateHijri : '' %>"
+            placeholder="<%= locale === 'ar' ? '١٤٤٧/١٢/٣٠' : '1447/12/30' %>"
+            pattern="[0-9٠-٩]{4}/[0-9٠-٩]{1,2}/[0-9٠-٩]{1,2}"
+            title="<%= locale === 'ar' ? 'أدخل التاريخ بصيغة: سنة/شهر/يوم' : 'Enter date as: YYYY/MM/DD' %>"
+          >
+          <small style="font-size: 11px; color: #A89070; display: block; margin-top: 8px;">
+            <%= locale === 'ar' ? 'صيغة التاريخ: سنة/شهر/يوم (مثال: 1447/07/15)' : 'Format: YYYY/MM/DD (e.g., 1447/07/15)' %>
+          </small>
+        </div>
+
+        <% if (typeof search !== 'undefined' && search) { %>
+          <input type="hidden" name="search" value="<%= search %>">
+        <% } %>
+
+        <button type="submit" class="filter-btn"><%= locale === 'ar' ? 'تطبيق الفلتر' : 'Apply Filter' %></button>
+        <button type="button" class="clear-filters" onclick="window.location.href='/browse'"><%= locale === 'ar' ? 'مسح الفلتر' : 'Clear Filter' %></button>
+      </form>
+    </aside>
+
+    <!-- Lectures Content -->
+    <main class="lectures-content">
+      <div class="results-header">
+        <span class="results-count">
+          <% if (typeof pagination !== 'undefined') { %>
+            <%= pagination.totalCount %> <%= locale === 'ar' ? 'محاضرة' : 'lectures' %>
+            <% if (pagination.totalPages > 1) { %>
+              (<%= locale === 'ar' ? 'صفحة' : 'page' %> <%= pagination.page %> <%= locale === 'ar' ? 'من' : 'of' %> <%= pagination.totalPages %>)
+            <% } %>
+          <% } else { %>
+            <%= lectures.length %> <%= locale === 'ar' ? 'محاضرة' : 'lectures' %>
+          <% } %>
+          <% if (typeof search !== 'undefined' && search) { %>
+            - <%= locale === 'ar' ? 'نتائج البحث عن:' : 'Search results for:' %> "<%= search %>"
+          <% } %>
+        </span>
+      </div>
+
+      <% if (lectures && lectures.length > 0) { %>
+        <div class="lectures-grid">
+          <% lectures.forEach(lecture => { %>
+            <%- include('../partials/lectureCard', { lecture, locale }) %>
+          <% }) %>
+        </div>
+
+        <% if (typeof pagination !== 'undefined' && pagination.totalPages > 1) { %>
+          <nav class="pagination" aria-label="<%= locale === 'ar' ? 'التنقل بين الصفحات' : 'Page navigation' %>">
+            <%
+              // Build query string for pagination links
+              const buildPageUrl = (pageNum) => {
+                const params = new URLSearchParams();
+                params.set('page', pageNum);
+                if (category) params.set('category', category);
+                if (search) params.set('search', search);
+                if (fromDateHijri) params.set('fromDateHijri', fromDateHijri);
+                if (toDateHijri) params.set('toDateHijri', toDateHijri);
+                return '/browse?' + params.toString();
+              };
+
+              // Calculate visible page range
+              const maxVisiblePages = 5;
+              let startPage = Math.max(1, pagination.page - Math.floor(maxVisiblePages / 2));
+              let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1);
+              if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+              }
+            %>
+
+            <% if (pagination.hasPrev) { %>
+              <a href="<%= buildPageUrl(pagination.page - 1) %>" class="page-link prev" aria-label="<%= locale === 'ar' ? 'الصفحة السابقة' : 'Previous page' %>">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </a>
+            <% } %>
+
+            <% if (startPage > 1) { %>
+              <a href="<%= buildPageUrl(1) %>" class="page-link">1</a>
+              <% if (startPage > 2) { %>
+                <span class="page-ellipsis">...</span>
+              <% } %>
+            <% } %>
+
+            <% for (let i = startPage; i <= endPage; i++) { %>
+              <% if (i === pagination.page) { %>
+                <span class="page-link active" aria-current="page"><%= i %></span>
+              <% } else { %>
+                <a href="<%= buildPageUrl(i) %>" class="page-link"><%= i %></a>
+              <% } %>
+            <% } %>
+
+            <% if (endPage < pagination.totalPages) { %>
+              <% if (endPage < pagination.totalPages - 1) { %>
+                <span class="page-ellipsis">...</span>
+              <% } %>
+              <a href="<%= buildPageUrl(pagination.totalPages) %>" class="page-link"><%= pagination.totalPages %></a>
+            <% } %>
+
+            <% if (pagination.hasNext) { %>
+              <a href="<%= buildPageUrl(pagination.page + 1) %>" class="page-link next" aria-label="<%= locale === 'ar' ? 'الصفحة التالية' : 'Next page' %>">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </a>
+            <% } %>
+          </nav>
+        <% } %>
+      <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon">🔍</div>
+          <h3><%= locale === 'ar' ? 'لم يتم العثور على محاضرات' : 'No lectures found' %></h3>
+          <p><%= locale === 'ar' ? 'جرب تغيير معايير البحث أو الفلتر' : 'Try changing your search or filter criteria' %></p>
+        </div>
+      <% } %>
+    </main>
+  </div>
+</div>
+
+<script>
+  // Play audio using sticky player
+  function playAudio(lectureId, title, sheikh) {
+    console.log('▶️ Play button clicked from browse page');
+    console.log('  Lecture ID:', lectureId);
+    console.log('  Title:', title);
+    console.log('  Sheikh:', sheikh);
+
+    if (window.audioPlayer) {
+      console.log('✅ Calling audioPlayer.play()...');
+      window.audioPlayer.play(lectureId, {
+        title: title,
+        titleArabic: title,
+        sheikh: sheikh || ''
+      });
+    } else {
+      console.error('❌ Audio player not initialized');
+      alert('مشغل الصوت يتم تحميله، يرجى المحاولة مرة أخرى');
+    }
+  }
+</script>
+</div>

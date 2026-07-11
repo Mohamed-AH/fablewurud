@@ -1,0 +1,238 @@
+<%- include('layout', { body: `
+<header class="editor-header">
+  <a href="/article-editor" class="btn btn-secondary" style="padding: 8px 12px;">←</a>
+  <h1>تحرير المقال</h1>
+  <div class="header-actions">
+    <a href="/article-editor/article/${article.shortId || article._id}/history" class="btn btn-secondary">السجل</a>
+  </div>
+</header>
+
+<main class="editor-main" style="padding-bottom: 80px;">
+  <form id="editForm">
+    <div class="card">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label">عنوان المقال</label>
+        <input
+          type="text"
+          name="title"
+          id="titleInput"
+          class="form-input"
+          value="${article.title.replace(/"/g, '&quot;')}"
+          required
+        >
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">محتوى المقال</span>
+      </div>
+      <div id="editor"></div>
+      <input type="hidden" name="content" id="contentInput">
+    </div>
+
+    <div class="card">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label">وصف التغييرات (اختياري)</label>
+        <input
+          type="text"
+          name="changeDescription"
+          id="changeDescriptionInput"
+          class="form-input"
+          placeholder="مثال: تصحيح الأخطاء الإملائية..."
+        >
+      </div>
+    </div>
+  </form>
+</main>
+
+<div class="save-bar">
+  <a href="/article-editor" class="btn btn-outline">إلغاء</a>
+  <button type="button" id="saveBtn" class="btn btn-primary" onclick="saveArticle()">
+    حفظ التغييرات
+  </button>
+</div>
+
+<script>
+  // Register custom class preservers so Quill keeps .quran/.hadith/.section-header
+  const Parchment = Quill.import('parchment');
+  const ClassAttributor = Parchment.Attributor.Class;
+  const articleClass = new ClassAttributor('article-class', '', {
+    scope: Parchment.Scope.INLINE
+  });
+  Quill.register(articleClass, true);
+
+  // Also whitelist these classes on the Inline blot
+  const Inline = Quill.import('blots/inline');
+  class QuranBlot extends Inline {
+    static create() {
+      const node = super.create();
+      node.setAttribute('class', 'quran');
+      return node;
+    }
+    static formats() { return true; }
+  }
+  QuranBlot.blotName = 'quran';
+  QuranBlot.className = 'quran';
+  QuranBlot.tagName = 'span';
+
+  class HadithBlot extends Inline {
+    static create() {
+      const node = super.create();
+      node.setAttribute('class', 'hadith');
+      return node;
+    }
+    static formats() { return true; }
+  }
+  HadithBlot.blotName = 'hadith';
+  HadithBlot.className = 'hadith';
+  HadithBlot.tagName = 'span';
+
+  class SectionHeaderBlot extends Inline {
+    static create() {
+      const node = super.create();
+      node.setAttribute('class', 'section-header');
+      return node;
+    }
+    static formats() { return true; }
+  }
+  SectionHeaderBlot.blotName = 'section-header';
+  SectionHeaderBlot.className = 'section-header';
+  SectionHeaderBlot.tagName = 'span';
+
+  Quill.register(QuranBlot);
+  Quill.register(HadithBlot);
+  Quill.register(SectionHeaderBlot);
+
+  // Initialize Quill editor
+  const quill = new Quill('#editor', {
+    theme: 'snow',
+    modules: {
+      toolbar: {
+        container: [
+          [{ 'header': [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          [{ 'align': [] }],
+          ['link'],
+          ['quran-btn', 'hadith-btn', 'header-btn'],
+          ['clean']
+        ],
+        handlers: {
+          'quran-btn': function() { toggleFormat(this.quill, 'quran'); },
+          'hadith-btn': function() { toggleFormat(this.quill, 'hadith'); },
+          'header-btn': function() { toggleFormat(this.quill, 'section-header'); }
+        }
+      }
+    },
+    placeholder: 'محتوى المقال...'
+  });
+
+  function toggleFormat(quill, format) {
+    const range = quill.getSelection();
+    if (!range) return;
+    const current = quill.getFormat(range);
+    quill.format(format, !current[format]);
+  }
+
+  // Style the custom toolbar buttons
+  (function styleToolbarButtons() {
+    const toolbar = document.querySelector('.ql-toolbar');
+    if (!toolbar) return;
+    const btnConfig = [
+      { cls: 'ql-quran-btn', label: 'قرآن', color: '#2E6B3E' },
+      { cls: 'ql-hadith-btn', label: 'حديث', color: '#2B4C7E' },
+      { cls: 'ql-header-btn', label: 'عنوان', color: '#8B2500' }
+    ];
+    btnConfig.forEach(({ cls, label, color }) => {
+      const btn = toolbar.querySelector('.' + cls);
+      if (btn) {
+        btn.textContent = label;
+        btn.style.cssText = 'color:' + color + ';font-weight:700;font-size:12px;width:auto;font-family:Cairo,sans-serif;';
+      }
+    });
+  })();
+
+  // Set initial content
+  quill.root.innerHTML = \`${article.content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`;
+
+  // Original values for change detection
+  const originalValues = {
+    title: \`${article.title.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`,
+    content: quill.root.innerHTML
+  };
+
+  async function saveArticle() {
+    const saveBtn = document.getElementById('saveBtn');
+    const title = document.getElementById('titleInput').value.trim();
+    const content = quill.root.innerHTML;
+    const changeDescription = document.getElementById('changeDescriptionInput').value.trim();
+
+    if (!title) {
+      showToast('عنوان المقال مطلوب', 'error');
+      return;
+    }
+
+    // Check if there are actual changes
+    if (title === originalValues.title && content === originalValues.content) {
+      showToast('لا توجد تغييرات للحفظ', 'error');
+      return;
+    }
+
+    saveBtn.classList.add('loading');
+    saveBtn.textContent = 'جاري الحفظ...';
+
+    try {
+      const response = await fetch('/article-editor/article/${article.shortId || article._id}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title,
+          content,
+          changeDescription
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showToast(data.message, 'success');
+        // Update original values
+        originalValues.title = title;
+        originalValues.content = content;
+        // Clear change description
+        document.getElementById('changeDescriptionInput').value = '';
+      } else {
+        showToast(data.message || 'حدث خطأ', 'error');
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      showToast('حدث خطأ في الاتصال', 'error');
+    } finally {
+      saveBtn.classList.remove('loading');
+      saveBtn.textContent = 'حفظ التغييرات';
+    }
+  }
+
+  // Warn before leaving with unsaved changes
+  window.addEventListener('beforeunload', (e) => {
+    const title = document.getElementById('titleInput').value.trim();
+    const content = quill.root.innerHTML;
+
+    if (title !== originalValues.title || content !== originalValues.content) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  // Keyboard shortcut: Ctrl+S to save
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      saveArticle();
+    }
+  });
+</script>
+` }) %>

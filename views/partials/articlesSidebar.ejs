@@ -1,0 +1,32 @@
+<% if (typeof recentArticles !== 'undefined' && recentArticles && recentArticles.length > 0) { %>
+<aside class="articles-sidebar">
+  <div class="articles-sidebar-header">
+    <h3 class="articles-sidebar-title">
+      <i data-lucide="pen-line"></i> <%= locale === 'ar' ? 'أحدث المقالات' : 'Latest Articles' %>
+    </h3>
+    <a href="/articles" class="articles-sidebar-link">
+      <%= locale === 'ar' ? 'عرض الكل' : 'View All' %> →
+    </a>
+  </div>
+  <% recentArticles.slice(0, 5).forEach(function(article) { %>
+    <a href="/articles/<%= article.slug || article.shortId || article._id %>" class="article-sidebar-card">
+      <div class="article-sidebar-meta">
+        <span class="article-sidebar-type <%= article.type === 'TelegramArticle' ? 'telegram' : '' %>">
+          <%= article.type === 'TelegramArticle' ? 'تليجرام' : 'أصداء' %>
+        </span>
+        <span class="article-sidebar-date">
+          <%
+            const pubDate = new Date(article.publishedAt);
+            const hijriFormatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+              day: 'numeric',
+              month: 'short'
+            });
+          %>
+          <%= hijriFormatter.format(pubDate) %>
+        </span>
+      </div>
+      <div class="article-sidebar-title"><%= article.title %></div>
+    </a>
+  <% }); %>
+</aside>
+<% } %>

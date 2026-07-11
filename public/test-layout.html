@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layout Test - RTL vs LTR</title>
+  <style>
+    /* Base styles from layout.ejs */
+    :root{--primary-dark:#2C1810;--primary-brown:#5C4033;--accent-gold:#C19A6B;--accent-amber:#D4A574;--cream:#F5EBE0;--paper:#FAF7F2;--sage:#8B9D83;--text-primary:#2C1810;--text-secondary:#5C4033;--text-muted:#8B7355;--border-light:#E8DCC8;--shadow-warm:rgba(92,64,51,0.15);--font-arabic-display:'Scheherazade New',serif;--font-arabic-body:'Noto Naskh Arabic',serif;--space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;--space-2xl:48px;--space-3xl:64px}
+    *{margin:0;padding:0;box-sizing:border-box}
+
+    /* THIS IS THE KEY - body has direction:rtl hardcoded */
+    body{font-family:var(--font-arabic-body);background:var(--paper);color:var(--text-primary);line-height:1.9;direction:rtl;padding-bottom:140px}
+
+    /* Search Hero from index.ejs */
+    .search-hero {
+      background: linear-gradient(180deg, #5C4033 0%, #8B9D83 100%);
+      padding: var(--space-2xl) var(--space-lg);
+      text-align: center;
+      margin-bottom: var(--space-2xl);
+      border-bottom: 4px solid var(--accent-gold);
+      position: relative;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .search-hero-quote {
+      font-family: var(--font-arabic-display);
+      font-size: 36px;
+      font-weight: 700;
+      color: #FAF7F2;
+      margin-bottom: 12px;
+      line-height: 1.8;
+    }
+
+    .search-hero-subheading {
+      font-family: var(--font-arabic-body);
+      font-size: 18px;
+      color: rgba(250, 247, 242, 0.85);
+      margin-bottom: 28px;
+      line-height: 1.6;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .search-container {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      gap: var(--space-md);
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 16px 20px;
+      border: 3px solid #C19A6B;
+      border-radius: 12px;
+      font-family: var(--font-arabic-body);
+      font-size: 18px;
+      background: #F5EBE0;
+      color: var(--text-primary);
+    }
+
+    .search-btn {
+      padding: 16px 32px;
+      background: var(--accent-gold);
+      color: var(--primary-dark);
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-arabic-body);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .search-hero {
+        min-height: 200px;
+        padding: var(--space-lg) var(--space-md);
+      }
+      .search-hero-quote {
+        font-size: 20px;
+        margin-bottom: 10px;
+        padding: 0 8px;
+      }
+      .search-hero-subheading {
+        font-size: 14px;
+        margin-bottom: 20px;
+        padding: 0 12px;
+      }
+      .search-container {
+        flex-direction: column;
+        padding: 0 8px;
+      }
+      .search-input {
+        font-size: 16px;
+        padding: 14px 16px;
+      }
+    }
+
+    /* Debug */
+    .debug-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #222;
+      color: #fff;
+      padding: 15px;
+      font-family: monospace;
+      font-size: 11px;
+      z-index: 9999;
+    }
+    .debug-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #444; }
+    .debug-btn { padding: 10px 15px; margin: 5px; cursor: pointer; border: none; border-radius: 4px; background: #2196F3; color: white; font-size: 12px; }
+    .highlight { outline: 3px solid red !important; }
+  </style>
+</head>
+<body>
+  <div class="search-hero" id="searchHero">
+    <div class="search-hero-quote" id="quote">البحث في التفريغ الصوتي</div>
+    <div class="search-hero-subheading" id="subheading">من الكلمة المكتوبة إلى اللحظة المسموعة</div>
+    <div class="search-container" id="searchContainer">
+      <input type="text" class="search-input" id="searchInput" placeholder="ابحث في نصوص الدروس...">
+      <button class="search-btn" id="searchBtn">بحث</button>
+    </div>
+  </div>
+
+  <div class="debug-panel">
+    <div style="display:flex; gap:10px; margin-bottom:10px;">
+      <button class="debug-btn" onclick="toggleLang()">🔄 Toggle RTL/LTR</button>
+      <button class="debug-btn" onclick="toggleBodyDir()">🔄 Toggle body direction</button>
+      <button class="debug-btn" onclick="highlightEl('searchHero')">🔴 search-hero</button>
+      <button class="debug-btn" onclick="highlightEl('searchContainer')">🔴 search-container</button>
+      <button class="debug-btn" onclick="highlightEl('searchInput')">🔴 search-input</button>
+    </div>
+    <div class="debug-row"><span>html dir:</span><span id="htmlDir">-</span></div>
+    <div class="debug-row"><span>body direction (CSS):</span><span id="bodyDir">-</span></div>
+    <div class="debug-row"><span>Screen width:</span><span id="screenW">-</span></div>
+    <div class="debug-row"><span>search-hero width:</span><span id="heroW">-</span></div>
+    <div class="debug-row"><span>search-container width:</span><span id="containerW">-</span></div>
+    <div class="debug-row"><span>search-input width:</span><span id="inputW">-</span></div>
+    <div class="debug-row"><span>search-input computed width:</span><span id="inputComputed">-</span></div>
+  </div>
+
+  <script>
+    function updateDebug() {
+      document.getElementById('htmlDir').textContent = document.documentElement.dir;
+      document.getElementById('bodyDir').textContent = getComputedStyle(document.body).direction;
+      document.getElementById('screenW').textContent = window.innerWidth + 'px';
+      document.getElementById('heroW').textContent = document.getElementById('searchHero').offsetWidth + 'px';
+      document.getElementById('containerW').textContent = document.getElementById('searchContainer').offsetWidth + 'px';
+      document.getElementById('inputW').textContent = document.getElementById('searchInput').offsetWidth + 'px';
+      document.getElementById('inputComputed').textContent = getComputedStyle(document.getElementById('searchInput')).width;
+    }
+
+    function toggleLang() {
+      const html = document.documentElement;
+      if (html.dir === 'rtl') {
+        html.dir = 'ltr';
+        html.lang = 'en';
+        document.getElementById('quote').textContent = 'Search Audio Transcripts';
+        document.getElementById('subheading').textContent = 'From written word to audio moment';
+        document.getElementById('searchInput').placeholder = 'Search lecture transcripts...';
+        document.getElementById('searchBtn').textContent = 'Search';
+      } else {
+        html.dir = 'rtl';
+        html.lang = 'ar';
+        document.getElementById('quote').textContent = 'البحث في التفريغ الصوتي';
+        document.getElementById('subheading').textContent = 'من الكلمة المكتوبة إلى اللحظة المسموعة';
+        document.getElementById('searchInput').placeholder = 'ابحث في نصوص الدروس...';
+        document.getElementById('searchBtn').textContent = 'بحث';
+      }
+      updateDebug();
+    }
+
+    function toggleBodyDir() {
+      const body = document.body;
+      if (body.style.direction === 'ltr') {
+        body.style.direction = 'rtl';
+      } else {
+        body.style.direction = 'ltr';
+      }
+      updateDebug();
+    }
+
+    function highlightEl(id) {
+      document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
+      document.getElementById(id).classList.add('highlight');
+    }
+
+    updateDebug();
+    window.addEventListener('resize', updateDebug);
+  </script>
+</body>
+</html>

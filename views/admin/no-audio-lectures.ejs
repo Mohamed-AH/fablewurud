@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= adminLocale === 'ar' ? 'محاضرات بدون صوت' : 'Lectures Without Audio' %> - <%= t('admin_title') %></title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .container { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    thead { background: #f8f8f8; }
+    th, td { padding: 12px; border-bottom: 1px solid #eee; }
+
+    [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
+    [dir="ltr"] th, [dir="ltr"] td { text-align: left; }
+
+    th { font-weight: 600; color: #666; font-size: 13px; }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .badge-warning { background: #fff3cd; color: #856404; }
+    .badge-danger { background: #f8d7da; color: #721c24; }
+    .actions { display: flex; gap: 8px; }
+
+    [dir="rtl"] .actions { flex-direction: row-reverse; }
+
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary { background: #1A5F5A; color: white; }
+    .btn-primary:hover { background: #145047; }
+    .empty-state {
+      text-align: center;
+      padding: 48px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'manage' }) %>
+
+  <main class="admin-container">
+    <div class="card">
+      <h2 style="margin-bottom: 16px;"><%= adminLocale === 'ar' ? 'إجمالي:' : 'Total:' %> <%= lectures.length %> <%= adminLocale === 'ar' ? 'محاضرة' : 'lectures' %></h2>
+
+      <% if (lectures.length > 0) { %>
+        <table>
+          <thead>
+            <tr>
+              <th><%= adminLocale === 'ar' ? 'العنوان بالعربية' : 'Title (Arabic)' %></th>
+              <th><%= adminLocale === 'ar' ? 'الشيخ' : 'Sheikh' %></th>
+              <th><%= adminLocale === 'ar' ? 'السلسلة' : 'Series' %></th>
+              <th><%= adminLocale === 'ar' ? 'الحالة' : 'Status' %></th>
+              <th><%= adminLocale === 'ar' ? 'الإجراءات' : 'Actions' %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% lectures.forEach(lecture => { %>
+              <tr>
+                <td><%= adminLocale === 'ar' ? lecture.titleArabic : (lecture.titleEnglish || lecture.titleArabic) %></td>
+                <td><%= lecture.sheikhId ? (adminLocale === 'ar' ? lecture.sheikhId.nameArabic : (lecture.sheikhId.nameEnglish || lecture.sheikhId.nameArabic)) : (adminLocale === 'ar' ? 'غير محدد' : 'Unspecified') %></td>
+                <td><%= lecture.seriesId ? (adminLocale === 'ar' ? lecture.seriesId.titleArabic : (lecture.seriesId.titleEnglish || lecture.seriesId.titleArabic)) : (adminLocale === 'ar' ? 'منفصلة' : 'Standalone') %></td>
+                <td>
+                  <span class="badge badge-danger"><%= adminLocale === 'ar' ? '🔇 لا يوجد صوت' : '🔇 No audio' %></span>
+                  <% if (!lecture.published) { %>
+                    <span class="badge badge-warning"><%= adminLocale === 'ar' ? 'غير منشورة' : 'Unpublished' %></span>
+                  <% } %>
+                </td>
+                <td class="actions">
+                  <a href="/admin/lectures/<%= lecture._id %>/edit" class="btn btn-primary"><%= adminLocale === 'ar' ? '✏️ تعديل' : '✏️ Edit' %></a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } else { %>
+        <div class="empty-state">
+          <p><%= adminLocale === 'ar' ? '✅ جميع المحاضرات لديها ملفات صوتية!' : '✅ All lectures have audio files!' %></p>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= isEdit ? (adminLocale === 'ar' ? 'تعديل الجدول' : 'Edit Schedule Item') : (adminLocale === 'ar' ? 'إضافة جدول' : 'Add Schedule Item') %> - <%= t('admin_title') %></title>
+  <style>
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 32px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    label .hint {
+      font-weight: 400;
+      color: #666;
+      font-size: 12px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    [dir="rtl"] .checkbox-group {
+      flex-direction: row-reverse;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #eee;
+    }
+
+    [dir="rtl"] .actions {
+      flex-direction: row-reverse;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1A5F5A;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e8f5e9;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'schedule' }) %>
+
+  <main class="admin-container">
+    <div class="card">
+      <form action="/admin/schedule/<%= isEdit ? scheduleItem._id + '/edit' : 'add' %>" method="POST">
+
+        <h3 class="section-title"><%= adminLocale === 'ar' ? 'تفاصيل الجدول' : 'Schedule Details' %></h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dayOfWeek"><%= adminLocale === 'ar' ? 'اليوم (بالعربي)' : 'Day of Week (Arabic)' %> *</label>
+            <select name="dayOfWeek" id="dayOfWeek" required class="form-control">
+              <option value=""><%= adminLocale === 'ar' ? 'اختر اليوم' : 'Select Day' %></option>
+              <option value="يومي" <%= scheduleItem && scheduleItem.dayOfWeek === 'يومي' ? 'selected' : '' %>>يومي (Daily)</option>
+              <option value="السبت" <%= scheduleItem && scheduleItem.dayOfWeek === 'السبت' ? 'selected' : '' %>>السبت (Saturday)</option>
+              <option value="الأحد" <%= scheduleItem && scheduleItem.dayOfWeek === 'الأحد' ? 'selected' : '' %>>الأحد (Sunday)</option>
+              <option value="الاثنين" <%= scheduleItem && scheduleItem.dayOfWeek === 'الاثنين' ? 'selected' : '' %>>الاثنين (Monday)</option>
+              <option value="الثلاثاء" <%= scheduleItem && scheduleItem.dayOfWeek === 'الثلاثاء' ? 'selected' : '' %>>الثلاثاء (Tuesday)</option>
+              <option value="الأربعاء" <%= scheduleItem && scheduleItem.dayOfWeek === 'الأربعاء' ? 'selected' : '' %>>الأربعاء (Wednesday)</option>
+              <option value="الخميس" <%= scheduleItem && scheduleItem.dayOfWeek === 'الخميس' ? 'selected' : '' %>>الخميس (Thursday)</option>
+              <option value="الجمعة" <%= scheduleItem && scheduleItem.dayOfWeek === 'الجمعة' ? 'selected' : '' %>>الجمعة (Friday)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="dayOfWeekEnglish"><%= adminLocale === 'ar' ? 'اليوم (بالإنجليزي)' : 'Day of Week (English)' %></label>
+            <select name="dayOfWeekEnglish" id="dayOfWeekEnglish" class="form-control">
+              <option value=""><%= adminLocale === 'ar' ? 'اختيار تلقائي' : 'Auto-select' %></option>
+              <option value="Daily" <%= scheduleItem && scheduleItem.dayOfWeekEnglish === 'Daily' ? 'selected' : '' %>>Daily</option>
+              <option value="Saturday" <%= scheduleItem && scheduleItem.dayOfWeekEnglish === 'Saturday' ? 'selected' : '' %>>Saturday</option>
+              <option value="Sunday" <%= scheduleItem && scheduleItem.dayOfWeekEnglish === 'Sunday' ? 'selected' : '' %>>Sunday</option>
+              <option value="Monday" <%= scheduleItem && scheduleItem.dayOfWeekEnglish === 'Monday' ? 'selected' : '' %>>Monday</option>
+              <option value="Tuesday" <%= scheduleItem && scheduleItem.dayOfWeekEnglish === 'Tuesday' ? 'selected' : '' %>>Tuesday</option>
+              <option value="Wednesday" <%= scheduleItem && scheduleItem.dayOfWeekEnglish === 'Wednesday' ? 'selected' : '' %>>Wednesday</option>
+              <option value="Thursday" <%= scheduleItem && scheduleItem.dayOfWeekEnglish === 'Thursday' ? 'selected' : '' %>>Thursday</option>
+              <option value="Friday" <%= scheduleItem && scheduleItem.dayOfWeekEnglish === 'Friday' ? 'selected' : '' %>>Friday</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="time"><%= adminLocale === 'ar' ? 'الوقت (بالعربي)' : 'Time (Arabic)' %> * <span class="hint"><%= adminLocale === 'ar' ? 'مثال: بعد المغرب' : 'e.g., بعد المغرب' %></span></label>
+            <input type="text" name="time" id="time" value="<%= scheduleItem ? scheduleItem.time : '' %>" required placeholder="بعد المغرب" dir="rtl" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label for="timeEnglish"><%= adminLocale === 'ar' ? 'الوقت (بالإنجليزي)' : 'Time (English)' %> <span class="hint"><%= adminLocale === 'ar' ? 'مثال: After Maghrib' : 'e.g., After Maghrib' %></span></label>
+            <input type="text" name="timeEnglish" id="timeEnglish" value="<%= scheduleItem ? scheduleItem.timeEnglish || '' : '' %>" placeholder="After Maghrib" dir="ltr" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="seriesId"><%= t('admin_th_series') %> *</label>
+          <select name="seriesId" id="seriesId" required class="form-control">
+            <option value=""><%= adminLocale === 'ar' ? 'اختر سلسلة' : 'Select Series' %></option>
+            <% seriesList.forEach(function(series) { %>
+              <option value="<%= series._id %>" <%= scheduleItem && scheduleItem.seriesId && scheduleItem.seriesId.toString() === series._id.toString() ? 'selected' : '' %>>
+                <%= series.titleArabic %><%= series.titleEnglish ? ' (' + series.titleEnglish + ')' : '' %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="location"><%= adminLocale === 'ar' ? 'الموقع (بالعربي)' : 'Location (Arabic)' %></label>
+            <input type="text" name="location" id="location" value="<%= scheduleItem ? scheduleItem.location : 'جامع الورود' %>" placeholder="جامع الورود" dir="rtl" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label for="locationEnglish"><%= adminLocale === 'ar' ? 'الموقع (بالإنجليزي)' : 'Location (English)' %></label>
+            <input type="text" name="locationEnglish" id="locationEnglish" value="<%= scheduleItem ? scheduleItem.locationEnglish || '' : 'Masjid Al-Wurud' %>" placeholder="Masjid Al-Wurud" dir="ltr" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="sortOrder"><%= adminLocale === 'ar' ? 'ترتيب العرض' : 'Sort Order' %> <span class="hint"><%= adminLocale === 'ar' ? 'الأرقام الأصغر تظهر أولاً' : 'Lower numbers appear first' %></span></label>
+            <input type="number" name="sortOrder" id="sortOrder" value="<%= scheduleItem ? scheduleItem.sortOrder : 0 %>" min="0" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <div class="checkbox-group">
+              <input type="checkbox" name="isActive" id="isActive" <%= !scheduleItem || scheduleItem.isActive ? 'checked' : '' %>>
+              <label for="isActive" style="margin-bottom: 0;"><%= adminLocale === 'ar' ? 'نشط (يظهر في الصفحة الرئيسية)' : 'Active (visible on homepage)' %></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="notes"><%= adminLocale === 'ar' ? 'ملاحظات' : 'Notes' %> <span class="hint"><%= adminLocale === 'ar' ? 'ملاحظات داخلية، لا تظهر للعامة' : 'Internal notes, not displayed publicly' %></span></label>
+          <textarea name="notes" id="notes" placeholder="<%= adminLocale === 'ar' ? 'ملاحظات اختيارية...' : 'Optional notes...' %>" class="form-control"><%= scheduleItem ? scheduleItem.notes || '' : '' %></textarea>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary"><%= isEdit ? (adminLocale === 'ar' ? 'تحديث الجدول' : 'Update Schedule') : (adminLocale === 'ar' ? 'إضافة الجدول' : 'Add Schedule') %></button>
+          <a href="/admin/schedule" class="btn-secondary"><%= adminLocale === 'ar' ? 'إلغاء' : 'Cancel' %></a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    // Auto-select English day when Arabic day changes
+    document.getElementById('dayOfWeek').addEventListener('change', function() {
+      const dayMap = {
+        'يومي': 'Daily',
+        'السبت': 'Saturday',
+        'الأحد': 'Sunday',
+        'الاثنين': 'Monday',
+        'الثلاثاء': 'Tuesday',
+        'الأربعاء': 'Wednesday',
+        'الخميس': 'Thursday',
+        'الجمعة': 'Friday'
+      };
+      const englishSelect = document.getElementById('dayOfWeekEnglish');
+      if (!englishSelect.value) {
+        englishSelect.value = dayMap[this.value] || '';
+      }
+    });
+  </script>
+</body>
+</html>

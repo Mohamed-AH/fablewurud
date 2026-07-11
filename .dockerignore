@@ -1,0 +1,69 @@
+# Docker ignore file - excludes files from Docker build context
+
+# Node modules (will be installed in container)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files (should be passed via --env-file)
+.env
+.env.*
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+DESIGN_*.md
+FIXES_*.md
+*.pdf
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Build artifacts
+dist/
+build/
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
+coverage/
+
+# Docker files (don't copy themselves)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CSV and data files
+*.csv
+*.xlsx
+
+# Backup files
+*.bak
+*.backup
+
+# Local uploads (if you want to start fresh)
+# uploads/*

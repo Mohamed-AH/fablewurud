@@ -1,0 +1,631 @@
+<style>
+  /* Brown/Gold Design for Sheikh Profile Page */
+  .sheikh-profile-page {
+    padding: 0;
+  }
+
+  .breadcrumb {
+    background: var(--cream);
+    padding: 16px 0;
+    border-bottom: 2px solid var(--accent-amber);
+  }
+
+  .breadcrumb .container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .breadcrumb a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--accent-gold);
+  }
+
+  .breadcrumb .separator {
+    color: var(--text-muted);
+  }
+
+  .breadcrumb .current {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .sheikh-hero {
+    background: linear-gradient(135deg, var(--primary-brown) 0%, var(--sage) 100%);
+    padding: 48px 0;
+    border-bottom: 3px solid var(--accent-gold);
+  }
+
+  .sheikh-hero-content {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .sheikh-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px var(--shadow-warm);
+  }
+
+  .sheikh-avatar svg {
+    color: var(--primary-dark);
+    opacity: 0.8;
+  }
+
+  .sheikh-name {
+    font-family: var(--font-arabic-display);
+    font-size: 42px;
+    color: var(--cream);
+    margin-bottom: 8px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.2;
+  }
+
+  .sheikh-honorific {
+    color: var(--accent-gold);
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .sheikh-name-en {
+    color: var(--cream);
+    opacity: 0.9;
+    font-size: 20px;
+  }
+
+  .stats-section {
+    padding: 40px 0;
+    background: var(--paper);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+  }
+
+  .stat-card {
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 2px solid var(--accent-amber);
+    box-shadow: 0 4px 12px var(--shadow-warm);
+  }
+
+  .stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-amber) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .stat-icon svg {
+    color: var(--primary-dark);
+  }
+
+  .stat-value {
+    font-family: var(--font-arabic-display);
+    font-size: 32px;
+    color: var(--primary-dark);
+    font-weight: 700;
+  }
+
+  .stat-label {
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .content-section {
+    padding: 48px 0;
+  }
+
+  .section-title {
+    font-family: var(--font-arabic-display);
+    font-size: 28px;
+    color: var(--primary-dark);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid var(--accent-gold);
+  }
+
+  .bio-card {
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 32px;
+    border: 2px solid var(--accent-amber);
+    box-shadow: 0 4px 12px var(--shadow-warm);
+    margin-bottom: 48px;
+  }
+
+  .bio-text {
+    color: var(--text-secondary);
+    line-height: 1.9;
+    font-size: 18px;
+  }
+
+  .bio-text-en {
+    color: var(--text-muted);
+    line-height: 1.7;
+    font-size: 16px;
+    margin-top: 16px;
+    font-style: italic;
+  }
+
+  .series-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .series-card {
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 24px;
+    text-decoration: none;
+    transition: all 0.3s;
+    border: 2px solid var(--accent-amber);
+    display: flex;
+    gap: 16px;
+    box-shadow: 0 4px 12px var(--shadow-warm);
+  }
+
+  .series-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px var(--shadow-warm);
+    border-color: var(--accent-gold);
+  }
+
+  .series-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: var(--accent-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .series-icon svg {
+    color: var(--primary-dark);
+  }
+
+  .series-title {
+    font-family: var(--font-arabic-display);
+    font-size: 20px;
+    color: var(--primary-dark);
+    margin-bottom: 4px;
+  }
+
+  .series-title-en {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .series-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .series-category {
+    background: var(--accent-gold);
+    color: var(--primary-dark);
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+
+  .lectures-list {
+    display: grid;
+    gap: 16px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-secondary);
+  }
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  @media (max-width: 768px) {
+    .sheikh-hero {
+      padding: 32px 0;
+      overflow: hidden;
+    }
+
+    .sheikh-hero-content {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .sheikh-info {
+      max-width: 100%;
+      overflow: hidden;
+      padding: 0 16px;
+    }
+
+    .sheikh-name {
+      font-size: 26px;
+      word-break: break-word;
+      hyphens: auto;
+    }
+
+    .sheikh-honorific {
+      font-size: 16px;
+    }
+
+    .sheikh-name-en {
+      font-size: 16px;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .series-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .series-card {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .series-content {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .series-title {
+      font-size: 18px;
+      word-break: break-word;
+    }
+
+    .section-title {
+      font-size: 24px;
+    }
+
+    .bio-card {
+      padding: 20px;
+    }
+  }
+
+  /* Small phones (below 480px) */
+  @media (max-width: 480px) {
+    .sheikh-hero {
+      padding: 24px 0;
+    }
+
+    .sheikh-avatar {
+      width: 80px;
+      height: 80px;
+    }
+
+    .sheikh-avatar svg {
+      width: 48px;
+      height: 48px;
+    }
+
+    .sheikh-name {
+      font-size: 22px;
+    }
+
+    .sheikh-honorific {
+      font-size: 14px;
+    }
+
+    .sheikh-name-en {
+      font-size: 14px;
+    }
+
+    .stat-card {
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+    }
+
+    .stat-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .stat-value {
+      font-size: 26px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+    }
+
+    .section-title {
+      font-size: 20px;
+    }
+
+    .bio-card {
+      padding: 16px;
+    }
+
+    .bio-text {
+      font-size: 16px;
+    }
+
+    .series-card {
+      padding: 16px;
+    }
+
+    .series-title {
+      font-size: 16px;
+    }
+
+    .breadcrumb .container {
+      font-size: 12px;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+  }
+
+  /* Very small phones (below 360px) */
+  @media (max-width: 360px) {
+    .sheikh-hero {
+      padding: 20px 0;
+    }
+
+    .sheikh-avatar {
+      width: 64px;
+      height: 64px;
+    }
+
+    .sheikh-avatar svg {
+      width: 40px;
+      height: 40px;
+    }
+
+    .sheikh-name {
+      font-size: 20px;
+    }
+
+    .stat-card {
+      padding: 12px;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+    }
+
+    .section-title {
+      font-size: 18px;
+    }
+
+    .bio-text {
+      font-size: 15px;
+    }
+
+    .series-title {
+      font-size: 15px;
+    }
+  }
+</style>
+
+<div class="sheikh-profile-page">
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <div class="container">
+      <a href="/">الرئيسية</a>
+      <span class="separator">›</span>
+      <span class="current"><%= sheikh.nameArabic %></span>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <div class="sheikh-hero">
+    <div class="container">
+      <div class="sheikh-hero-content">
+        <div class="sheikh-avatar">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+
+        <div class="sheikh-info">
+          <h1 class="sheikh-name"><%= sheikh.nameArabic %></h1>
+          <% if (sheikh.honorific) { %>
+            <p class="sheikh-honorific"><%= sheikh.honorific %></p>
+          <% } %>
+          <% if (sheikh.nameEnglish) { %>
+            <p class="sheikh-name-en"><%= sheikh.nameEnglish %></p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics -->
+  <div class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polygon points="10 8 16 12 10 16 10 8"></polygon>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value"><%= stats.totalLectures %></div>
+            <div class="stat-label">محاضرة</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="23 7 16 12 23 17 23 7"></polygon>
+              <polygon points="14 7 7 12 14 17 14 7"></polygon>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value"><%= stats.totalPlays.toLocaleString('ar-SA') %></div>
+            <div class="stat-label">استماع</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value"><%= Math.floor(stats.totalDuration / 3600) %></div>
+            <div class="stat-label">ساعة محتوى</div>
+          </div>
+        </div>
+
+        <% if (series && series.length > 0) { %>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value"><%= series.length %></div>
+              <div class="stat-label">سلسلة</div>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Biography -->
+  <% if (sheikh.bioArabic || sheikh.bioEnglish) { %>
+    <div class="content-section">
+      <div class="container">
+        <h2 class="section-title">نبذة عن الشيخ</h2>
+        <div class="bio-card">
+          <% if (sheikh.bioArabic) { %>
+            <p class="bio-text"><%= sheikh.bioArabic %></p>
+          <% } %>
+          <% if (sheikh.bioEnglish) { %>
+            <p class="bio-text-en"><%= sheikh.bioEnglish %></p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Series Section -->
+  <% if (series && series.length > 0) { %>
+    <div class="content-section">
+      <div class="container">
+        <h2 class="section-title">السلاسل</h2>
+        <div class="series-grid">
+          <% series.forEach(s => { %>
+            <a href="/series/<%= s.shortId ? s.shortId + '/' + (s.slug_en || '') + '/' + encodeURIComponent(s.slug_ar || '') : (s.slug ? encodeURIComponent(s.slug) : s._id) %>" class="series-card">
+              <div class="series-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+              </div>
+              <div class="series-content">
+                <h3 class="series-title"><%= s.titleArabic %></h3>
+                <% if (s.titleEnglish) { %>
+                  <p class="series-title-en"><%= s.titleEnglish %></p>
+                <% } %>
+                <div class="series-meta">
+                  <% if (s.category) { %>
+                    <span class="series-category"><%= translateCategory(s.category) %></span>
+                  <% } %>
+                  <span class="series-count"><%= s.lectureCount || 0 %> محاضرة</span>
+                </div>
+              </div>
+            </a>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Lectures Section -->
+  <div class="content-section">
+    <div class="container">
+      <h2 class="section-title">جميع المحاضرات (<%= lectures.length %>)</h2>
+
+      <% if (lectures && lectures.length > 0) { %>
+        <div class="lectures-list">
+          <% lectures.forEach(lecture => { %>
+            <%- include('../partials/lectureCard', { lecture, locale }) %>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="empty-state">
+          <div class="empty-icon">📚</div>
+          <h3>لا توجد محاضرات منشورة حالياً</h3>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Play audio using sticky player
+  function playAudio(lectureId, title, sheikh) {
+    console.log('▶️ Play from sheikh profile page');
+
+    if (window.audioPlayer) {
+      window.audioPlayer.play(lectureId, {
+        title: title,
+        titleArabic: title,
+        sheikh: sheikh || ''
+      });
+    } else {
+      console.error('❌ Audio player not initialized');
+      alert('مشغل الصوت يتم تحميله، يرجى المحاولة مرة أخرى');
+    }
+  }
+</script>

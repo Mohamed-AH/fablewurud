@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المكتبة الصوتية - Dhassan Audio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Warm scholarly palette inspired by Islamic manuscripts */
+            --primary-dark: #2C1810;
+            --primary-brown: #5C4033;
+            --accent-gold: #C19A6B;
+            --accent-amber: #D4A574;
+            --cream: #F5EBE0;
+            --paper: #FAF7F2;
+            --sage: #8B9D83;
+            --text-primary: #2C1810;
+            --text-secondary: #5C4033;
+            --text-muted: #8B7355;
+            --border-light: #E8DCC8;
+            --shadow-warm: rgba(92, 64, 51, 0.15);
+            
+            /* Typography */
+            --font-arabic-display: 'Scheherazade New', serif;
+            --font-arabic-body: 'Noto Naskh Arabic', serif;
+            --font-english: 'Georgia', serif;
+            
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+        }
+        
+        body {
+            font-family: var(--font-arabic-body);
+            background: var(--paper);
+            color: var(--text-primary);
+            line-height: 1.9;
+            padding-bottom: 140px;
+        }
+        
+        /* Decorative Islamic pattern background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 35px, var(--border-light) 35px, var(--border-light) 36px),
+                repeating-linear-gradient(-45deg, transparent, transparent 35px, var(--border-light) 35px, var(--border-light) 36px);
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-brown) 100%);
+            border-bottom: 3px solid var(--accent-gold);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px var(--shadow-warm);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-md) var(--space-lg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-family: var(--font-arabic-display);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--cream);
+            text-decoration: none;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: var(--space-md);
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--cream);
+            border: 2px solid var(--accent-gold);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--accent-gold);
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow-warm);
+        }
+        
+        /* Search Hero */
+        .search-hero {
+            background: linear-gradient(180deg, var(--primary-brown) 0%, var(--sage) 100%);
+            padding: var(--space-2xl) var(--space-lg);
+            text-align: center;
+            border-bottom: 3px solid var(--accent-gold);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .search-hero::before {
+            content: '﷽';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 200px;
+            color: rgba(255, 255, 255, 0.03);
+            font-family: var(--font-arabic-display);
+        }
+        
+        .search-title {
+            font-family: var(--font-arabic-display);
+            font-size: 36px;
+            color: var(--cream);
+            margin-bottom: var(--space-lg);
+            font-weight: 700;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .search-container {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--space-md);
+            border: 3px solid var(--accent-gold);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 18px;
+            background: var(--cream);
+            color: var(--text-primary);
+            box-shadow: 0 8px 24px var(--shadow-warm);
+        }
+        
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        /* Filters */
+        .filters {
+            background: var(--cream);
+            padding: var(--space-lg);
+            border-bottom: 2px solid var(--border-light);
+            position: sticky;
+            top: 65px;
+            z-index: 999;
+            box-shadow: 0 2px 8px var(--shadow-warm);
+        }
+        
+        .filter-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .filter-group {
+            margin-bottom: var(--space-md);
+        }
+        
+        .filter-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .filter-label {
+            font-family: var(--font-arabic-display);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .filter-chips {
+            display: flex;
+            gap: var(--space-sm);
+            overflow-x: auto;
+            padding: var(--space-sm) 0;
+        }
+        
+        .filter-chips::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .filter-chips::-webkit-scrollbar-track {
+            background: var(--border-light);
+            border-radius: 3px;
+        }
+        
+        .filter-chips::-webkit-scrollbar-thumb {
+            background: var(--accent-gold);
+            border-radius: 3px;
+        }
+        
+        .chip {
+            padding: 8px 20px;
+            border: 2px solid var(--accent-amber);
+            border-radius: 25px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .chip:hover {
+            background: rgba(193, 154, 107, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .chip.active {
+            background: var(--accent-gold);
+            color: var(--primary-dark);
+            border-color: var(--accent-gold);
+            box-shadow: 0 4px 8px var(--shadow-warm);
+        }
+        
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-2xl) var(--space-lg);
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+            padding-bottom: var(--space-md);
+            border-bottom: 2px solid var(--border-light);
+        }
+        
+        .results-count {
+            font-family: var(--font-arabic-display);
+            font-size: 20px;
+            color: var(--text-secondary);
+        }
+        
+        /* Series List */
+        .series-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+        
+        /* Series Card */
+        .series-card {
+            background: var(--cream);
+            border: 3px solid var(--accent-amber);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 6px 16px var(--shadow-warm);
+            transition: all 0.4s ease;
+            animation: slideUp 0.6s ease backwards;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .series-card:nth-child(2) { animation-delay: 0.1s; }
+        .series-card:nth-child(3) { animation-delay: 0.2s; }
+        
+        .series-card:hover {
+            box-shadow: 0 12px 32px var(--shadow-warm);
+            transform: translateY(-4px);
+            border-color: var(--accent-gold);
+        }
+        
+        .series-header {
+            padding: var(--space-lg);
+            background: linear-gradient(135deg, rgba(193, 154, 107, 0.1) 0%, rgba(212, 165, 116, 0.05) 100%);
+            display: flex;
+            gap: var(--space-lg);
+            cursor: pointer;
+            border-bottom: 2px solid var(--border-light);
+        }
+        
+        .series-icon-wrapper {
+            flex-shrink: 0;
+        }
+        
+        .series-icon {
+            width: 6px;
+            height: 80px;
+            border-radius: 3px;
+            background: linear-gradient(180deg, var(--accent-gold) 0%, var(--accent-amber) 100%);
+            box-shadow: 2px 0 8px var(--shadow-warm);
+        }
+        
+        .series-info {
+            flex: 1;
+        }
+        
+        .series-title {
+            font-family: var(--font-arabic-display);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+            line-height: 1.5;
+        }
+        
+        .series-author {
+            font-family: var(--font-arabic-display);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent-gold);
+            margin-bottom: var(--space-md);
+            line-height: 1.6;
+        }
+        
+        .series-author::before {
+            content: 'المؤلف: الشيخ ';
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .series-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-sm);
+            padding-top: var(--space-xs);
+            border-top: 1px solid var(--border-light);
+        }
+        
+        .badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 2px solid;
+            background: var(--paper);
+        }
+        
+        .badge-fiqh {
+            border-color: #8B9D83;
+            color: #5C6B54;
+        }
+        
+        .badge-aqeedah {
+            border-color: #A67C52;
+            color: #7A5C3E;
+        }
+        
+        .badge-tafseer {
+            border-color: #8B7BA8;
+            color: #6B5C84;
+        }
+        
+        .series-details {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            font-size: 15px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        
+        .series-details span:not(:last-child)::after {
+            content: '•';
+            margin-right: var(--space-md);
+        }
+        
+        .expand-btn {
+            width: 100%;
+            padding: var(--space-md);
+            background: transparent;
+            border: none;
+            font-family: var(--font-arabic-display);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent-gold);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            transition: all 0.3s ease;
+        }
+        
+        .expand-btn:hover {
+            background: rgba(193, 154, 107, 0.1);
+        }
+        
+        .expand-icon {
+            transition: transform 0.3s ease;
+            font-size: 20px;
+        }
+        
+        .series-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+        
+        /* Episodes */
+        .episodes-list {
+            display: none;
+        }
+        
+        .series-card.expanded .episodes-list {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .episode-item {
+            padding: var(--space-lg);
+            border-bottom: 2px solid var(--border-light);
+            transition: background 0.3s ease;
+        }
+        
+        .episode-item:last-child {
+            border-bottom: none;
+        }
+        
+        .episode-item:hover {
+            background: rgba(193, 154, 107, 0.05);
+        }
+        
+        .episode-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: var(--space-md);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .episode-title {
+            font-family: var(--font-arabic-body);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+        
+        .episode-number {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-gold);
+            color: var(--primary-dark);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .episode-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: var(--space-md);
+            flex-wrap: wrap;
+        }
+        
+        .episode-meta span:not(:last-child)::after {
+            content: '•';
+            margin-right: var(--space-md);
+        }
+        
+        .episode-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+        
+        .btn-play {
+            background: var(--accent-gold);
+            color: var(--primary-dark);
+            flex: 1;
+            font-weight: 600;
+            box-shadow: 0 4px 12px var(--shadow-warm);
+        }
+        
+        .btn-play:hover {
+            background: var(--accent-amber);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px var(--shadow-warm);
+        }
+        
+        .btn-download {
+            background: transparent;
+            color: var(--accent-gold);
+            border: 2px solid var(--accent-gold);
+            min-width: 120px;
+        }
+        
+        .btn-download:hover {
+            background: var(--accent-gold);
+            color: var(--primary-dark);
+        }
+        
+        /* Audio Player */
+        .audio-player {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary-brown) 100%);
+            padding: var(--space-lg);
+            box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            border-top: 3px solid var(--accent-gold);
+            transform: translateY(100%);
+            transition: transform 0.4s ease;
+        }
+        
+        .audio-player.active {
+            transform: translateY(0);
+        }
+        
+        .player-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .player-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--space-md);
+        }
+        
+        .player-text {
+            flex: 1;
+            color: var(--cream);
+        }
+        
+        .player-title {
+            font-family: var(--font-arabic-display);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .player-series {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .control-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-gold);
+            background: transparent;
+            color: var(--cream);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            background: var(--accent-gold);
+            color: var(--primary-dark);
+            transform: scale(1.1);
+        }
+        
+        .control-btn.play-pause {
+            width: 64px;
+            height: 64px;
+            background: var(--accent-gold);
+            color: var(--primary-dark);
+            border: none;
+            font-size: 28px;
+        }
+        
+        .control-btn.play-pause:hover {
+            background: var(--accent-amber);
+        }
+        
+        .seek-bar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(245, 235, 224, 0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-gold);
+            border-radius: 4px;
+            width: 45%;
+            position: relative;
+        }
+        
+        .progress-handle {
+            width: 18px;
+            height: 18px;
+            background: var(--cream);
+            border: 3px solid var(--accent-gold);
+            border-radius: 50%;
+            position: absolute;
+            right: -9px;
+            top: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--cream);
+            opacity: 0.9;
+        }
+        
+        .additional-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .volume-slider {
+            width: 90px;
+            height: 6px;
+            background: rgba(245, 235, 224, 0.2);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .volume-fill {
+            height: 100%;
+            background: var(--accent-gold);
+            border-radius: 3px;
+            width: 70%;
+        }
+        
+        .speed-control select {
+            background: rgba(245, 235, 224, 0.1);
+            color: var(--cream);
+            border: 2px solid var(--accent-gold);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-title {
+                font-size: 28px;
+            }
+            
+            .series-title {
+                font-size: 20px;
+            }
+            
+            .series-icon {
+                width: 56px;
+                height: 56px;
+                font-size: 28px;
+            }
+            
+            .episode-actions {
+                flex-direction: column;
+            }
+            
+            .volume-control {
+                display: none;
+            }
+            
+            .additional-controls {
+                flex-direction: column;
+                gap: var(--space-sm);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="#" class="logo">
+                <span>المكتبة الصوتية</span>
+            </a>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="toggleLanguage()">
+                    <span id="lang-toggle">English</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Search Hero -->
+    <section class="search-hero">
+        <h1 class="search-title">اطلب العلم من المهد إلى اللحد</h1>
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="ابحث في السلاسل العلمية...">
+            </div>
+        </div>
+    </section>
+    
+    <!-- Filters -->
+    <section class="filters">
+        <div class="filter-container">
+            <div class="filter-group">
+                <div class="filter-label">التصنيف العلمي</div>
+                <div class="filter-chips">
+                    <button class="chip active">الكل</button>
+                    <button class="chip">الفقه</button>
+                    <button class="chip">العقيدة</button>
+                    <button class="chip">التفسير</button>
+                    <button class="chip">الحديث</button>
+                    <button class="chip">السيرة</button>
+                    <button class="chip">الخطبة</button>
+                </div>
+            </div>
+            <div class="filter-group">
+                <div class="filter-label">نوع المحتوى</div>
+                <div class="filter-chips">
+                    <button class="chip active">الكل</button>
+                    <button class="chip">السلاسل</button>
+                    <button class="chip">الخطب</button>
+                    <button class="chip">المحاضرات</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="results-header">
+            <div class="results-count">٣ سلاسل • ٦٩ درساً</div>
+        </div>
+        
+        <div class="series-list">
+            <!-- Series 1 -->
+            <div class="series-card">
+                <div class="series-header" onclick="toggleSeries(this)">
+                    <div class="series-icon-wrapper">
+                        <div class="series-icon"></div>
+                    </div>
+                    <div class="series-info">
+                        <h3 class="series-title">تأسيس الأحكام شرح عمدة الأحكام</h3>
+                        <div class="series-author">أحمد بن يحيى النجمي رحمه الله</div>
+                        <div class="series-meta">
+                            <span class="badge badge-fiqh">الفقه</span>
+                        </div>
+                        <div class="series-details">
+                            <span>٢٢ درساً</span>
+                            <span>الشيخ حسن الدغريري</span>
+                            <span>١٧ ساعة</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="expand-btn">
+                    <span>عرض الدروس</span>
+                    <span class="expand-icon">◢</span>
+                </button>
+                
+                <div class="episodes-list">
+                    <div class="episode-item">
+                        <div class="episode-header">
+                            <div class="episode-title">الدرس الأول من الطهارة</div>
+                            <div class="episode-number">١</div>
+                        </div>
+                        <div class="episode-meta">
+                            <span>٤٦:٤٦</span>
+                            <span>١٣ أكتوبر ٢٠٢٥</span>
+                            <span>جامع الورود</span>
+                        </div>
+                        <div class="episode-actions">
+                            <button class="btn btn-play" onclick="playAudio(this)">
+                                <span>▶</span>
+                                <span>استماع</span>
+                            </button>
+                            <button class="btn btn-download">
+                                <span>⬇</span>
+                                <span>تحميل</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="episode-item">
+                        <div class="episode-header">
+                            <div class="episode-title">الدرس الثاني من الطهارة</div>
+                            <div class="episode-number">٢</div>
+                        </div>
+                        <div class="episode-meta">
+                            <span>٣٦:٣٠</span>
+                            <span>١٤ أكتوبر ٢٠٢٥</span>
+                            <span>جامع الورود</span>
+                        </div>
+                        <div class="episode-actions">
+                            <button class="btn btn-play" onclick="playAudio(this)">
+                                <span>▶</span>
+                                <span>استماع</span>
+                            </button>
+                            <button class="btn btn-download">
+                                <span>⬇</span>
+                                <span>تحميل</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="episode-item">
+                        <div class="episode-header">
+                            <div class="episode-title">الدرس الثالث من الطهارة</div>
+                            <div class="episode-number">٣</div>
+                        </div>
+                        <div class="episode-meta">
+                            <span>٤٢:١٣</span>
+                            <span>١٥ أكتوبر ٢٠٢٥</span>
+                            <span>جامع الورود</span>
+                        </div>
+                        <div class="episode-actions">
+                            <button class="btn btn-play" onclick="playAudio(this)">
+                                <span>▶</span>
+                                <span>استماع</span>
+                            </button>
+                            <button class="btn btn-download">
+                                <span>⬇</span>
+                                <span>تحميل</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Series 2 -->
+            <div class="series-card">
+                <div class="series-header" onclick="toggleSeries(this)">
+                    <div class="series-icon-wrapper">
+                        <div class="series-icon"></div>
+                    </div>
+                    <div class="series-info">
+                        <h3 class="series-title">الملخص شرح كتاب التوحيد</h3>
+                        <div class="series-author">صالح الفوزان حفظه الله</div>
+                        <div class="series-meta">
+                            <span class="badge badge-aqeedah">العقيدة</span>
+                        </div>
+                        <div class="series-details">
+                            <span>٣٢ درساً</span>
+                            <span>الشيخ حسن الدغريري</span>
+                            <span>٧ ساعات</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="expand-btn">
+                    <span>عرض الدروس</span>
+                    <span class="expand-icon">◢</span>
+                </button>
+                
+                <div class="episodes-list">
+                    <div class="episode-item">
+                        <div class="episode-header">
+                            <div class="episode-title">الدرس الأول في التوحيد</div>
+                            <div class="episode-number">١</div>
+                        </div>
+                        <div class="episode-meta">
+                            <span>١٤:٤٨</span>
+                            <span>٨ أكتوبر ٢٠٢٥</span>
+                            <span>جامع الورود</span>
+                        </div>
+                        <div class="episode-actions">
+                            <button class="btn btn-play" onclick="playAudio(this)">
+                                <span>▶</span>
+                                <span>استماع</span>
+                            </button>
+                            <button class="btn btn-download">
+                                <span>⬇</span>
+                                <span>تحميل</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="episode-item">
+                        <div class="episode-header">
+                            <div class="episode-title">الدرس الثاني في التوحيد</div>
+                            <div class="episode-number">٢</div>
+                        </div>
+                        <div class="episode-meta">
+                            <span>١١:٤٧</span>
+                            <span>٩ أكتوبر ٢٠٢٥</span>
+                            <span>جامع الورود</span>
+                        </div>
+                        <div class="episode-actions">
+                            <button class="btn btn-play" onclick="playAudio(this)">
+                                <span>▶</span>
+                                <span>استماع</span>
+                            </button>
+                            <button class="btn btn-download">
+                                <span>⬇</span>
+                                <span>تحميل</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Series 3 -->
+            <div class="series-card">
+                <div class="series-header" onclick="toggleSeries(this)">
+                    <div class="series-icon-wrapper">
+                        <div class="series-icon"></div>
+                    </div>
+                    <div class="series-info">
+                        <h3 class="series-title">التفسير الميسر</h3>
+                        <div class="series-author">نخبة من أهل العلم</div>
+                        <div class="series-meta">
+                            <span class="badge badge-tafseer">التفسير</span>
+                        </div>
+                        <div class="series-details">
+                            <span>١٥ درساً</span>
+                            <span>الشيخ حسن الدغريري</span>
+                            <span>٣ ساعات</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="expand-btn">
+                    <span>عرض الدروس</span>
+                    <span class="expand-icon">◢</span>
+                </button>
+                
+                <div class="episodes-list">
+                    <div class="episode-item">
+                        <div class="episode-header">
+                            <div class="episode-title">الدرس الأول في التفسير</div>
+                            <div class="episode-number">١</div>
+                        </div>
+                        <div class="episode-meta">
+                            <span>١٣:٠٢</span>
+                            <span>٨ أكتوبر ٢٠٢٥</span>
+                            <span>جامع الورود</span>
+                        </div>
+                        <div class="episode-actions">
+                            <button class="btn btn-play" onclick="playAudio(this)">
+                                <span>▶</span>
+                                <span>استماع</span>
+                            </button>
+                            <button class="btn btn-download">
+                                <span>⬇</span>
+                                <span>تحميل</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Audio Player -->
+    <div class="audio-player" id="audioPlayer">
+        <div class="player-content">
+            <div class="player-info">
+                <div class="player-text">
+                    <div class="player-title">الدرس الأول من الطهارة</div>
+                    <div class="player-series">تأسيس الأحكام شرح عمدة الأحكام</div>
+                </div>
+            </div>
+            
+            <div class="player-controls">
+                <button class="control-btn">⏪</button>
+                
+                <button class="control-btn play-pause">
+                    <span>▶</span>
+                </button>
+                
+                <button class="control-btn">⏩</button>
+                
+                <div class="seek-bar">
+                    <div class="progress-bar">
+                        <div class="progress-fill">
+                            <div class="progress-handle"></div>
+                        </div>
+                    </div>
+                    <div class="time-display">
+                        <span>٢١:٠٣</span>
+                        <span>٤٦:٤٦</span>
+                    </div>
+                </div>
+                
+                <div class="additional-controls">
+                    <div class="volume-control">
+                        <button class="control-btn">🔊</button>
+                        <div class="volume-slider">
+                            <div class="volume-fill"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="speed-control">
+                        <select>
+                            <option>٠.٥×</option>
+                            <option>٠.٧٥×</option>
+                            <option selected>١×</option>
+                            <option>١.٢٥×</option>
+                            <option>١.٥×</option>
+                            <option>٢×</option>
+                        </select>
+                    </div>
+                    
+                    <button class="control-btn">⬇</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleSeries(element) {
+            const card = element.closest('.series-card');
+            const isExpanded = card.classList.contains('expanded');
+            
+            document.querySelectorAll('.series-card.expanded').forEach(c => {
+                c.classList.remove('expanded');
+            });
+            
+            if (!isExpanded) {
+                card.classList.add('expanded');
+            }
+        }
+        
+        function playAudio(button) {
+            document.getElementById('audioPlayer').classList.add('active');
+            document.querySelector('.play-pause span').textContent = '⏸';
+        }
+        
+        function toggleLanguage() {
+            const html = document.documentElement;
+            const currentLang = html.getAttribute('lang');
+            const toggle = document.getElementById('lang-toggle');
+            
+            if (currentLang === 'ar') {
+                html.setAttribute('lang', 'en');
+                html.setAttribute('dir', 'ltr');
+                toggle.textContent = 'العربية';
+                
+                // Update text content to English
+                document.querySelector('.logo').textContent = 'Audio Library';
+                document.querySelector('.search-title').textContent = 'Seek Knowledge from the Cradle to the Grave';
+                document.querySelector('.search-input').placeholder = 'Search in series...';
+                
+                // Update filter labels
+                const filterLabels = document.querySelectorAll('.filter-label');
+                filterLabels[0].textContent = 'Category';
+                filterLabels[1].textContent = 'Content Type';
+                
+                // Update filter chips
+                const categoryChips = document.querySelectorAll('.filter-group:first-child .chip');
+                const categoryTexts = ['All', 'Fiqh', 'Aqeedah', 'Tafseer', 'Hadeeth', 'Seerah', 'Khutbah'];
+                categoryChips.forEach((chip, i) => chip.textContent = categoryTexts[i]);
+                
+                const typeChips = document.querySelectorAll('.filter-group:last-child .chip');
+                const typeTexts = ['All', 'Series', 'Khutbah', 'Lectures'];
+                typeChips.forEach((chip, i) => chip.textContent = typeTexts[i]);
+                
+                // Update results header
+                document.querySelector('.results-count').textContent = '3 Series • 69 Lessons';
+                
+                // Update series 1
+                document.querySelectorAll('.series-title')[0].textContent = 'Establishing the Rulings: Explanation of \'Umdat al-Ahkam';
+                document.querySelectorAll('.series-author')[0].innerHTML = 'Ahmad bin Yahya al-Najmi <span style="font-size: 14px; opacity: 0.8;">rahimahullah</span>';
+                document.querySelectorAll('.badge-fiqh')[0].textContent = 'Fiqh';
+                const details1 = document.querySelectorAll('.series-details')[0];
+                details1.innerHTML = '<span>22 lessons</span><span>Sheikh Hassan al-Dughrairi</span><span>17 hours</span>';
+                
+                // Update series 2
+                document.querySelectorAll('.series-title')[1].textContent = 'Concise Explanation of Kitab al-Tawheed';
+                document.querySelectorAll('.series-author')[1].innerHTML = 'Salih al-Fawzan <span style="font-size: 14px; opacity: 0.8;">hafidhahullah</span>';
+                document.querySelectorAll('.badge-aqeedah')[0].textContent = 'Aqeedah';
+                const details2 = document.querySelectorAll('.series-details')[1];
+                details2.innerHTML = '<span>32 lessons</span><span>Sheikh Hassan al-Dughrairi</span><span>7 hours</span>';
+                
+                // Update series 3
+                document.querySelectorAll('.series-title')[2].textContent = 'The Clear Tafseer';
+                document.querySelectorAll('.series-author')[2].textContent = 'A Group of Scholars';
+                document.querySelectorAll('.badge-tafseer')[0].textContent = 'Tafseer';
+                const details3 = document.querySelectorAll('.series-details')[2];
+                details3.innerHTML = '<span>15 lessons</span><span>Sheikh Hassan al-Dughrairi</span><span>3 hours</span>';
+                
+                // Update expand buttons
+                document.querySelectorAll('.expand-btn span:first-child').forEach(btn => {
+                    btn.textContent = 'View Lessons';
+                });
+                
+                // Update episode titles
+                const episodeTitles = document.querySelectorAll('.episode-title');
+                episodeTitles[0].textContent = 'Lesson One on Purification';
+                episodeTitles[1].textContent = 'Lesson Two on Purification';
+                episodeTitles[2].textContent = 'Lesson Three on Purification';
+                episodeTitles[3].textContent = 'Lesson One on Tawheed';
+                episodeTitles[4].textContent = 'Lesson Two on Tawheed';
+                episodeTitles[5].textContent = 'Lesson One on Tafseer';
+                
+                // Update episode meta
+                const episodeMeta = document.querySelectorAll('.episode-meta');
+                episodeMeta[0].innerHTML = '<span>46:46</span><span>October 13, 2025</span><span>Al-Wurud Masjid</span>';
+                episodeMeta[1].innerHTML = '<span>36:30</span><span>October 14, 2025</span><span>Al-Wurud Masjid</span>';
+                episodeMeta[2].innerHTML = '<span>42:13</span><span>October 15, 2025</span><span>Al-Wurud Masjid</span>';
+                episodeMeta[3].innerHTML = '<span>14:48</span><span>October 8, 2025</span><span>Al-Wurud Masjid</span>';
+                episodeMeta[4].innerHTML = '<span>11:47</span><span>October 9, 2025</span><span>Al-Wurud Masjid</span>';
+                episodeMeta[5].innerHTML = '<span>13:02</span><span>October 8, 2025</span><span>Al-Wurud Masjid</span>';
+                
+                // Update buttons
+                document.querySelectorAll('.btn-play span:last-child').forEach(btn => {
+                    btn.textContent = 'Listen';
+                });
+                document.querySelectorAll('.btn-download span:last-child').forEach(btn => {
+                    btn.textContent = 'Download';
+                });
+                
+                // Update player
+                document.querySelector('.player-title').textContent = 'Lesson One on Purification';
+                document.querySelector('.player-series').textContent = 'Establishing the Rulings: Explanation of \'Umdat al-Ahkam';
+                
+                // Update CSS for author label
+                const style = document.createElement('style');
+                style.id = 'lang-style';
+                style.textContent = `
+                    .series-author::before {
+                        content: 'Author: Sheikh ';
+                        color: var(--text-secondary);
+                        font-weight: 500;
+                    }
+                `;
+                document.head.appendChild(style);
+                
+            } else {
+                html.setAttribute('lang', 'ar');
+                html.setAttribute('dir', 'rtl');
+                toggle.textContent = 'English';
+                
+                // Restore Arabic content
+                document.querySelector('.logo').textContent = 'المكتبة الصوتية';
+                document.querySelector('.search-title').textContent = 'اطلب العلم من المهد إلى اللحد';
+                document.querySelector('.search-input').placeholder = 'ابحث في السلاسل العلمية...';
+                
+                // Restore filter labels
+                const filterLabels = document.querySelectorAll('.filter-label');
+                filterLabels[0].textContent = 'التصنيف العلمي';
+                filterLabels[1].textContent = 'نوع المحتوى';
+                
+                // Restore filter chips
+                const categoryChips = document.querySelectorAll('.filter-group:first-child .chip');
+                const categoryTexts = ['الكل', 'الفقه', 'العقيدة', 'التفسير', 'الحديث', 'السيرة', 'الخطبة'];
+                categoryChips.forEach((chip, i) => chip.textContent = categoryTexts[i]);
+                
+                const typeChips = document.querySelectorAll('.filter-group:last-child .chip');
+                const typeTexts = ['الكل', 'السلاسل', 'الخطب', 'المحاضرات'];
+                typeChips.forEach((chip, i) => chip.textContent = typeTexts[i]);
+                
+                // Restore results header
+                document.querySelector('.results-count').textContent = '٣ سلاسل • ٦٩ درساً';
+                
+                // Restore series 1
+                document.querySelectorAll('.series-title')[0].textContent = 'تأسيس الأحكام شرح عمدة الأحكام';
+                document.querySelectorAll('.series-author')[0].textContent = 'أحمد بن يحيى النجمي رحمه الله';
+                document.querySelectorAll('.badge-fiqh')[0].textContent = 'الفقه';
+                const details1 = document.querySelectorAll('.series-details')[0];
+                details1.innerHTML = '<span>٢٢ درساً</span><span>الشيخ حسن الدغريري</span><span>١٧ ساعة</span>';
+                
+                // Restore series 2
+                document.querySelectorAll('.series-title')[1].textContent = 'الملخص شرح كتاب التوحيد';
+                document.querySelectorAll('.series-author')[1].textContent = 'صالح الفوزان حفظه الله';
+                document.querySelectorAll('.badge-aqeedah')[0].textContent = 'العقيدة';
+                const details2 = document.querySelectorAll('.series-details')[1];
+                details2.innerHTML = '<span>٣٢ درساً</span><span>الشيخ حسن الدغريري</span><span>٧ ساعات</span>';
+                
+                // Restore series 3
+                document.querySelectorAll('.series-title')[2].textContent = 'التفسير الميسر';
+                document.querySelectorAll('.series-author')[2].textContent = 'نخبة من أهل العلم';
+                document.querySelectorAll('.badge-tafseer')[0].textContent = 'التفسير';
+                const details3 = document.querySelectorAll('.series-details')[2];
+                details3.innerHTML = '<span>١٥ درساً</span><span>الشيخ حسن الدغريري</span><span>٣ ساعات</span>';
+                
+                // Restore expand buttons
+                document.querySelectorAll('.expand-btn span:first-child').forEach(btn => {
+                    btn.textContent = 'عرض الدروس';
+                });
+                
+                // Restore episode titles
+                const episodeTitles = document.querySelectorAll('.episode-title');
+                episodeTitles[0].textContent = 'الدرس الأول من الطهارة';
+                episodeTitles[1].textContent = 'الدرس الثاني من الطهارة';
+                episodeTitles[2].textContent = 'الدرس الثالث من الطهارة';
+                episodeTitles[3].textContent = 'الدرس الأول في التوحيد';
+                episodeTitles[4].textContent = 'الدرس الثاني في التوحيد';
+                episodeTitles[5].textContent = 'الدرس الأول في التفسير';
+                
+                // Restore episode meta
+                const episodeMeta = document.querySelectorAll('.episode-meta');
+                episodeMeta[0].innerHTML = '<span>٤٦:٤٦</span><span>١٣ أكتوبر ٢٠٢٥</span><span>جامع الورود</span>';
+                episodeMeta[1].innerHTML = '<span>٣٦:٣٠</span><span>١٤ أكتوبر ٢٠٢٥</span><span>جامع الورود</span>';
+                episodeMeta[2].innerHTML = '<span>٤٢:١٣</span><span>١٥ أكتوبر ٢٠٢٥</span><span>جامع الورود</span>';
+                episodeMeta[3].innerHTML = '<span>١٤:٤٨</span><span>٨ أكتوبر ٢٠٢٥</span><span>جامع الورود</span>';
+                episodeMeta[4].innerHTML = '<span>١١:٤٧</span><span>٩ أكتوبر ٢٠٢٥</span><span>جامع الورود</span>';
+                episodeMeta[5].innerHTML = '<span>١٣:٠٢</span><span>٨ أكتوبر ٢٠٢٥</span><span>جامع الورود</span>';
+                
+                // Restore buttons
+                document.querySelectorAll('.btn-play span:last-child').forEach(btn => {
+                    btn.textContent = 'استماع';
+                });
+                document.querySelectorAll('.btn-download span:last-child').forEach(btn => {
+                    btn.textContent = 'تحميل';
+                });
+                
+                // Restore player
+                document.querySelector('.player-title').textContent = 'الدرس الأول من الطهارة';
+                document.querySelector('.player-series').textContent = 'تأسيس الأحكام شرح عمدة الأحكام';
+                
+                // Remove English style
+                const existingStyle = document.getElementById('lang-style');
+                if (existingStyle) {
+                    existingStyle.remove();
+                }
+            }
+        }
+        
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                this.parentElement.querySelectorAll('.chip').forEach(c => {
+                    c.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+        
+        document.querySelector('.play-pause').addEventListener('click', function() {
+            const icon = this.querySelector('span');
+            icon.textContent = icon.textContent === '▶' ? '⏸' : '▶';
+        });
+    </script>
+</body>
+</html>

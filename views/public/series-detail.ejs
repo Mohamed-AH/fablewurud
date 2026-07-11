@@ -1,0 +1,1808 @@
+<style>
+  /* Brown/Gold Design for Series Detail Page */
+  .series-detail-page {
+    padding: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+    background: #F5EDE0;
+  }
+
+  /* Ensure all containers have proper width */
+  .series-detail-page .container {
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 32px;
+    box-sizing: border-box;
+  }
+
+  .breadcrumb {
+    background: var(--cream);
+    padding: 16px 0;
+    border-bottom: 2px solid var(--accent-amber);
+  }
+
+  .breadcrumb .container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .breadcrumb a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--accent-gold);
+  }
+
+  .breadcrumb .separator {
+    color: var(--text-muted);
+  }
+
+  .breadcrumb .current {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .series-hero {
+    background: linear-gradient(to left, #2C1508 0%, #3D2815 30%, #5A6944 70%, #6B7A4E 100%);
+    padding: 40px 0;
+    border-bottom: none;
+  }
+
+  .series-category-badge {
+    background: var(--redesign-badge-bg, #E8D5A0);
+    color: var(--redesign-brown-dark, #2C1508);
+    padding: 6px 16px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 12px;
+    border: none;
+  }
+
+  .series-title {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 36px;
+    color: #FFFFFF !important;
+    margin-bottom: 8px;
+    text-shadow: none;
+    font-weight: 700;
+  }
+
+  .series-title-en {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.7);
+    opacity: 1;
+    margin-bottom: 16px;
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  .series-sheikh {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 15px;
+  }
+
+  .series-sheikh svg {
+    opacity: 0.7;
+  }
+
+  .series-sheikh a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    transition: opacity 0.3s;
+  }
+
+  .series-sheikh a:hover {
+    opacity: 0.7;
+  }
+
+  /* Hide stats section on desktop - lesson count shown inline */
+  .stats-section {
+    display: none;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+  }
+
+  .stat-card {
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 2px solid var(--accent-amber);
+    box-shadow: 0 4px 12px var(--shadow-warm);
+  }
+
+  .stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-amber) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .stat-icon svg {
+    color: var(--primary-dark);
+  }
+
+  .stat-value {
+    font-family: var(--font-arabic-display);
+    font-size: 32px;
+    color: var(--primary-dark);
+    font-weight: 700;
+  }
+
+  .stat-label {
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .content-section {
+    padding: 24px 0;
+  }
+
+  .section-title {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    font-size: 20px;
+    color: var(--redesign-brown-dark, #2C1508);
+    margin-bottom: 12px;
+    padding-bottom: 0;
+    border-bottom: none;
+    font-weight: 700;
+  }
+
+  .section-header-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .section-header-row .section-title {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .lesson-count-badge {
+    display: inline-flex;
+    background: var(--redesign-brown-dark, #2C1508);
+    color: var(--redesign-gold-light, #DEC99A);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+  }
+
+  .description-card, .bio-card {
+    background: #FDF8F2;
+    border-radius: 10px;
+    padding: 20px 24px;
+    border: 1px solid var(--redesign-gold-light, #DEC99A);
+    box-shadow: none;
+    margin-bottom: 24px;
+  }
+
+  .description-text, .bio-text {
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    color: var(--redesign-text-mid, #7A5C3A);
+    line-height: 1.8;
+    font-size: 15px;
+  }
+
+  .description-text-en, .bio-text-en {
+    color: var(--text-muted);
+    line-height: 1.7;
+    font-size: 16px;
+    margin-top: 16px;
+    font-style: italic;
+  }
+
+  .btn-link {
+    color: var(--accent-gold);
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: 16px;
+    display: inline-block;
+  }
+
+  .btn-link:hover {
+    color: var(--accent-amber);
+  }
+
+  .lectures-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .lecture-item {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .lecture-item-content {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* External number badge - hidden since number is inside card now */
+  .lecture-number-badge {
+    display: none;
+  }
+
+  .lecture-number-badge.unnumbered {
+    display: none;
+  }
+
+  .series-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .series-card {
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 24px;
+    text-decoration: none;
+    transition: all 0.3s;
+    border: 2px solid var(--accent-amber);
+    display: flex;
+    gap: 16px;
+    box-shadow: 0 4px 12px var(--shadow-warm);
+  }
+
+  .series-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px var(--shadow-warm);
+    border-color: var(--accent-gold);
+  }
+
+  .series-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: var(--accent-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .series-icon svg {
+    color: var(--primary-dark);
+  }
+
+  .series-content {
+    flex: 1;
+  }
+
+  .series-title {
+    font-family: var(--font-arabic-display);
+    font-size: 20px;
+    color: var(--primary-dark);
+    margin-bottom: 4px;
+  }
+
+  .series-title-en {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .series-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .series-category {
+    background: var(--accent-gold);
+    color: var(--primary-dark);
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+
+  .series-count {
+    color: var(--text-secondary);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-secondary);
+  }
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  /* Search & Filter Controls */
+  .search-filter-controls {
+    background: #FDF8F2;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-input-wrapper {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 12px 44px 12px 16px;
+    border: 2px solid var(--accent-amber);
+    border-radius: 25px;
+    font-size: 15px;
+    background: white;
+    transition: all 0.3s;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+  }
+
+  [dir="ltr"] .search-input {
+    padding: 12px 16px 12px 44px;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+  }
+
+  .search-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .search-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent-gold);
+    font-size: 18px;
+  }
+
+  [dir="ltr"] .search-icon {
+    right: auto;
+    left: 14px;
+  }
+
+  .year-filter-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .year-filter-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .year-filter-select {
+    padding: 10px 16px;
+    border: 2px solid var(--accent-amber);
+    border-radius: 20px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 100px;
+    font-family: inherit;
+  }
+
+  .year-filter-select:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+  }
+
+  /* Sort Controls */
+  .sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .sort-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .sort-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .sort-chip {
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-cairo, 'Cairo', sans-serif);
+    border: 1px solid var(--redesign-gold-light, #DEC99A);
+    background: transparent;
+    color: var(--redesign-text-mid, #7A5C3A);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .sort-chip:hover {
+    background: rgba(196, 154, 60, 0.15);
+    border-color: var(--redesign-gold-primary, #C49A3C);
+  }
+
+  .sort-chip.active {
+    background: var(--redesign-gold-primary, #C49A3C);
+    color: #FFFFFF;
+    border-color: var(--redesign-gold-primary, #C49A3C);
+    font-weight: 600;
+  }
+
+  .clear-filters-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    background: #dc3545;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-right: auto;
+  }
+
+  .clear-filters-btn:hover {
+    background: #c82333;
+  }
+
+  .results-count {
+    font-size: 14px;
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    background: rgba(212, 175, 55, 0.1);
+    border-radius: 20px;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    background: var(--cream);
+    border-radius: 12px;
+    display: none;
+  }
+
+  .no-results.visible {
+    display: block;
+  }
+
+  .lecture-item.hidden {
+    display: none !important;
+  }
+
+  /* Large desktop (1200px and above) */
+  @media (min-width: 1200px) {
+    .series-detail-page .container {
+      max-width: 1200px;
+      padding: 0 48px;
+    }
+  }
+
+  /* Medium desktop (769px to 1199px) */
+  @media (min-width: 769px) and (max-width: 1199px) {
+    .series-detail-page .container {
+      max-width: 900px;
+      padding: 0 32px;
+    }
+  }
+
+  /* Medium desktop (1024px to 1199px) */
+  @media (min-width: 1024px) and (max-width: 1199px) {
+    .series-detail-page .container {
+      max-width: 100%;
+      padding: 0 40px;
+    }
+  }
+
+  /* Tablet (768px and below) */
+  @media (max-width: 768px) {
+    /* Hide breadcrumb on mobile */
+    .breadcrumb {
+      display: none;
+    }
+
+    /* Compact hero - no gradient on mobile */
+    .series-hero {
+      background: var(--redesign-cream-bg, #F5EDE0);
+      padding: 16px 0 12px;
+      border-bottom: none;
+    }
+
+    .series-category-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      margin-bottom: 8px;
+      background: var(--redesign-badge-bg, #E8D5A0);
+      color: var(--redesign-text-mid, #7A5C3A);
+    }
+
+    .series-title {
+      font-size: 24px;
+      color: #FFFFFF !important;
+      text-shadow: none;
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+
+    .series-title-en {
+      font-size: 13px;
+      color: var(--redesign-text-muted, #A89070);
+      opacity: 1;
+      margin-bottom: 8px;
+    }
+
+    .series-sheikh {
+      font-size: 13px;
+      color: var(--redesign-text-mid, #7A5C3A);
+    }
+
+    .series-sheikh a {
+      color: var(--redesign-text-mid, #7A5C3A);
+    }
+
+    .series-sheikh svg {
+      display: none;
+    }
+
+    /* Hide stats section on mobile - count shown inline with section header */
+    .stats-section {
+      display: none;
+    }
+
+    /* Smaller lesson count badge on mobile */
+    .lesson-count-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+    }
+
+    .section-header-row {
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+
+    .section-header-row .section-title {
+      font-size: 15px;
+    }
+
+    /* Compact description */
+    .content-section {
+      padding: 16px 0;
+    }
+
+    .section-title {
+      font-size: 16px;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom-width: 2px;
+    }
+
+    .description-card, .bio-card {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      margin-bottom: 16px;
+    }
+
+    .description-text, .bio-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--redesign-text-mid, #7A5C3A);
+    }
+
+    .series-grid {
+      grid-template-columns: 1fr;
+    }
+
+    /* Lecture list - single column on mobile */
+    .lectures-list {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      max-width: 100%;
+    }
+
+    /* Search/Filter compact */
+    .search-filter-controls {
+      padding: 12px;
+      margin-bottom: 16px;
+      border-radius: 10px;
+    }
+
+    .search-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .search-input-wrapper {
+      min-width: 100%;
+    }
+
+    .search-input {
+      padding: 10px 40px 10px 14px;
+      font-size: 14px;
+      border-radius: 8px;
+    }
+
+    .year-filter-wrapper {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .sort-controls {
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .sort-label {
+      font-size: 13px;
+    }
+
+    .sort-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .sort-chip {
+      padding: 6px 12px;
+      font-size: 12px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .clear-filters-btn {
+      margin-right: 0;
+      margin-top: 8px;
+    }
+
+    .results-count {
+      width: 100%;
+      text-align: center;
+    }
+  }
+
+  /* Small phones (below 480px) */
+  @media (max-width: 480px) {
+    .series-detail-page .container {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+
+    .series-hero {
+      padding: 12px 0 10px;
+    }
+
+    .series-title {
+      font-size: 18px;
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+
+    .series-title-en {
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .series-category-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      margin-bottom: 6px;
+    }
+
+    .series-sheikh {
+      font-size: 12px;
+    }
+
+    .stats-section {
+      padding: 10px 0;
+    }
+
+    .stat-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .stat-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .stat-value {
+      font-size: 16px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+    }
+
+    .content-section {
+      padding: 12px 0;
+    }
+
+    .section-title {
+      font-size: 14px;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+    }
+
+    .section-header-row {
+      gap: 8px;
+    }
+
+    .section-header-row .section-title {
+      font-size: 14px;
+    }
+
+    .lesson-count-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+    }
+
+    .description-text, .bio-text {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .lectures-list {
+      gap: 8px;
+    }
+
+    /* Search & Filter */
+    .search-filter-controls {
+      padding: 10px;
+      gap: 10px;
+    }
+
+    .search-input {
+      padding: 8px 36px 8px 12px;
+      font-size: 13px;
+    }
+
+    [dir="ltr"] .search-input {
+      padding: 8px 12px 8px 36px;
+    }
+
+    .sort-chip {
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+
+    .sort-chips {
+      gap: 4px;
+    }
+
+    .clear-filters-btn {
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+
+    .results-count {
+      font-size: 11px;
+      padding: 5px 10px;
+    }
+
+    /* Related series grid */
+    .series-grid {
+      gap: 10px;
+    }
+
+    .series-card {
+      padding: 12px;
+      gap: 10px;
+    }
+
+    .series-icon {
+      width: 36px;
+      height: 36px;
+    }
+
+    .series-content .series-title {
+      font-size: 14px;
+    }
+
+    .series-content .series-title-en {
+      font-size: 11px;
+    }
+
+    .series-meta {
+      font-size: 11px;
+      gap: 6px;
+    }
+  }
+
+  /* Very small phones (below 360px) */
+  @media (max-width: 360px) {
+    .series-detail-page .container {
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+
+    .series-hero {
+      padding: 10px 0 8px;
+    }
+
+    .series-title {
+      font-size: 16px;
+    }
+
+    .series-title-en {
+      font-size: 11px;
+    }
+
+    .series-category-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+    }
+
+    .stat-icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    .stat-icon svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .stat-value {
+      font-size: 14px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+    }
+
+    .section-title {
+      font-size: 14px;
+    }
+
+    .description-text, .bio-text {
+      font-size: 12px;
+    }
+
+    .lectures-list {
+      gap: 6px;
+    }
+
+    .sort-chip {
+      padding: 4px 6px;
+      font-size: 10px;
+    }
+
+    .series-card {
+      padding: 10px;
+    }
+
+    .series-content .series-title {
+      font-size: 13px;
+    }
+  }
+
+  /* Child Series (Mini-Series) Cards */
+  .child-series-section {
+    background: var(--cream);
+    padding: 24px 0;
+    border-bottom: 2px solid var(--accent-amber);
+  }
+
+  .child-series-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .child-series-title {
+    font-family: var(--font-arabic-display);
+    font-size: 20px;
+    color: var(--primary-brown);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .child-series-count {
+    background: var(--accent-gold);
+    color: var(--primary-dark);
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .child-series-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .child-series-card {
+    background: white;
+    border: 2px solid var(--accent-amber);
+    border-radius: 12px;
+    padding: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .child-series-card:hover {
+    border-color: var(--accent-gold);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .child-series-card-title {
+    font-family: var(--font-arabic-display);
+    font-size: 16px;
+    color: var(--primary-brown);
+    line-height: 1.4;
+  }
+
+  .child-series-card-count {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  /* Desktop: show max 6 cards, rest hidden */
+  .child-series-card.hidden-desktop {
+    display: none;
+  }
+
+  .show-more-btn {
+    background: var(--primary-brown);
+    color: var(--cream);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--font-arabic);
+    font-size: 14px;
+    margin-top: 12px;
+    transition: background 0.3s;
+  }
+
+  .show-more-btn:hover {
+    background: var(--accent-gold);
+    color: var(--primary-dark);
+  }
+
+  /* Mobile: hide grid, show toggle button */
+  .mobile-toggle-btn {
+    display: none;
+    width: 100%;
+    background: var(--primary-brown);
+    color: var(--cream);
+    border: none;
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--font-arabic);
+    font-size: 14px;
+    margin-bottom: 12px;
+    transition: background 0.3s;
+  }
+
+  .mobile-toggle-btn:hover {
+    background: var(--accent-gold);
+    color: var(--primary-dark);
+  }
+
+  .mobile-toggle-btn svg {
+    transition: transform 0.3s;
+  }
+
+  .mobile-toggle-btn.expanded svg {
+    transform: rotate(180deg);
+  }
+
+  @media (max-width: 768px) {
+    .child-series-section {
+      padding: 16px 0;
+    }
+
+    .mobile-toggle-btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .child-series-grid {
+      display: none;
+      grid-template-columns: 1fr;
+    }
+
+    .child-series-grid.mobile-visible {
+      display: grid;
+    }
+
+    .child-series-card.hidden-desktop {
+      display: flex;
+    }
+
+    .show-more-btn {
+      display: none;
+    }
+  }
+
+  /* Parent breadcrumb link styling */
+  .breadcrumb .parent-link {
+    color: var(--accent-gold);
+    font-weight: 500;
+  }
+</style>
+
+<div class="series-detail-page">
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <div class="container">
+      <a href="/"><%= locale === 'ar' ? 'الرئيسية' : 'Home' %></a>
+      <span class="separator">›</span>
+      <% if (typeof parentSeries !== 'undefined' && parentSeries) { %>
+        <a href="/series/<%= parentSeries.shortId %>/<%= parentSeries.slug_en || '' %>/<%= encodeURIComponent(parentSeries.slug_ar || '') %>" class="parent-link">
+          <%= locale === 'ar' ? parentSeries.titleArabic : (parentSeries.titleEnglish || parentSeries.titleArabic) %>
+        </a>
+        <span class="separator">›</span>
+      <% } %>
+      <span class="current"><%= locale === 'ar' ? series.titleArabic : (series.titleEnglish || series.titleArabic) %></span>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <div class="series-hero">
+    <div class="container">
+      <% if (series.category) { %>
+        <div class="series-category-badge"><%= translateCategory(series.category) %></div>
+      <% } %>
+
+      <% if (locale === 'ar') { %>
+        <h1 class="series-title"><%= series.titleArabic %></h1>
+        <% if (series.titleEnglish) { %>
+          <h2 class="series-title-en"><%= series.titleEnglish %></h2>
+        <% } %>
+      <% } else { %>
+        <h1 class="series-title"><%= series.titleEnglish || series.titleArabic %></h1>
+        <% if (series.titleEnglish && series.titleArabic !== series.titleEnglish) { %>
+          <h2 class="series-title-en"><%= series.titleArabic %></h2>
+        <% } %>
+      <% } %>
+
+      <!-- Sheikh Info -->
+      <% if (series.sheikhId) { %>
+        <div class="series-sheikh">
+          <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <a href="/sheikhs/<%= series.sheikhId.shortId ? series.sheikhId.shortId + '/' + (series.sheikhId.slug_en || '') + '/' + encodeURIComponent(series.sheikhId.slug_ar || '') : (series.sheikhId.slug ? encodeURIComponent(series.sheikhId.slug) : series.sheikhId._id) %>">
+            <%= locale === 'ar' ? series.sheikhId.nameArabic : (series.sheikhId.nameEnglish || series.sheikhId.nameArabic) %>
+            <% if (locale === 'ar' && series.sheikhId.honorific) { %>
+              <span class="honorific"><%= series.sheikhId.honorific %></span>
+            <% } %>
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Statistics -->
+  <%
+    // Detect if this is a khutba series by checking title only
+    const titleAr = series.titleArabic || '';
+    const isKhutbaSeries = titleAr.includes('خطب') || titleAr.includes('خطبة');
+
+    // Get stats display settings (with defaults if not provided)
+    const minPlaysToShow = typeof seriesStatsSettings !== 'undefined' && seriesStatsSettings.minPlaysToShow ? seriesStatsSettings.minPlaysToShow : 100;
+    const showDuration = typeof seriesStatsSettings !== 'undefined' && seriesStatsSettings.showDuration ? seriesStatsSettings.showDuration : false;
+    const showPlays = stats.totalPlays >= minPlaysToShow;
+  %>
+  <div class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <!-- Lecture/Khutbah Count -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polygon points="10 8 16 12 10 16 10 8"></polygon>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value"><%= stats.totalLectures %></div>
+            <div class="stat-label"><%= locale === 'ar' ? (isKhutbaSeries ? 'خطبة' : 'درس') : (isKhutbaSeries ? 'Khutbahs' : 'Lectures') %></div>
+          </div>
+        </div>
+
+        <% if (showPlays) { %>
+        <!-- Plays (only shown if >= threshold) -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="23 7 16 12 23 17 23 7"></polygon>
+              <polygon points="14 7 7 12 14 17 14 7"></polygon>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value"><%= locale === 'ar' ? stats.totalPlays.toLocaleString('ar-SA') : stats.totalPlays.toLocaleString('en-US') %></div>
+            <div class="stat-label"><%= locale === 'ar' ? 'استماع' : 'Plays' %></div>
+          </div>
+        </div>
+        <% } %>
+
+        <% if (showDuration && stats.totalDuration > 0) { %>
+        <!-- Duration (only shown if enabled in settings and > 0) -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value"><%= Math.floor(stats.totalDuration / 3600) %></div>
+            <div class="stat-label"><%= locale === 'ar' ? 'ساعة محتوى' : 'Hours' %></div>
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <%
+    // Arabic pluralization helper for lesson/khutba count
+    function getArabicPlural(count, singular, dual, plural3to10, plural11plus) {
+      if (count === 1) return singular;
+      if (count === 2) return dual;
+      if (count >= 3 && count <= 10) return count + ' ' + plural3to10;
+      return count + ' ' + plural11plus;
+    }
+
+    const lessonCountText = locale === 'ar'
+      ? getArabicPlural(
+          stats.totalLectures,
+          isKhutbaSeries ? 'خطبة واحدة' : 'درس واحد',
+          isKhutbaSeries ? 'خطبتان' : 'درسان',
+          isKhutbaSeries ? 'خطب' : 'دروس',
+          isKhutbaSeries ? 'خطبة' : 'درسًا'
+        )
+      : stats.totalLectures + ' ' + (isKhutbaSeries ? 'Khutbahs' : 'Lectures');
+  %>
+  <% if (series.descriptionArabic || series.descriptionEnglish) { %>
+    <div class="content-section description-section">
+      <div class="container">
+        <div class="section-header-row">
+          <h2 class="section-title"><%= locale === 'ar' ? 'عن السلسلة' : 'About the Series' %></h2>
+          <span class="lesson-count-badge"><%= lessonCountText %></span>
+        </div>
+        <div class="description-card">
+          <% if (locale === 'ar') { %>
+            <% if (series.descriptionArabic) { %>
+              <p class="description-text"><%= series.descriptionArabic %></p>
+            <% } %>
+          <% } else { %>
+            <% if (series.descriptionEnglish) { %>
+              <p class="description-text"><%= series.descriptionEnglish %></p>
+            <% } else if (series.descriptionArabic) { %>
+              <!-- Fallback to Arabic if no English description -->
+              <p class="description-text"><%= series.descriptionArabic %></p>
+            <% } %>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Child Series (Mini-Series) Section -->
+  <% if (typeof childSeries !== 'undefined' && childSeries && childSeries.length > 0) { %>
+    <%
+      const MAX_VISIBLE_CARDS = 6;
+      const hasMoreCards = childSeries.length > MAX_VISIBLE_CARDS;
+      const isKhutba = (series.titleArabic || '').includes('خطب');
+    %>
+    <div class="child-series-section">
+      <div class="container">
+        <div class="child-series-header">
+          <h3 class="child-series-title">
+            <%= locale === 'ar' ? (isKhutba ? 'سلاسل الخطب' : 'السلاسل الفرعية') : 'Sub-Series' %>
+            <span class="child-series-count"><%= childSeries.length %></span>
+          </h3>
+        </div>
+
+        <!-- Mobile Toggle Button -->
+        <button class="mobile-toggle-btn" onclick="toggleChildSeries(this)">
+          <span><%= locale === 'ar' ? 'عرض السلاسل الفرعية' : 'Show Sub-Series' %> (<%= childSeries.length %>)</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        <!-- Cards Grid -->
+        <div class="child-series-grid" id="childSeriesGrid">
+          <% childSeries.forEach((child, index) => { %>
+            <a href="/series/<%= child.shortId %>/<%= child.slug_en || '' %>/<%= encodeURIComponent(child.slug_ar || '') %>"
+               class="child-series-card<%= index >= MAX_VISIBLE_CARDS ? ' hidden-desktop' : '' %>">
+              <div class="child-series-card-title">
+                <%= locale === 'ar' ? child.titleArabic : (child.titleEnglish || child.titleArabic) %>
+              </div>
+              <div class="child-series-card-count">
+                <%= child.actualLectureCount || 0 %> <%= locale === 'ar' ? (isKhutba ? 'خطبة' : 'درس') : 'lectures' %>
+              </div>
+            </a>
+          <% }); %>
+        </div>
+
+        <% if (hasMoreCards) { %>
+          <button class="show-more-btn" onclick="toggleMoreCards(this)">
+            <%= locale === 'ar' ? 'عرض المزيد' : 'Show More' %> (<%= childSeries.length - MAX_VISIBLE_CARDS %>)
+          </button>
+        <% } %>
+      </div>
+    </div>
+
+    <script>
+      function toggleChildSeries(btn) {
+        const grid = document.getElementById('childSeriesGrid');
+        grid.classList.toggle('mobile-visible');
+        btn.classList.toggle('expanded');
+        const textSpan = btn.querySelector('span');
+        if (grid.classList.contains('mobile-visible')) {
+          textSpan.textContent = '<%= locale === "ar" ? "إخفاء السلاسل الفرعية" : "Hide Sub-Series" %>';
+        } else {
+          textSpan.textContent = '<%= locale === "ar" ? "عرض السلاسل الفرعية" : "Show Sub-Series" %> (<%= childSeries.length %>)';
+        }
+      }
+
+      function toggleMoreCards(btn) {
+        const hiddenCards = document.querySelectorAll('.child-series-card.hidden-desktop');
+        const isShowing = btn.dataset.showing === 'true';
+
+        hiddenCards.forEach(card => {
+          card.style.display = isShowing ? 'none' : 'flex';
+        });
+
+        btn.dataset.showing = isShowing ? 'false' : 'true';
+        btn.textContent = isShowing
+          ? '<%= locale === "ar" ? "عرض المزيد" : "Show More" %> (<%= childSeries.length - MAX_VISIBLE_CARDS %>)'
+          : '<%= locale === "ar" ? "عرض أقل" : "Show Less" %>';
+      }
+    </script>
+  <% } %>
+
+  <!-- Lectures Section -->
+  <div class="content-section">
+    <div class="container">
+      <%
+        const hasChildSeries = typeof childSeries !== 'undefined' && childSeries && childSeries.length > 0;
+        const isKhutbaSection = (series.titleArabic || '').includes('خطب');
+        let sectionTitle;
+        if (hasChildSeries) {
+          sectionTitle = locale === 'ar' ? (isKhutbaSection ? 'خطب متفرقة' : 'دروس متفرقة') : 'Individual Lectures';
+        } else {
+          sectionTitle = locale === 'ar' ? (isKhutbaSection ? 'الخطب' : 'دروس السلسلة') : 'Series Lectures';
+        }
+      %>
+      <h2 class="section-title"><%= sectionTitle %> (<%= lectures.length %>)</h2>
+
+      <%
+        // Get display options from series (with defaults)
+        const displayOptions = series.displayOptions || {};
+        const showSearch = displayOptions.showSearch !== false;
+        const showYearFilter = displayOptions.showYearFilter !== false;
+        const showSortOptions = displayOptions.showSortOptions !== false;
+        const minLecturesForSearch = displayOptions.minLecturesForSearch || 15;
+        const minLecturesForYearFilter = displayOptions.minLecturesForYearFilter || 15;
+
+        // Determine if we should show each option based on lecture count
+        const lectureCount = lectures ? lectures.length : 0;
+        const shouldShowSearch = showSearch && lectureCount >= minLecturesForSearch;
+        const shouldShowYearFilter = showYearFilter && lectureCount >= minLecturesForYearFilter;
+        const shouldShowSort = showSortOptions;
+
+        // Extract unique Hijri years from lectures
+        const hijriYears = new Set();
+
+        // Helper function to convert Arabic numerals to Western numerals
+        function arabicToWestern(str) {
+          if (!str) return str;
+          const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+          return str.replace(/[٠-٩]/g, d => arabicNumerals.indexOf(d));
+        }
+
+        // Helper function to extract year from various Hijri date formats
+        function extractHijriYear(dateStr) {
+          if (!dateStr) return null;
+
+          // Convert Arabic numerals to Western first
+          const normalized = arabicToWestern(dateStr);
+
+          // Handle "YYYY/MM/DD" format (year first with slashes)
+          const yearFirstSlash = normalized.match(/^(\d{4})\/\d{1,2}\/\d{1,2}$/);
+          if (yearFirstSlash) return parseInt(yearFirstSlash[1]);
+
+          // Handle "DD/MM/YYYY" format (year last with slashes)
+          const yearLastSlash = normalized.match(/^\d{1,2}\/\d{1,2}\/(\d{4})$/);
+          if (yearLastSlash) return parseInt(yearLastSlash[1]);
+
+          // Handle "YYYY-MM-DD" format (year first with dashes)
+          const yearFirstDash = normalized.match(/^(\d{4})-\d{1,2}-\d{1,2}$/);
+          if (yearFirstDash) return parseInt(yearFirstDash[1]);
+
+          return null;
+        }
+
+        if (lectures) {
+          lectures.forEach(lecture => {
+            const year = extractHijriYear(lecture.dateRecordedHijri);
+            if (year && year >= 1400 && year <= 1500) {
+              hijriYears.add(year);
+            }
+          });
+        }
+        const sortedHijriYears = Array.from(hijriYears).sort((a, b) => b - a);
+
+        // Debug: collect sample dates
+        const sampleDates = lectures.slice(0, 5).map(l => l.dateRecordedHijri || 'NULL');
+      %>
+
+      <script>
+        console.log('=== DEBUG: Hijri Year Filter Info ===');
+        console.log('Lecture Count:', <%= lectureCount %>);
+        console.log('showYearFilter setting:', <%= showYearFilter %>);
+        console.log('minLecturesForYearFilter:', <%= minLecturesForYearFilter %>);
+        console.log('shouldShowYearFilter:', <%= shouldShowYearFilter %>);
+        console.log('Hijri Years Found:', <%= sortedHijriYears.length %>, '[<%= sortedHijriYears.join(", ") %>]');
+        console.log('Sample dateRecordedHijri values:', <%- JSON.stringify(sampleDates) %>);
+      </script>
+
+      <% if (lectures && lectures.length > 0) { %>
+        <% if (shouldShowSearch || shouldShowYearFilter || shouldShowSort) { %>
+        <!-- Search & Filter Controls -->
+        <div class="search-filter-controls" id="searchFilterControls">
+          <% if (shouldShowSearch || shouldShowYearFilter) { %>
+          <div class="search-row">
+            <% if (shouldShowSearch) { %>
+            <div class="search-input-wrapper">
+              <input
+                type="text"
+                id="lectureSearch"
+                class="search-input"
+                placeholder="<%= locale === 'ar' ? 'ابحث في العناوين...' : 'Search titles...' %>"
+                oninput="filterLectures()"
+                maxlength="100"
+                autocomplete="off"
+              >
+              <span class="search-icon">🔍</span>
+            </div>
+            <% } %>
+
+            <% if (shouldShowYearFilter && sortedHijriYears.length > 1) { %>
+            <div class="year-filter-wrapper">
+              <label class="year-filter-label"><%= locale === 'ar' ? 'السنة الهجرية:' : 'Hijri Year:' %></label>
+              <select id="yearFilter" class="year-filter-select" onchange="filterLectures()">
+                <option value=""><%= locale === 'ar' ? 'الكل' : 'All' %></option>
+                <% sortedHijriYears.forEach(year => { %>
+                  <option value="<%= year %>"><%= locale === 'ar' ? toArabicNumerals(year) : year %> <%= locale === 'ar' ? 'هـ' : 'H' %></option>
+                <% }); %>
+              </select>
+            </div>
+            <% } %>
+          </div>
+          <% } %>
+
+          <% if (shouldShowSort) { %>
+          <div class="sort-controls">
+            <span class="sort-label"><%= locale === 'ar' ? 'ترتيب:' : 'Sort:' %></span>
+            <div class="sort-chips">
+              <button class="sort-chip active" data-sort="order" onclick="sortLectures('order')">
+                <%= locale === 'ar' ? 'الترتيب الأصلي' : 'Original Order' %>
+              </button>
+              <button class="sort-chip" data-sort="number" onclick="sortLectures('number')">
+                <%= locale === 'ar' ? 'حسب الرقم' : 'By Number' %>
+              </button>
+              <button class="sort-chip" data-sort="oldest" onclick="sortLectures('oldest')">
+                <%= locale === 'ar' ? 'الأقدم أولاً' : 'Oldest First' %>
+              </button>
+              <button class="sort-chip" data-sort="newest" onclick="sortLectures('newest')">
+                <%= locale === 'ar' ? 'الأحدث أولاً' : 'Newest First' %>
+              </button>
+            </div>
+          </div>
+          <% } %>
+
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <button class="clear-filters-btn" onclick="clearAllFilters()" id="clearFiltersBtn" style="display: none;">
+              <%= locale === 'ar' ? 'مسح الفلاتر' : 'Clear Filters' %> ✕
+            </button>
+            <span class="results-count" id="resultsCount" style="display: none;"></span>
+          </div>
+        </div>
+        <% } %>
+
+        <div class="no-results" id="noResults">
+          <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+          <h3><%= locale === 'ar' ? 'لا توجد نتائج' : 'No results found' %></h3>
+          <p><%= locale === 'ar' ? 'جرب تغيير كلمات البحث أو الفلاتر' : 'Try changing your search terms or filters' %></p>
+        </div>
+
+        <div class="lectures-list" id="lecturesList">
+          <% lectures.forEach((lecture, index) => { %>
+            <%
+              // Extract Hijri year using the helper function defined above
+              const hijriYear = extractHijriYear(lecture.dateRecordedHijri) || '';
+              // Get title for search
+              const searchTitle = (lecture.titleArabic || '') + ' ' + (lecture.titleEnglish || '');
+            %>
+            <div class="lecture-item"
+                 data-sort-order="<%= lecture.sortOrder != null ? lecture.sortOrder : index %>"
+                 data-lecture-number="<%= lecture.lectureNumber || 999 %>"
+                 data-date="<%= lecture.dateRecorded ? new Date(lecture.dateRecorded).getTime() : 0 %>"
+                 data-hijri="<%= lecture.dateRecordedHijri || '' %>"
+                 data-hijri-year="<%= hijriYear %>"
+                 data-title="<%= searchTitle.toLowerCase() %>"
+                 data-index="<%= index %>">
+              <% if (lecture.lectureNumber) { %>
+                <div class="lecture-number-badge">
+                  <%= lecture.lectureNumber %>
+                </div>
+              <% } else { %>
+                <div class="lecture-number-badge unnumbered">
+                  <%= index + 1 %>
+                </div>
+              <% } %>
+              <div class="lecture-item-content">
+                <%- include('../partials/lectureCard', { lecture, locale }) %>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="empty-state">
+          <div class="empty-icon">📚</div>
+          <h3><%= locale === 'ar' ? 'لا توجد محاضرات في هذه السلسلة حالياً' : 'No lectures in this series currently' %></h3>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Play audio using sticky player
+  function playAudio(lectureId, title, sheikh) {
+    console.log('▶️ Play from series detail page');
+
+    if (window.audioPlayer) {
+      window.audioPlayer.play(lectureId, {
+        title: title,
+        titleArabic: title,
+        sheikh: sheikh || ''
+      });
+    } else {
+      console.error('❌ Audio player not initialized');
+      alert('مشغل الصوت يتم تحميله، يرجى المحاولة مرة أخرى');
+    }
+  }
+
+  // Sanitize search input to prevent XSS and other potential issues
+  function sanitizeSearchInput(input) {
+    if (!input) return '';
+    return input
+      // Remove HTML tags
+      .replace(/<[^>]*>/g, '')
+      // Remove script-related patterns
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+\s*=/gi, '')
+      // Remove special characters that could be problematic
+      .replace(/[<>'"&]/g, '')
+      // Limit length (in case maxlength is bypassed)
+      .substring(0, 100)
+      .trim();
+  }
+
+  // Normalize Arabic text for search (remove diacritics, normalize hamza variants, etc.)
+  function normalizeArabicForSearch(text) {
+    if (!text) return '';
+    return text
+      .toLowerCase()
+      // Remove Arabic diacritics (tashkeel)
+      .replace(/[\u064B-\u0652\u0670]/g, '')
+      // Normalize hamza variants to alif
+      .replace(/[أإآ]/g, 'ا')
+      // Normalize ya variants
+      .replace(/[ىي]/g, 'ي')
+      // Normalize ta marbuta
+      .replace(/ة/g, 'ه')
+      .trim();
+  }
+
+  // Convert Hijri date string (YYYY/MM/DD) to sortable number
+  function hijriToSortable(hijriDate) {
+    if (!hijriDate) return 0;
+    const parts = hijriDate.split('/');
+    if (parts.length !== 3) return 0;
+    const year = parseInt(parts[0]) || 0;
+    const month = parseInt(parts[1]) || 0;
+    const day = parseInt(parts[2]) || 0;
+    return year * 10000 + month * 100 + day;
+  }
+
+  // State
+  // Get default sort from series settings (newest for Khutba, oldest/order for others)
+  const defaultSortOrder = '<%= (series.displayOptions && series.displayOptions.defaultSortOrder) || "oldest" %>';
+  let currentSort = defaultSortOrder === 'newest' ? 'newest' : 'order';
+  let currentSearch = '';
+  let currentYear = '';
+
+  // Apply default sort on page load
+  (function() {
+    if (defaultSortOrder === 'newest') {
+      // Delay to ensure DOM is ready
+      setTimeout(function() {
+        sortLectures('newest');
+        // Update sort button state
+        const sortChips = document.querySelectorAll('.sort-chip');
+        sortChips.forEach(chip => {
+          chip.classList.remove('active');
+          if (chip.dataset.sort === 'newest') {
+            chip.classList.add('active');
+          }
+        });
+      }, 0);
+    }
+  })();
+
+  // Filter and display lectures
+  function filterLectures() {
+    const searchInput = document.getElementById('lectureSearch');
+    const yearSelect = document.getElementById('yearFilter');
+    const lecturesList = document.getElementById('lecturesList');
+    const noResults = document.getElementById('noResults');
+    const resultsCount = document.getElementById('resultsCount');
+    const clearBtn = document.getElementById('clearFiltersBtn');
+
+    if (!lecturesList) return;
+
+    currentSearch = searchInput ? normalizeArabicForSearch(sanitizeSearchInput(searchInput.value)) : '';
+    currentYear = yearSelect ? yearSelect.value : '';
+
+    const lectures = Array.from(lecturesList.querySelectorAll('.lecture-item'));
+    let visibleCount = 0;
+
+    lectures.forEach(lecture => {
+      let visible = true;
+
+      // Search filter
+      if (currentSearch) {
+        const title = normalizeArabicForSearch(lecture.dataset.title || '');
+        if (!title.includes(currentSearch)) {
+          visible = false;
+        }
+      }
+
+      // Year filter
+      if (visible && currentYear) {
+        const lectureYear = lecture.dataset.hijriYear || '';
+        if (lectureYear !== currentYear) {
+          visible = false;
+        }
+      }
+
+      // Apply visibility
+      lecture.classList.toggle('hidden', !visible);
+      if (visible) visibleCount++;
+    });
+
+    // Show/hide no results message
+    if (noResults) {
+      noResults.classList.toggle('visible', visibleCount === 0 && (currentSearch || currentYear));
+    }
+
+    // Update results count
+    if (resultsCount) {
+      if (currentSearch || currentYear) {
+        const locale = document.documentElement.lang || 'ar';
+        if (locale === 'ar') {
+          resultsCount.textContent = `عرض ${visibleCount} من ${lectures.length}`;
+        } else {
+          resultsCount.textContent = `Showing ${visibleCount} of ${lectures.length}`;
+        }
+        resultsCount.style.display = 'inline-block';
+      } else {
+        resultsCount.style.display = 'none';
+      }
+    }
+
+    // Show/hide clear button
+    if (clearBtn) {
+      const hasFilters = currentSearch || currentYear || currentSort !== 'order';
+      clearBtn.style.display = hasFilters ? 'block' : 'none';
+    }
+  }
+
+  // Sort lectures
+  function sortLectures(sortType) {
+    const lecturesList = document.getElementById('lecturesList');
+    if (!lecturesList) return;
+
+    const lectures = Array.from(lecturesList.querySelectorAll('.lecture-item'));
+
+    // Sort lectures based on type
+    lectures.sort((a, b) => {
+      if (sortType === 'order') {
+        // Original order from Excel/import (uses sortOrder field)
+        const orderA = parseInt(a.dataset.sortOrder) || 0;
+        const orderB = parseInt(b.dataset.sortOrder) || 0;
+        return orderA - orderB;
+      } else if (sortType === 'number') {
+        // By lecture number
+        const numA = parseInt(a.dataset.lectureNumber) || 999;
+        const numB = parseInt(b.dataset.lectureNumber) || 999;
+        return numA - numB;
+      } else if (sortType === 'oldest') {
+        // Try Hijri date first, then Gregorian, then sort order
+        const hijriA = hijriToSortable(a.dataset.hijri);
+        const hijriB = hijriToSortable(b.dataset.hijri);
+        if (hijriA !== hijriB && hijriA !== 0 && hijriB !== 0) {
+          return hijriA - hijriB;
+        }
+        const dateA = parseInt(a.dataset.date) || 0;
+        const dateB = parseInt(b.dataset.date) || 0;
+        if (dateA !== dateB) {
+          return dateA - dateB;
+        }
+        const orderA = parseInt(a.dataset.sortOrder) || 0;
+        const orderB = parseInt(b.dataset.sortOrder) || 0;
+        return orderA - orderB;
+      } else if (sortType === 'newest') {
+        // Try Hijri date first, then Gregorian, then sort order
+        const hijriA = hijriToSortable(a.dataset.hijri);
+        const hijriB = hijriToSortable(b.dataset.hijri);
+        if (hijriA !== hijriB && hijriA !== 0 && hijriB !== 0) {
+          return hijriB - hijriA;
+        }
+        const dateA = parseInt(a.dataset.date) || 0;
+        const dateB = parseInt(b.dataset.date) || 0;
+        if (dateA !== dateB) {
+          return dateB - dateA;
+        }
+        const orderA = parseInt(a.dataset.sortOrder) || 0;
+        const orderB = parseInt(b.dataset.sortOrder) || 0;
+        return orderB - orderA;
+      }
+      return 0;
+    });
+
+    // Re-append lectures in sorted order
+    lectures.forEach(lecture => lecturesList.appendChild(lecture));
+
+    // Update active chip
+    document.querySelectorAll('.sort-chip').forEach(chip => {
+      chip.classList.toggle('active', chip.dataset.sort === sortType);
+    });
+
+    currentSort = sortType;
+
+    // Update clear button visibility
+    const clearBtn = document.getElementById('clearFiltersBtn');
+    if (clearBtn) {
+      const hasFilters = currentSearch || currentYear || currentSort !== 'order';
+      clearBtn.style.display = hasFilters ? 'block' : 'none';
+    }
+  }
+
+  // Clear all filters and sort
+  function clearAllFilters() {
+    // Clear search
+    const searchInput = document.getElementById('lectureSearch');
+    if (searchInput) searchInput.value = '';
+
+    // Clear year filter
+    const yearSelect = document.getElementById('yearFilter');
+    if (yearSelect) yearSelect.value = '';
+
+    // Reset state
+    currentSearch = '';
+    currentYear = '';
+
+    // Reset sort to series default
+    const resetSort = defaultSortOrder === 'newest' ? 'newest' : 'order';
+    sortLectures(resetSort);
+
+    // Update sort button state
+    const sortChips = document.querySelectorAll('.sort-chip');
+    sortChips.forEach(chip => {
+      chip.classList.remove('active');
+      if (chip.dataset.sort === resetSort) {
+        chip.classList.add('active');
+      }
+    });
+
+    // Re-apply filters (will show all)
+    filterLectures();
+
+    // Hide clear button
+    const clearBtn = document.getElementById('clearFiltersBtn');
+    if (clearBtn) clearBtn.style.display = 'none';
+
+    // Hide results count
+    const resultsCount = document.getElementById('resultsCount');
+    if (resultsCount) resultsCount.style.display = 'none';
+  }
+
+  // Legacy function for backward compatibility
+  function clearSort() {
+    clearAllFilters();
+  }
+
+  // Initialize Lucide icons after page load
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  });
+</script>

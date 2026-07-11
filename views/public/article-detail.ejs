@@ -1,0 +1,335 @@
+<style>
+  .article-page {
+    min-height: 100vh;
+    background: #F5EDE0;
+  }
+
+  .article-nav {
+    background: #2C1508;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .back-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #C49A3C;
+    font-size: 22px;
+    line-height: 1;
+    padding: 0 4px;
+    text-decoration: none;
+  }
+
+  .back-btn:hover {
+    color: #DEC99A;
+  }
+
+  .nav-title {
+    color: #FDF8F2;
+    font-size: 13px;
+    font-weight: 600;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    direction: rtl;
+    text-align: right;
+  }
+
+  .reading-progress {
+    background: #DEC99A;
+    height: 3px;
+  }
+
+  .reading-progress-bar {
+    background: #C49A3C;
+    height: 100%;
+    width: 0%;
+    transition: width 0.1s ease;
+  }
+
+  .article-content {
+    padding: 20px 16px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .article-meta-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .article-type-badge {
+    background: #E8D5A0;
+    color: #7A5C3A;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 8px;
+  }
+
+  .article-type-badge.telegram {
+    background: #6B7A4E;
+    color: #FDF8F2;
+  }
+
+  .article-date-text {
+    color: #A89070;
+    font-size: 11px;
+  }
+
+  .article-read-time {
+    color: #A89070;
+    font-size: 11px;
+  }
+
+  .article-main-title {
+    color: #2C1508;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    direction: rtl;
+    text-align: right;
+  }
+
+  .article-body {
+    color: #4A2010;
+    font-size: 15px;
+    line-height: 2;
+    margin-bottom: 24px;
+    direction: rtl;
+    text-align: right;
+  }
+
+  .article-body p {
+    margin-bottom: 18px;
+    line-height: 2;
+  }
+
+  .article-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .article-body .quran {
+    color: #2E6B3E;
+    font-weight: 600;
+  }
+
+  .article-body .hadith {
+    color: #2B4C7E;
+    font-weight: 600;
+  }
+
+  .article-body .section-header {
+    color: #8B2500;
+    font-weight: 700;
+    display: inline;
+  }
+
+  .article-body strong {
+    font-weight: 700;
+  }
+
+  .source-link-section {
+    background: #FDF8F2;
+    border: 1px solid #DEC99A;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .source-label {
+    color: #7A5C3A;
+    font-size: 13px;
+  }
+
+  .source-btn {
+    background: #C49A3C;
+    color: #FDF8F2;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .source-btn:hover {
+    background: #A8845C;
+  }
+
+  .related-section {
+    border-top: 1px solid #DEC99A;
+    padding-top: 20px;
+  }
+
+  .related-title {
+    color: #2C1508;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .related-card {
+    background: #FDF8F2;
+    border: 1px solid #DEC99A;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    display: block;
+    transition: all 0.2s ease;
+  }
+
+  .related-card:hover {
+    border-color: #C49A3C;
+    transform: translateX(-2px);
+  }
+
+  .related-card-title {
+    color: #2C1508;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 4px;
+  }
+
+  .related-card-date {
+    color: #A89070;
+    font-size: 11px;
+  }
+
+  @media (max-width: 768px) {
+    .article-content {
+      padding: 16px 14px;
+    }
+
+    .article-main-title {
+      font-size: 19px;
+    }
+
+    .article-body {
+      font-size: 14px;
+      line-height: 1.9;
+    }
+  }
+
+  /* LTR UI adjustments - keep Arabic content RTL */
+  html[dir="ltr"] .article-nav {
+    flex-direction: row-reverse;
+  }
+
+  html[dir="ltr"] .back-btn {
+    transform: scaleX(-1);
+  }
+
+  html[dir="ltr"] .article-meta-top {
+    justify-content: flex-end;
+  }
+
+  html[dir="ltr"] .source-link-section {
+    flex-direction: row-reverse;
+  }
+
+  html[dir="ltr"] .related-card:hover {
+    transform: translateX(2px);
+  }
+
+  .related-card-title {
+    direction: rtl;
+    text-align: right;
+  }
+</style>
+
+<div class="article-page">
+  <nav class="article-nav">
+    <a href="/articles" class="back-btn">←</a>
+    <span class="nav-title"><%= article.title %></span>
+  </nav>
+
+  <div class="reading-progress">
+    <div class="reading-progress-bar" id="progressBar"></div>
+  </div>
+
+  <div class="article-content">
+    <div class="article-meta-top">
+      <span class="article-type-badge <%= article.type === 'TelegramArticle' ? 'telegram' : '' %>">
+        <%= article.type === 'TelegramArticle' ? 'تليجرام' : 'أصداء' %>
+      </span>
+      <span class="article-date-text">
+        <%
+          const pubDate = new Date(article.publishedAt);
+          const hijriFormatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+          });
+        %>
+        <%= hijriFormatter.format(pubDate) %>
+      </span>
+      <%
+        const wordCount = (article.content || '').split(/\s+/).length;
+        const readTime = Math.max(1, Math.ceil(wordCount / 200));
+      %>
+      <span class="article-read-time">· <%= readTime %> <%= locale === 'ar' ? 'دقائق قراءة' : 'min read' %></span>
+    </div>
+
+    <h1 class="article-main-title"><%= article.title %></h1>
+
+    <div class="article-body">
+      <%- article.content %>
+    </div>
+
+    <% if (article.sourceUrl) { %>
+      <div class="source-link-section">
+        <span class="source-label"><%= locale === 'ar' ? 'عرض المصدر الأصلي' : 'View Original Source' %></span>
+        <a href="<%= article.sourceUrl %>" target="_blank" rel="noopener noreferrer" class="source-btn">
+          <%= locale === 'ar' ? 'فتح الرابط' : 'Open Link' %>
+          <span>↗</span>
+        </a>
+      </div>
+    <% } %>
+
+    <% if (relatedArticles && relatedArticles.length > 0) { %>
+      <div class="related-section">
+        <h3 class="related-title"><%= locale === 'ar' ? 'مقالات ذات صلة' : 'Related Articles' %></h3>
+        <% relatedArticles.forEach(related => { %>
+          <a href="/articles/<%= related.slug || related.shortId || related._id %>" class="related-card">
+            <div class="related-card-title"><%= related.title %></div>
+            <div class="related-card-date">
+              <%
+                const relatedDate = new Date(related.publishedAt);
+              %>
+              <%= hijriFormatter.format(relatedDate) %>
+            </div>
+          </a>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  const progressBar = document.getElementById('progressBar');
+
+  window.addEventListener('scroll', function() {
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollPosition = window.scrollY;
+    const progress = (scrollPosition / scrollHeight) * 100;
+    progressBar.style.width = Math.min(100, progress) + '%';
+  });
+</script>

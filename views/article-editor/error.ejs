@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= typeof title !== 'undefined' ? title : 'خطأ' %></title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #F5EDE0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .error-card {
+      background: #FDF8F2;
+      border-radius: 16px;
+      padding: 48px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      border: 1px solid #DEC99A;
+    }
+
+    .error-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .error-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2C1508;
+      margin-bottom: 12px;
+    }
+
+    .error-message {
+      font-size: 16px;
+      color: #7A5C3A;
+      margin-bottom: 32px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: #C49A3C;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: #B8922F;
+    }
+  </style>
+</head>
+<body>
+  <div class="error-card">
+    <div class="error-icon">⚠️</div>
+    <h1 class="error-title"><%= typeof title !== 'undefined' ? title : 'خطأ' %></h1>
+    <p class="error-message"><%= typeof message !== 'undefined' ? message : 'حدث خطأ غير متوقع' %></p>
+    <a href="/article-editor" class="btn">العودة للوحة التحرير</a>
+  </div>
+</body>
+</html>

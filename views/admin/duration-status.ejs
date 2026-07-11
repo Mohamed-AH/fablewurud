@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <%- include('partials/head') %>
+  <title><%= adminLocale === 'ar' ? 'حالة التحقق من المدة' : 'Duration Verification Status' %> - <%= t('admin_title') %></title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .stat-card.verified { border-top: 4px solid #2e7d32; }
+    .stat-card.pending { border-top: 4px solid #f57c00; }
+    .stat-card.no-audio { border-top: 4px solid #9e9e9e; }
+    .stat-card.total { border-top: 4px solid #1A5F5A; }
+    .stat-value {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .stat-card.verified .stat-value { color: #2e7d32; }
+    .stat-card.pending .stat-value { color: #f57c00; }
+    .stat-card.no-audio .stat-value { color: #9e9e9e; }
+    .stat-card.total .stat-value { color: #1A5F5A; }
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+    }
+    .stat-percent {
+      font-size: 14px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    /* Progress Bar */
+    .progress-section {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .progress-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #1A5F5A;
+    }
+    .progress-bar-container {
+      background: #e0e0e0;
+      border-radius: 8px;
+      height: 24px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #2e7d32, #4caf50);
+      border-radius: 8px;
+      transition: width 0.5s ease;
+    }
+    .progress-text {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+    }
+
+    /* How It Works */
+    .info-section {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .info-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #1A5F5A;
+    }
+    .info-list {
+      list-style: none;
+      padding: 0;
+    }
+    .info-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      gap: 12px;
+    }
+
+    [dir="rtl"] .info-list li { flex-direction: row-reverse; }
+
+    .info-list li:last-child {
+      border-bottom: none;
+    }
+    .info-icon {
+      font-size: 20px;
+    }
+    .info-text {
+      flex: 1;
+    }
+    .info-text strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .info-text span {
+      color: #666;
+      font-size: 14px;
+    }
+
+    /* Pending Lectures Table */
+    .table-section {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .table-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #f57c00;
+    }
+    .table-subtitle {
+      font-size: 14px;
+      color: #666;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      padding: 12px;
+      background: #f5f5f5;
+      font-weight: 600;
+      border-bottom: 2px solid #ddd;
+    }
+
+    [dir="rtl"] th { text-align: right; }
+    [dir="ltr"] th { text-align: left; }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+    tr:hover {
+      background: #f8f9fa;
+    }
+    .duration-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .duration-badge.stored {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 48px;
+      color: #666;
+    }
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header', { activePage: 'analytics' }) %>
+
+  <main class="admin-container">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-value"><%= stats.total %></div>
+        <div class="stat-label"><%= adminLocale === 'ar' ? 'إجمالي المحاضرات' : 'Total Lectures' %></div>
+      </div>
+      <div class="stat-card verified">
+        <div class="stat-value"><%= stats.verified %></div>
+        <div class="stat-label"><%= adminLocale === 'ar' ? 'تم التحقق ✓' : 'Verified ✓' %></div>
+        <div class="stat-percent"><%= stats.verifiedPercent %>% <%= adminLocale === 'ar' ? 'من الإجمالي' : 'of total' %></div>
+      </div>
+      <div class="stat-card pending">
+        <div class="stat-value"><%= stats.pending %></div>
+        <div class="stat-label"><%= adminLocale === 'ar' ? 'في انتظار التحقق' : 'Pending Verification' %></div>
+        <div class="stat-percent"><%= stats.pendingPercent %>% <%= adminLocale === 'ar' ? 'متبقي' : 'remaining' %></div>
+      </div>
+      <div class="stat-card no-audio">
+        <div class="stat-value"><%= stats.noAudio %></div>
+        <div class="stat-label"><%= adminLocale === 'ar' ? 'بدون صوت' : 'No Audio' %></div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-section">
+      <div class="progress-title"><%= adminLocale === 'ar' ? '📈 تقدم التحقق' : '📈 Verification Progress' %></div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" style="width: <%= stats.verifiedPercent %>%;"></div>
+      </div>
+      <div class="progress-text">
+        <%= adminLocale === 'ar'
+          ? `تم التحقق من ${stats.verified} من أصل ${stats.withAudio} محاضرة لديها ملف صوتي`
+          : `Verified ${stats.verified} out of ${stats.withAudio} lectures with audio files` %>
+      </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="info-section">
+      <div class="info-title"><%= adminLocale === 'ar' ? '🔧 كيف يعمل التحقق التلقائي؟' : '🔧 How does auto-verification work?' %></div>
+      <ul class="info-list">
+        <li>
+          <span class="info-icon">🎧</span>
+          <div class="info-text">
+            <strong><%= adminLocale === 'ar' ? 'عند تشغيل المحاضرة' : 'When playing a lecture' %></strong>
+            <span><%= adminLocale === 'ar' ? 'يقوم المتصفح بتحميل الملف الصوتي وقراءة المدة الفعلية' : 'The browser loads the audio file and reads the actual duration' %></span>
+          </div>
+        </li>
+        <li>
+          <span class="info-icon">📊</span>
+          <div class="info-text">
+            <strong><%= adminLocale === 'ar' ? 'مقارنة المدة' : 'Duration comparison' %></strong>
+            <span><%= adminLocale === 'ar' ? 'يتم مقارنة المدة الفعلية مع المدة المخزنة في قاعدة البيانات' : 'The actual duration is compared with the stored duration in the database' %></span>
+          </div>
+        </li>
+        <li>
+          <span class="info-icon">🔄</span>
+          <div class="info-text">
+            <strong><%= adminLocale === 'ar' ? 'التحديث التلقائي' : 'Automatic update' %></strong>
+            <span><%= adminLocale === 'ar' ? 'إذا كان الفرق أكثر من ثانيتين، يتم تحديث المدة تلقائياً' : 'If the difference is more than 2 seconds, the duration is updated automatically' %></span>
+          </div>
+        </li>
+        <li>
+          <span class="info-icon">✅</span>
+          <div class="info-text">
+            <strong><%= adminLocale === 'ar' ? 'علامة التحقق' : 'Verification mark' %></strong>
+            <span><%= adminLocale === 'ar' ? 'يتم تعليم المحاضرة كـ "تم التحقق" لتجنب التكرار' : 'The lecture is marked as "verified" to avoid repetition' %></span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Pending Lectures -->
+    <div class="table-section">
+      <div class="table-header">
+        <div>
+          <div class="table-title"><%= adminLocale === 'ar' ? '⏳ محاضرات في انتظار التحقق' : '⏳ Lectures Pending Verification' %></div>
+          <div class="table-subtitle"><%= adminLocale === 'ar' ? 'ستتم عملية التحقق تلقائياً عند تشغيل هذه المحاضرات' : 'Verification will happen automatically when these lectures are played' %></div>
+        </div>
+      </div>
+
+      <% if (pendingLectures.length > 0) { %>
+        <table>
+          <thead>
+            <tr>
+              <th><%= adminLocale === 'ar' ? 'المحاضرة' : 'Lecture' %></th>
+              <th><%= adminLocale === 'ar' ? 'السلسلة' : 'Series' %></th>
+              <th><%= adminLocale === 'ar' ? 'المدة المخزنة' : 'Stored Duration' %></th>
+              <th><%= adminLocale === 'ar' ? 'ملف الصوت' : 'Audio File' %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% pendingLectures.slice(0, 50).forEach(lecture => { %>
+              <tr>
+                <td>
+                  <a href="/admin/lectures/<%= lecture._id %>/edit" style="color: #1A5F5A; text-decoration: none;">
+                    <%= lecture.titleArabic ? lecture.titleArabic.substring(0, 50) + '...' : (adminLocale === 'ar' ? 'بدون عنوان' : 'No title') %>
+                  </a>
+                </td>
+                <td><%= lecture.seriesId ? (adminLocale === 'ar' ? lecture.seriesId.titleArabic : (lecture.seriesId.titleEnglish || lecture.seriesId.titleArabic)) : '-' %></td>
+                <td>
+                  <span class="duration-badge stored">
+                    <%= Math.floor(lecture.duration / 60) %>:<%= String(lecture.duration % 60).padStart(2, '0') %>
+                  </span>
+                </td>
+                <td style="font-size: 12px; color: #666;">
+                  <%= lecture.audioFileName ? lecture.audioFileName.substring(0, 30) + '...' : '-' %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% if (pendingLectures.length > 50) { %>
+          <div style="text-align: center; padding: 16px; color: #666;">
+            <%= adminLocale === 'ar'
+              ? `... و ${pendingLectures.length - 50} محاضرة أخرى`
+              : `... and ${pendingLectures.length - 50} more lectures` %>
+          </div>
+        <% } %>
+      <% } else { %>
+        <div class="empty-state">
+          <div class="empty-icon">✅</div>
+          <div><%= adminLocale === 'ar' ? 'تم التحقق من جميع المحاضرات!' : 'All lectures have been verified!' %></div>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</body>
+</html>
