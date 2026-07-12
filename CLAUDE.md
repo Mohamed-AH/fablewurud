@@ -6,6 +6,34 @@ Islamic audio archive website for Sheikh Hasan bin Mohammed Mansour Dhaghriri. S
 **CRITICAL: This is a PRODUCTION database. Do not run destructive operations.**
 
 ## Current Branch
+`claude/comprehensive-code-audit-mf1wc8`
+
+---
+
+## 🔧 ACTIVE: Code Audit Remediation (started 2026-07-12)
+
+Full findings + 6-phase plan live in **`CODE_AUDIT_REPORT.md`** (committed). Work the phases in order; each is independently shippable. Update the checkboxes below as tasks land so a context-compaction restart can resume cleanly.
+
+### Phase 0 — Emergency security hotfixes  ✅ DONE (commit pending push)
+- [x] **C1 XSS** — allowlist sanitizer `utils/sanitizeHtml.js` (sanitize-html, pinned **2.13.1** because 2.14+ pulls pure-ESM htmlparser2@12 that breaks Jest/CJS `require`). Applied on WRITE (admin create/edit `routes/admin/index.js`, article-editor POST `routes/article-editor/index.js`) AND on render (`routes/articles.js`). Migration `scripts/resanitize-articles.js` created — **dry-run default; NOT run against prod DB** (owner must run `--apply` with backup). Config verified to pass all existing `articleHelpers.test.js` assertions + block the 3 bypasses. 23/23 tests green.
+- [x] **H1/M2 unauth writes** — added `publicWriteLimiter` (30/5min/IP) to `verify-duration` + `play` in `routes/api/lectures.js`; play-count now counted only on initial request (no `Range` / `bytes=0-`) in `controllers/streamController.js` (all 3 increment sites).
+- [x] **M11 /debug-sentry** — gated behind `!isProduction` in `server.js`.
+- [x] **M3 git hygiene** — `.gitignore` now ignores `.env*` (keeps `.env.example`, `.env.test`) + `data-export-*.txt` + `*.pdf`; `git rm --cached` on `.env.production`, `data-export-2mar.txt`, `gtmetrix.pdf`. **NOT done:** history purge (BFG/filter-repo + force-push rewrites shared history — needs owner approval); spreadsheets `*.xlsx`/`*.csv` left tracked (import-data references — owner decision).
+- [x] **M1 PII log** — removed both ungated `[AUTH DEBUG]` logs in `middleware/auth.js`. `sendDefaultPii: true` in `instrument.js` still needs review in **Phase 1**.
+
+**Sanitizer config that passes all existing `tests/unit/articleHelpers.test.js` assertions AND blocks the 3 known bypasses** (verified): allowedTags = p,br,span,div,h1-h4,strong,em,b,i,u,ul,ol,li,blockquote,a; allowedClasses restricted to `quran|hadith|section-header`; schemes http/https/mailto; `a` gets `rel=noopener noreferrer`.
+
+### Phases 1–6 — see CODE_AUDIT_REPORT.md
+1. Observability (asyncHandler→Sentry, release/env, latency metrics, console/Sentry conflict)
+2. Data integrity (transactions, connection pooling, indexes, admin regex escaping)
+3. Architecture (split 3287-line admin file, structured logging, dead-code removal)
+4. DevOps (non-root Docker, env validation, `oci-workrequests` dep, deploy-config cleanup, narrow `isMongoError`)
+5. Testing (raise coverage gates, fail-not-skip in CI, regression tests for C1/H1/H4)
+6. Repo hygiene (move planning docs, confirm binaries purged)
+
+---
+
+## Prior Branch (superseded)
 `claude/fix-homepage-tests-ovChk`
 
 ## Recent Work Completed

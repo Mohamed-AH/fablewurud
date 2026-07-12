@@ -254,9 +254,12 @@ app.get('/health', (req, res) => {
 });
 
 // Sentry verification route - intentional error for testing
-app.get('/debug-sentry', function mainHandler(req, res) {
-  throw new Error('My first Sentry error!');
-});
+// Gated to non-production so it can't be used to flood Sentry / probe error handling.
+if (!isProduction) {
+  app.get('/debug-sentry', function mainHandler(req, res) {
+    throw new Error('My first Sentry error!');
+  });
+}
 
 // Maintenance page route (always accessible)
 app.get('/maintenance', (req, res) => {

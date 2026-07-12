@@ -82,9 +82,18 @@ const proxyOciDownload = (ociUrl, res, filename, mimeType) => {
  * Supports both local files and OCI Object Storage
  * @route GET /stream/:id
  */
+// A browser issues many Range requests per playback (initial load + every seek).
+// Count a "play" only on the initial request (no Range, or Range starting at byte 0)
+// so playCount reflects real plays instead of seek count.
+const isInitialPlaybackRequest = (req) => {
+  const range = req.headers.range;
+  return !range || /^bytes=0-/.test(range);
+};
+
 const streamAudio = async (req, res) => {
   try {
     const lectureId = req.params.id;
+    const countThisPlay = isInitialPlaybackRequest(req);
 
     // Validate ID format
     if (!isValidObjectId(lectureId)) {
@@ -106,14 +115,16 @@ const streamAudio = async (req, res) => {
 
     // Check if lecture has an OCI URL (stored in audioUrl field)
     if (lecture.audioUrl && lecture.audioUrl.includes('objectstorage')) {
-      // Increment play count (async, don't wait)
-      Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
-        console.error('Error incrementing play count:', err);
-      });
+      if (countThisPlay) {
+        // Increment play count (async, don't wait)
+        Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
+          console.error('Error incrementing play count:', err);
+        });
 
-      // Record audio play metric
-      recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
-      sentryMetrics.audioPlay('oci');
+        // Record audio play metric
+        recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
+        sentryMetrics.audioPlay('oci');
+      }
 
       // Redirect to OCI Object Storage URL
       return res.redirect(lecture.audioUrl);
@@ -123,14 +134,16 @@ const streamAudio = async (req, res) => {
     if (isOciConfigured() && lecture.audioFileName) {
       const ociUrl = getPublicUrl(lecture.audioFileName);
 
-      // Increment play count (async, don't wait)
-      Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
-        console.error('Error incrementing play count:', err);
-      });
+      if (countThisPlay) {
+        // Increment play count (async, don't wait)
+        Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
+          console.error('Error incrementing play count:', err);
+        });
 
-      // Record audio play metric
-      recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
-      sentryMetrics.audioPlay('oci');
+        // Record audio play metric
+        recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
+        sentryMetrics.audioPlay('oci');
+      }
 
       // Redirect to OCI
       return res.redirect(ociUrl);
@@ -150,14 +163,16 @@ const streamAudio = async (req, res) => {
     // Get file stats
     const stat = fs.statSync(filePath);
 
-    // Increment play count (async, don't wait)
-    Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
-      console.error('Error incrementing play count:', err);
-    });
+    if (countThisPlay) {
+      // Increment play count (async, don't wait)
+      Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
+        console.error('Error incrementing play count:', err);
+      });
 
-    // Record audio play metric
-    recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
-    sentryMetrics.audioPlay('local');
+      // Record audio play metric
+      recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
+      sentryMetrics.audioPlay('local');
+    }
 
     // Get MIME type
     const mimeType = getMimeType(lecture.audioFileName);

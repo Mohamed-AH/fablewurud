@@ -16,8 +16,20 @@ const {
   isValidObjectId
 } = require('../../utils/validators');
 const sentryMetrics = require('../../utils/sentryMetrics');
+const rateLimit = require('express-rate-limit');
 
 const isProduction = process.env.NODE_ENV === 'production';
+
+// Strict limiter for public, unauthenticated write endpoints (play, verify-duration).
+// These key on a caller-supplied lecture ID and mutate the DB, so cap abuse hard.
+// 30 writes / 5 min / IP is generous for real playback, punishing for scripted inflation.
+const publicWriteLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 30,
+  message: { success: false, message: 'Too many requests, please slow down' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // @route   POST /api/lectures
 // @desc    Upload a new lecture with audio file
@@ -462,7 +474,7 @@ router.delete('/:id', isAdminAPI, async (req, res) => {
 // @route   POST /api/lectures/:id/verify-duration
 // @desc    Verify and update lecture duration from client playback
 // @access  Public
-router.post('/:id/verify-duration', verifyDurationValidation, async (req, res) => {
+router.post('/:id/verify-duration', publicWriteLimiter, verifyDurationValidation, async (req, res) => {
   try {
     const { duration } = req.body;
     const lectureId = req.params.id;
@@ -549,7 +561,7 @@ router.post('/:id/verify-duration', verifyDurationValidation, async (req, res) =
 // @route   POST /api/lectures/:id/play
 // @desc    Increment play count
 // @access  Public
-router.post('/:id/play', playCountValidation, async (req, res) => {
+router.post('/:id/play', publicWriteLimiter, playCountValidation, async (req, res) => {
   try {
     const lecture = await Lecture.findByIdAndUpdate(
       req.params.id,

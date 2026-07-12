@@ -4,6 +4,7 @@ const { isAdmin, isEditor, isSuperAdmin } = require('../../middleware/auth');
 const { convertToHijri } = require('../../utils/dateUtils');
 const { adminI18nMiddleware, invalidateNoticeBannerCache } = require('../../utils/i18n');
 const cache = require('../../utils/cache');
+const { sanitizeArticleHtml } = require('../../utils/sanitizeHtml');
 
 // Apply admin i18n middleware to all admin routes
 router.use(adminI18nMiddleware);
@@ -2893,7 +2894,7 @@ router.post('/articles/new', isAdmin, async (req, res) => {
     const article = new Article({
       title,
       summary: summary || '',
-      content,
+      content: sanitizeArticleHtml(content || ''),
       type: type || 'Asdaa',
       publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
       sourceUrl: sourceUrl || '',
@@ -2955,7 +2956,7 @@ router.post('/articles/:id/edit', isAdmin, async (req, res) => {
     await Article.findByIdAndUpdate(req.params.id, {
       title,
       summary: summary || '',
-      content,
+      content: sanitizeArticleHtml(content || ''),
       type: type || 'Asdaa',
       publishedAt: publishedAt ? new Date(publishedAt) : article.publishedAt,
       sourceUrl: sourceUrl || '',

@@ -8,6 +8,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const { Article, Admin } = require('../../models');
 const { isArticleEditor, isArticleEditorAPI } = require('../../middleware/auth');
+const { sanitizeArticleHtml } = require('../../utils/sanitizeHtml');
 
 // Helper to build article query - only include _id if valid ObjectId
 function buildArticleQuery(idParam) {
@@ -188,14 +189,15 @@ router.post('/article/:id', isArticleEditorAPI, async (req, res) => {
       updateFields.title = title;
     }
 
-    if (content !== undefined && content !== article.content) {
+    const sanitizedContent = content !== undefined ? sanitizeArticleHtml(content) : undefined;
+    if (sanitizedContent !== undefined && sanitizedContent !== article.content) {
       changes.push({
         field: 'content',
         oldValue: article.content,
-        newValue: content
+        newValue: sanitizedContent
       });
       fieldsChanged.push('content');
-      updateFields.content = content;
+      updateFields.content = sanitizedContent;
     }
 
     if (changes.length === 0) {
