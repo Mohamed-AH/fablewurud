@@ -40,10 +40,19 @@ module.exports = async function globalSetup() {
     // Store server instance globally for teardown
     global.__MONGO_SERVER__ = mongoServer;
   } catch (error) {
-    // MongoMemoryServer failed to start (e.g., binary download blocked)
-    // Write config so tests know MongoDB is unavailable
+    // MongoMemoryServer failed to start (e.g., binary download blocked).
+    // In CI this must be a hard failure — otherwise DB-dependent suites would
+    // silently skip and the build goes green without actually testing them
+    // (code-audit finding M10). CI is expected to provide MongoDB (service
+    // container sets MONGODB_URI, handled by the early return above).
+    if (process.env.CI) {
+      console.error('FATAL: MongoDB is required in CI but MongoMemoryServer failed to start.');
+      console.error('Provide a MongoDB service and set MONGODB_URI, or fix the memory-server binary.');
+      throw error;
+    }
+    // Locally, degrade gracefully: mark unavailable so suites skip.
     console.warn('MongoMemoryServer failed to start:', error.message);
-    console.warn('Tests requiring MongoDB will be skipped.');
+    console.warn('Tests requiring MongoDB will be skipped (local only).');
     fs.writeFileSync(CONFIG_PATH, JSON.stringify({ uri: null, external: false, available: false, error: error.message }));
   }
 };

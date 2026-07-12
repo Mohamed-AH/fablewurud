@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const https = require('https');
 const { Lecture } = require('../models');
 const { getFilePath, fileExists } = require('../utils/fileManager');
 const { getMimeType, handleRangeRequest } = require('../middleware/streamHandler');
@@ -8,6 +7,7 @@ const { getPublicUrl, isConfigured: isOciConfigured, createPreAuthenticatedReque
 const { isValidObjectId } = require('../utils/validators');
 const { recordAudioPlay } = require('../utils/metrics');
 const sentryMetrics = require('../utils/sentryMetrics');
+const { captureException } = require('../utils/errorReporter');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -37,54 +37,22 @@ const generateDownloadFilename = (lecture, ext) => {
 };
 
 /**
- * Proxy download from OCI with proper Content-Disposition header
- */
-const proxyOciDownload = (ociUrl, res, filename, mimeType) => {
-  return new Promise((resolve, reject) => {
-    // Parse URL to handle encoded characters properly
-    const parsedUrl = new URL(ociUrl);
-
-    const options = {
-      hostname: parsedUrl.hostname,
-      path: parsedUrl.pathname + parsedUrl.search,
-      method: 'GET'
-    };
-
-    https.get(options, (ociResponse) => {
-      if (ociResponse.statusCode === 200) {
-        res.set({
-          'Content-Type': mimeType || 'audio/mp4',
-          'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
-          'Content-Length': ociResponse.headers['content-length'],
-          'Cache-Control': 'public, max-age=31536000'
-        });
-
-        ociResponse.pipe(res);
-        ociResponse.on('end', resolve);
-        ociResponse.on('error', reject);
-      } else if (ociResponse.statusCode >= 300 && ociResponse.statusCode < 400) {
-        // Handle redirect
-        const redirectUrl = ociResponse.headers.location;
-        if (redirectUrl) {
-          proxyOciDownload(redirectUrl, res, filename, mimeType).then(resolve).catch(reject);
-        } else {
-          reject(new Error('Redirect without location header'));
-        }
-      } else {
-        reject(new Error(`OCI returned status ${ociResponse.statusCode}`));
-      }
-    }).on('error', reject);
-  });
-};
-
-/**
  * Stream audio file with Range request support
  * Supports both local files and OCI Object Storage
  * @route GET /stream/:id
  */
+// A browser issues many Range requests per playback (initial load + every seek).
+// Count a "play" only on the initial request (no Range, or Range starting at byte 0)
+// so playCount reflects real plays instead of seek count.
+const isInitialPlaybackRequest = (req) => {
+  const range = req.headers.range;
+  return !range || /^bytes=0-/.test(range);
+};
+
 const streamAudio = async (req, res) => {
   try {
     const lectureId = req.params.id;
+    const countThisPlay = isInitialPlaybackRequest(req);
 
     // Validate ID format
     if (!isValidObjectId(lectureId)) {
@@ -106,14 +74,16 @@ const streamAudio = async (req, res) => {
 
     // Check if lecture has an OCI URL (stored in audioUrl field)
     if (lecture.audioUrl && lecture.audioUrl.includes('objectstorage')) {
-      // Increment play count (async, don't wait)
-      Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
-        console.error('Error incrementing play count:', err);
-      });
+      if (countThisPlay) {
+        // Increment play count (async, don't wait)
+        Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
+          console.error('Error incrementing play count:', err);
+        });
 
-      // Record audio play metric
-      recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
-      sentryMetrics.audioPlay('oci');
+        // Record audio play metric
+        recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
+        sentryMetrics.audioPlay('oci');
+      }
 
       // Redirect to OCI Object Storage URL
       return res.redirect(lecture.audioUrl);
@@ -123,14 +93,16 @@ const streamAudio = async (req, res) => {
     if (isOciConfigured() && lecture.audioFileName) {
       const ociUrl = getPublicUrl(lecture.audioFileName);
 
-      // Increment play count (async, don't wait)
-      Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
-        console.error('Error incrementing play count:', err);
-      });
+      if (countThisPlay) {
+        // Increment play count (async, don't wait)
+        Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
+          console.error('Error incrementing play count:', err);
+        });
 
-      // Record audio play metric
-      recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
-      sentryMetrics.audioPlay('oci');
+        // Record audio play metric
+        recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
+        sentryMetrics.audioPlay('oci');
+      }
 
       // Redirect to OCI
       return res.redirect(ociUrl);
@@ -150,14 +122,16 @@ const streamAudio = async (req, res) => {
     // Get file stats
     const stat = fs.statSync(filePath);
 
-    // Increment play count (async, don't wait)
-    Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
-      console.error('Error incrementing play count:', err);
-    });
+    if (countThisPlay) {
+      // Increment play count (async, don't wait)
+      Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
+        console.error('Error incrementing play count:', err);
+      });
 
-    // Record audio play metric
-    recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
-    sentryMetrics.audioPlay('local');
+      // Record audio play metric
+      recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
+      sentryMetrics.audioPlay('local');
+    }
 
     // Get MIME type
     const mimeType = getMimeType(lecture.audioFileName);
@@ -178,6 +152,7 @@ const streamAudio = async (req, res) => {
 
   } catch (error) {
     console.error('Stream error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to stream audio',
@@ -323,6 +298,7 @@ const downloadAudio = async (req, res) => {
 
   } catch (error) {
     console.error('Download error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to download audio',

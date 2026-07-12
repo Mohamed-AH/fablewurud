@@ -10,6 +10,7 @@ const {
 const { sanitizeSearchInput, sanitizeComment } = require('../utils/validators');
 const { recordSearch } = require('../utils/metrics');
 const sentryMetrics = require('../utils/sentryMetrics');
+const { captureException } = require('../utils/errorReporter');
 const cache = require('../utils/cache');
 
 // Config from environment
@@ -164,6 +165,7 @@ router.get('/api', async (req, res) => {
     }
   } catch (error) {
     console.error('Search API error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       error: 'حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى.'
@@ -218,6 +220,7 @@ router.post('/feedback', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('[Feedback] Error:', error);
+    captureException(error, req);
     res.status(500).json({ error: 'حدث خطأ أثناء حفظ التقييم' });
   }
 });

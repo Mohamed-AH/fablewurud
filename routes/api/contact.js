@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
+const { captureException } = require('../../utils/errorReporter');
 
 // Rate limiter: 5 requests per hour per IP
 const contactLimiter = rateLimit({
@@ -129,6 +130,7 @@ ${sanitizeForTelegram(message.trim())}
 
   } catch (error) {
     console.error('Contact form error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       error: 'حدث خطأ. يرجى المحاولة لاحقاً.',

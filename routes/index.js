@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Lecture, Sheikh, Series, Section, Schedule, SiteSettings, Article } = require('../models');
 const cache = require('../utils/cache');
+const { captureException } = require('../utils/errorReporter');
 
 // Cache TTLs (in seconds)
 const CACHE_TTL = {
@@ -11,123 +12,6 @@ const CACHE_TTL = {
   SCHEDULE: 300,        // 5 minutes for schedule
   ARTICLES: 600         // 10 minutes for articles
 };
-
-// Helper function to fetch homepage data (for caching)
-async function fetchHomepageData() {
-  // Fetch all visible series with their sheikhs
-  const series = await Series.find({ isVisible: { $ne: false } })
-    .populate('sheikhId', 'nameArabic nameEnglish honorific')
-    .sort({ createdAt: -1 })
-    .lean();
-
-  // For each series, fetch its lectures (sorted by sortOrder for correct display order)
-  // Optimized: Uses $project to limit memory usage
-  const seriesList = await Promise.all(
-    series.map(async (s) => {
-      const lectures = await Lecture.aggregate([
-        {
-          $match: {
-            seriesId: s._id,
-            published: true
-          }
-        },
-        {
-          $sort: {
-            sortOrder: 1,
-            lectureNumber: 1,
-            createdAt: 1
-          }
-        },
-        {
-          $project: {
-            _id: 1,
-            seriesId: 1,
-            titleArabic: 1,
-            titleEnglish: 1,
-            descriptionArabic: 1,
-            lectureNumber: 1,
-            sortOrder: 1,
-            dateRecorded: 1,
-            createdAt: 1,
-            durationSeconds: 1,
-            duration: 1,
-            audioUrl: 1,
-            audioFileName: 1,
-            slug: 1,
-            shortId: 1
-          }
-        }
-      ]);
-
-      // Get original author - prefer Series.bookAuthor, fallback to lecture description
-      const originalAuthor = s.bookAuthor || lectures.find(l => l.descriptionArabic)?.descriptionArabic
-        ?.replace('من كتاب: ', '') || null;
-
-      return {
-        ...s,
-        sheikh: s.sheikhId,
-        lectures: lectures,
-        lectureCount: lectures.length,
-        originalAuthor: originalAuthor
-      };
-    })
-  );
-
-  // Filter out series with no published lectures
-  const filteredSeries = seriesList.filter(s => s.lectureCount > 0);
-
-  // Get all standalone lectures (not in any series)
-  const standaloneLectures = await Lecture.find({
-    seriesId: null,
-    published: true
-  })
-    .populate('sheikhId', 'nameArabic nameEnglish honorific')
-    .sort({ dateRecorded: -1, createdAt: -1 })
-    .lean();
-
-  // Get محاضرات متفرقة series (miscellaneous lectures)
-  const miscSeries = await Series.findOne({
-    titleArabic: /محاضرات متفرقة/i,
-    isVisible: { $ne: false }
-  })
-    .populate('sheikhId', 'nameArabic nameEnglish honorific')
-    .lean();
-
-  let miscLectures = [];
-  if (miscSeries) {
-    miscLectures = await Lecture.find({
-      seriesId: miscSeries._id,
-      published: true
-    })
-      .populate('sheikhId', 'nameArabic nameEnglish honorific')
-      .sort({ dateRecorded: -1, createdAt: -1 })
-      .lean();
-  }
-
-  // Combine standalone and miscellaneous lectures for Lectures tab
-  const allStandaloneLectures = [...standaloneLectures, ...miscLectures];
-
-  // Get Khutba series (for Khutbas tab)
-  const khutbaSeries = filteredSeries.filter(s => {
-    if (s.tags && s.tags.includes('khutba')) {
-      return true;
-    }
-    return s.titleArabic && (
-      s.titleArabic.includes('خطب') ||
-      s.titleArabic.includes('خطبة')
-    );
-  });
-
-  // Get total lecture count
-  const totalLectureCount = await Lecture.countDocuments({ published: true });
-
-  return {
-    seriesList: filteredSeries,
-    standaloneLectures: allStandaloneLectures,
-    khutbaSeries,
-    totalLectureCount
-  };
-}
 
 // Helper function to fetch schedule data (for caching)
 // Optimized: Uses aggregation to batch lecture counts + latest lectures
@@ -367,6 +251,7 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Homepage error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading homepage');
   }
 });
@@ -451,6 +336,7 @@ router.get('/browse', async (req, res) => {
     });
   } catch (error) {
     console.error('Browse error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading browse page');
   }
 });
@@ -556,6 +442,7 @@ router.get('/lectures/:shortId(\\d+)/:slug_en?/:slug_ar?', async (req, res) => {
     });
   } catch (error) {
     console.error('Lecture detail error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading lecture');
   }
 });
@@ -616,6 +503,7 @@ router.get('/lectures/:idOrSlug', async (req, res) => {
     });
   } catch (error) {
     console.error('Lecture detail error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading lecture');
   }
 });
@@ -635,6 +523,7 @@ router.get('/sheikhs', async (req, res) => {
     });
   } catch (error) {
     console.error('Sheikhs page error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading sheikhs page');
   }
 });
@@ -700,6 +589,7 @@ router.get('/sheikhs/:shortId(\\d+)/:slug_en?/:slug_ar?', async (req, res) => {
     });
   } catch (error) {
     console.error('Sheikh profile error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading sheikh profile');
   }
 });
@@ -761,6 +651,7 @@ router.get('/sheikhs/:idOrSlug', async (req, res) => {
     });
   } catch (error) {
     console.error('Sheikh profile error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading sheikh profile');
   }
 });
@@ -782,6 +673,7 @@ router.get('/series', async (req, res) => {
     });
   } catch (error) {
     console.error('Series page error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading series page');
   }
 });
@@ -914,6 +806,7 @@ router.get('/series/:shortId(\\d+)/:slug_en?/:slug_ar?', async (req, res) => {
     });
   } catch (error) {
     console.error('Series profile error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading series profile');
   }
 });
@@ -1028,6 +921,7 @@ router.get('/series/:idOrSlug', async (req, res) => {
     });
   } catch (error) {
     console.error('Series profile error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading series profile');
   }
 });
@@ -1177,6 +1071,7 @@ router.get('/sitemap.xml', async (req, res) => {
     res.send(xml);
   } catch (error) {
     console.error('Sitemap generation error:', error);
+    captureException(error, req);
     res.status(500).send('Error generating sitemap');
   }
 });

@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const { Lecture, Series } = require('../../models');
 const cache = require('../../utils/cache');
 const { sanitizeSearchInput } = require('../../utils/validators');
+const { captureException } = require('../../utils/errorReporter');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -276,6 +277,7 @@ router.get('/series', async (req, res) => {
 
   } catch (error) {
     console.error('Homepage series API error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch series',
@@ -391,6 +393,7 @@ router.get('/standalone', async (req, res) => {
 
   } catch (error) {
     console.error('Homepage standalone API error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch standalone lectures',
@@ -564,6 +567,7 @@ router.get('/khutbas', async (req, res) => {
 
   } catch (error) {
     console.error('Homepage khutbas API error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch khutbas',
@@ -669,6 +673,7 @@ router.get('/stats', async (req, res) => {
 
   } catch (error) {
     console.error('Homepage stats API error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch stats',

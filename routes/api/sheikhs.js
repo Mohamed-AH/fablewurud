@@ -3,6 +3,7 @@ const router = express.Router();
 const { Sheikh } = require('../../models');
 const { isAdminAPI } = require('../../middleware/auth');
 const { isValidObjectId } = require('../../utils/validators');
+const { captureException } = require('../../utils/errorReporter');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -21,6 +22,7 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Get sheikhs error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch sheikhs',
@@ -58,6 +60,7 @@ router.post('/', isAdminAPI, async (req, res) => {
     });
   } catch (error) {
     console.error('Create sheikh error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to create sheikh',
@@ -107,6 +110,7 @@ router.put('/:id', isAdminAPI, async (req, res) => {
     });
   } catch (error) {
     console.error('Update sheikh error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to update sheikh',
@@ -155,6 +159,7 @@ router.delete('/:id', isAdminAPI, async (req, res) => {
     });
   } catch (error) {
     console.error('Delete sheikh error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to delete sheikh',

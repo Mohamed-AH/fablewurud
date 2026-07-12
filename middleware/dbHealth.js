@@ -47,7 +47,13 @@ function updateHealthStatus(healthy) {
 }
 
 /**
- * Check if an error is a MongoDB connection/timeout error
+ * Check if an error is a MongoDB connection/timeout error.
+ *
+ * Classifies by error NAME and CODE (precise), plus a small set of SPECIFIC
+ * Mongo/Mongoose message phrases. It deliberately does NOT match bare substrings
+ * like 'connection' or 'timeout' — those appear in unrelated errors and would
+ * misclassify them as DB errors, which is dangerous where this gates whether an
+ * uncaughtException keeps the process alive (server.js). See code-audit H6.
  */
 function isMongoError(err) {
   if (!err) return false;
@@ -57,39 +63,39 @@ function isMongoError(err) {
     'MongoNetworkTimeoutError',
     'MongoServerSelectionError',
     'MongoTimeoutError',
-    'MongoWriteConcernError'
+    'MongoWriteConcernError',
+    'MongoNotConnectedError',
+    'MongoPoolClearedError'
   ];
 
   const mongoErrorCodes = [
     'ECONNREFUSED',
     'ETIMEDOUT',
     'ENOTFOUND',
-    'ENETUNREACH'
+    'ENETUNREACH',
+    'ECONNRESET'
   ];
 
-  // Check error name
+  // Check error name (precise)
   if (mongoErrorNames.includes(err.name)) {
     return true;
   }
 
-  // Check error code
+  // Check network error code (precise)
   if (err.code && mongoErrorCodes.includes(err.code)) {
     return true;
   }
 
-  // Check for timeout in message
-  if (err.message && (
-    err.message.includes('timed out') ||
-    err.message.includes('timeout') ||
-    err.message.includes('buffering timed out') ||
-    err.message.includes('Server selection timed out') ||
-    err.message.includes('connection')
-  )) {
-    return true;
-  }
-
-  // Check for Mongoose-specific timeout
-  if (err.name === 'MongooseError' && err.message.includes('buffering timed out')) {
+  // Specific Mongo/Mongoose availability phrases only — NOT bare 'connection'/'timeout'
+  const specificPhrases = [
+    'buffering timed out',            // Mongoose op queued while disconnected
+    'Server selection timed out',     // driver could not pick a server
+    'connection timed out',           // driver socket timeout
+    'connection pool cleared',        // pool reset during outage
+    'failed to connect to server',    // initial connect failure
+    'topology was destroyed'          // client closed mid-operation
+  ];
+  if (err.message && specificPhrases.some(p => err.message.includes(p))) {
     return true;
   }
 

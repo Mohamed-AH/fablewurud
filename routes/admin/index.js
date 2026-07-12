@@ -4,6 +4,10 @@ const { isAdmin, isEditor, isSuperAdmin } = require('../../middleware/auth');
 const { convertToHijri } = require('../../utils/dateUtils');
 const { adminI18nMiddleware, invalidateNoticeBannerCache } = require('../../utils/i18n');
 const cache = require('../../utils/cache');
+const { sanitizeArticleHtml } = require('../../utils/sanitizeHtml');
+const { withTransaction } = require('../../utils/dbTransaction');
+const { escapeRegex } = require('../../utils/validators');
+const { captureException } = require('../../utils/errorReporter');
 
 // Apply admin i18n middleware to all admin routes
 router.use(adminI18nMiddleware);
@@ -78,6 +82,7 @@ router.get('/dashboard', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Dashboard error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading dashboard');
   }
 });
@@ -149,6 +154,7 @@ router.get('/duration-status', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Duration status error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading duration status page');
   }
 });
@@ -179,6 +185,7 @@ router.get('/manage', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Manage error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading manage page');
   }
 });
@@ -195,10 +202,11 @@ router.get('/lectures', isAdmin, async (req, res) => {
     const query = {};
 
     if (search) {
+      const safe = escapeRegex(String(search));
       query.$or = [
-        { titleArabic: { $regex: search, $options: 'i' } },
-        { titleEnglish: { $regex: search, $options: 'i' } },
-        { slug: { $regex: search, $options: 'i' } }
+        { titleArabic: { $regex: safe, $options: 'i' } },
+        { titleEnglish: { $regex: safe, $options: 'i' } },
+        { slug: { $regex: safe, $options: 'i' } }
       ];
     }
 
@@ -225,6 +233,7 @@ router.get('/lectures', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Lectures list error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading lectures');
   }
 });
@@ -243,7 +252,20 @@ router.post('/lectures/:id/delete', isAdmin, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Lecture not found' });
     }
 
-    // Delete audio from OCI if exists
+    // Atomic multi-document update: decrement counts + delete lecture together
+    // so a partial failure can't drift lectureCount (see utils/sync-lecture-counts).
+    await withTransaction(async (session) => {
+      if (lecture.seriesId) {
+        await Series.findByIdAndUpdate(lecture.seriesId, { $inc: { lectureCount: -1 } }, { session });
+      }
+      if (lecture.sheikhId) {
+        await Sheikh.findByIdAndUpdate(lecture.sheikhId, { $inc: { lectureCount: -1 } }, { session });
+      }
+      await Lecture.findByIdAndDelete(req.params.id, { session });
+    });
+
+    // Delete audio from OCI AFTER the DB delete commits (avoids orphaning the
+    // file if the transaction rolls back). Best-effort — file cleanup is not fatal.
     if (lecture.audioFileName) {
       try {
         await deleteFromOCI(lecture.audioFileName);
@@ -251,19 +273,6 @@ router.post('/lectures/:id/delete', isAdmin, async (req, res) => {
         console.warn('Could not delete OCI file:', ociError.message);
       }
     }
-
-    // Decrement series lecture count
-    if (lecture.seriesId) {
-      await Series.findByIdAndUpdate(lecture.seriesId, { $inc: { lectureCount: -1 } });
-    }
-
-    // Decrement sheikh lecture count
-    if (lecture.sheikhId) {
-      await Sheikh.findByIdAndUpdate(lecture.sheikhId, { $inc: { lectureCount: -1 } });
-    }
-
-    // Delete the lecture
-    await Lecture.findByIdAndDelete(req.params.id);
 
     // Invalidate homepage cache
     invalidateHomepageCache();
@@ -278,6 +287,7 @@ router.post('/lectures/:id/delete', isAdmin, async (req, res) => {
     res.redirect(returnUrl);
   } catch (error) {
     console.error('Delete lecture error:', error);
+    captureException(error, req);
     if (req.xhr || req.headers.accept?.includes('application/json')) {
       return res.status(500).json({ success: false, message: error.message });
     }
@@ -305,6 +315,7 @@ router.get('/lectures/unpublished', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Unpublished lectures error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading unpublished lectures');
   }
 });
@@ -334,6 +345,7 @@ router.get('/lectures/no-audio', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('No audio lectures error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading lectures without audio');
   }
 });
@@ -358,6 +370,7 @@ router.get('/series/new', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('New series page error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading new series form');
   }
 });
@@ -401,6 +414,7 @@ router.post('/series/new', isAdmin, async (req, res) => {
     res.redirect(`/admin/series/${series._id}/edit`);
   } catch (error) {
     console.error('Create series error:', error);
+    captureException(error, req);
     res.status(500).send('Error creating series: ' + error.message);
   }
 });
@@ -462,6 +476,7 @@ router.get('/series/:id/edit', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Edit series error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading edit series page');
   }
 });
@@ -535,6 +550,7 @@ router.post('/series/:id/edit', isAdmin, async (req, res) => {
     res.redirect(`/admin/series/${req.params.id}/edit?success=updated`);
   } catch (error) {
     console.error('Update series error:', error);
+    captureException(error, req);
     res.status(500).send('Error updating series');
   }
 });
@@ -571,6 +587,7 @@ router.post('/series/:id/reorder-lectures', isAdmin, async (req, res) => {
     res.json({ success: true, message: 'Lecture order updated successfully', updatedCount });
   } catch (error) {
     console.error('Reorder lectures error:', error);
+    captureException(error, req);
     res.status(500).json({ error: 'Error reordering lectures' });
   }
 });
@@ -611,6 +628,7 @@ router.get('/series/:id/quick-add-lecture', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Quick add lecture page error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading quick add page');
   }
 });
@@ -687,6 +705,7 @@ router.post('/series/:id/quick-add-lecture', isAdmin, async (req, res) => {
     res.redirect(`/admin/series/${series._id}/edit?success=lecture_added&lectureId=${lecture._id}`);
   } catch (error) {
     console.error('Quick add lecture error:', error);
+    captureException(error, req);
     res.redirect(`/admin/series/${req.params.id}/edit?error=add_failed`);
   }
 });
@@ -720,6 +739,7 @@ router.get('/lectures/:id/edit', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Edit lecture error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading edit lecture page');
   }
 });
@@ -777,6 +797,7 @@ router.post('/lectures/:id/edit', isAdmin, async (req, res) => {
     res.redirect('/admin/manage?success=lecture-updated');
   } catch (error) {
     console.error('Update lecture error:', error);
+    captureException(error, req);
     res.status(500).send('Error updating lecture');
   }
 });
@@ -837,6 +858,7 @@ router.post('/lectures/:id/upload-audio', isAdmin, async (req, res) => {
       res.redirect(`/admin/lectures/${req.params.id}/edit?success=audio-uploaded`);
     } catch (error) {
       console.error('OCI upload error:', error);
+      captureException(error, req);
 
       // Clean up local temp file on error
       if (req.file && fs.existsSync(req.file.path)) {
@@ -925,6 +947,7 @@ router.post('/api/lectures/:id/upload-audio', isAdmin, async (req, res) => {
       });
     } catch (error) {
       console.error('OCI upload error:', error);
+      captureException(error, req);
 
       // Clean up local temp file on error
       if (req.file && fs.existsSync(req.file.path)) {
@@ -963,6 +986,7 @@ router.post('/lectures/:id/toggle-published', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Toggle published error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, message: 'Error toggling published status' });
   }
 });
@@ -996,6 +1020,7 @@ router.post('/lectures/:id/remove-from-series', isAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Remove from series error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, error: 'Error removing lecture from series' });
   }
 });
@@ -1019,6 +1044,7 @@ router.get('/api/unassociated-lectures', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Get unassociated lectures error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, error: 'Error fetching unassociated lectures' });
   }
 });
@@ -1082,6 +1108,7 @@ router.post('/api/series/create', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Create series error:', error);
+    captureException(error, req);
 
     // Handle duplicate key error
     if (error.code === 11000) {
@@ -1110,6 +1137,7 @@ router.get('/api/sheikhs', isAdmin, async (req, res) => {
     res.json({ success: true, sheikhs });
   } catch (error) {
     console.error('Get sheikhs error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, error: 'Error fetching sheikhs' });
   }
 });
@@ -1156,6 +1184,7 @@ router.get('/api/lectures/:id/transcript', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Get transcript error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, error: 'Error fetching transcript' });
   }
 });
@@ -1202,6 +1231,7 @@ router.put('/api/lectures/:id/transcript/:segmentId', isAdmin, async (req, res) 
     });
   } catch (error) {
     console.error('Update transcript segment error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, error: 'Error updating segment' });
   }
 });
@@ -1268,6 +1298,7 @@ router.put('/api/lectures/:id/transcript', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Bulk update transcript error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, error: 'Error updating transcript' });
   }
 });
@@ -1295,6 +1326,7 @@ router.delete('/api/lectures/:id/transcript/:segmentId', isAdmin, async (req, re
     });
   } catch (error) {
     console.error('Delete transcript segment error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, error: 'Error deleting segment' });
   }
 });
@@ -1355,6 +1387,7 @@ router.get('/api/lectures/:id/transcript/export-csv', isAdmin, async (req, res) 
     res.send(csvContent);
   } catch (error) {
     console.error('Export transcript CSV error:', error);
+    captureException(error, req);
     res.status(500).send('Error exporting transcript');
   }
 });
@@ -1446,6 +1479,7 @@ router.post('/api/lectures/:id/transcript/export-csv', isAdmin, async (req, res)
     }
   } catch (error) {
     console.error('Export transcript CSV error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, error: 'Error exporting transcript' });
   }
 });
@@ -1496,6 +1530,7 @@ router.post('/api/lectures/:id/transcript/add-segment', isAdmin, async (req, res
     });
   } catch (error) {
     console.error('Add transcript segment error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, error: 'Error adding segment' });
   }
 });
@@ -1573,6 +1608,7 @@ router.post('/lectures/:id/assign-to-series', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Assign to series error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, error: 'Error assigning lecture to series' });
   }
 });
@@ -1608,6 +1644,7 @@ router.get('/sheikhs', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Sheikhs page error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading sheikhs page');
   }
 });
@@ -1653,6 +1690,7 @@ router.post('/sheikhs', isAdmin, async (req, res) => {
     res.redirect('/admin/sheikhs?success=sheikh-created');
   } catch (error) {
     console.error('Create sheikh error:', error);
+    captureException(error, req);
     res.status(500).send('Error creating sheikh');
   }
 });
@@ -1678,6 +1716,7 @@ router.get('/sheikhs/:id/edit', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Edit sheikh error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading edit sheikh page');
   }
 });
@@ -1709,6 +1748,7 @@ router.post('/sheikhs/:id/edit', isAdmin, async (req, res) => {
     res.redirect('/admin/sheikhs?success=sheikh-updated');
   } catch (error) {
     console.error('Update sheikh error:', error);
+    captureException(error, req);
     res.status(500).send('Error updating sheikh');
   }
 });
@@ -1736,6 +1776,7 @@ router.post('/sheikhs/:id/delete', isAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Delete sheikh error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, message: 'Error deleting sheikh' });
   }
 });
@@ -1762,6 +1803,7 @@ router.get('/users', isSuperAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Users page error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading users page');
   }
 });
@@ -1817,6 +1859,7 @@ router.post('/users/add', isSuperAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Add user error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Error adding user: ' + error.message
@@ -1852,6 +1895,7 @@ router.post('/users/:id/role', isSuperAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Update role error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, message: 'Error updating role' });
   }
 });
@@ -1885,6 +1929,7 @@ router.post('/users/:id/toggle-active', isSuperAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Toggle active error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, message: 'Error toggling active status' });
   }
 });
@@ -1914,6 +1959,7 @@ router.post('/users/:id/delete', isSuperAdmin, async (req, res) => {
     res.json({ success: true, message: 'User permanently deleted' });
   } catch (error) {
     console.error('Delete user error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, message: 'Error deleting user' });
   }
 });
@@ -1945,6 +1991,7 @@ router.get('/schedule', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Schedule list error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading schedule');
   }
 });
@@ -1969,6 +2016,7 @@ router.get('/schedule/add', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Schedule add form error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading form');
   }
 });
@@ -2014,6 +2062,7 @@ router.post('/schedule/add', isAdmin, async (req, res) => {
     res.redirect('/admin/schedule?success=created');
   } catch (error) {
     console.error('Schedule create error:', error);
+    captureException(error, req);
     res.redirect('/admin/schedule?error=create_failed');
   }
 });
@@ -2043,6 +2092,7 @@ router.get('/schedule/:id/edit', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Schedule edit form error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading form');
   }
 });
@@ -2086,6 +2136,7 @@ router.post('/schedule/:id/edit', isAdmin, async (req, res) => {
     res.redirect('/admin/schedule?success=updated');
   } catch (error) {
     console.error('Schedule update error:', error);
+    captureException(error, req);
     res.redirect('/admin/schedule?error=update_failed');
   }
 });
@@ -2105,6 +2156,7 @@ router.post('/schedule/:id/delete', isAdmin, async (req, res) => {
     res.redirect('/admin/schedule?success=deleted');
   } catch (error) {
     console.error('Schedule delete error:', error);
+    captureException(error, req);
     res.redirect('/admin/schedule?error=delete_failed');
   }
 });
@@ -2147,6 +2199,7 @@ router.get('/analytics', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Analytics error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading analytics');
   }
 });
@@ -2174,6 +2227,7 @@ router.post('/analytics/settings', isAdmin, async (req, res) => {
     res.redirect('/admin/analytics?success=settings_updated');
   } catch (error) {
     console.error('Analytics settings error:', error);
+    captureException(error, req);
     res.redirect('/admin/analytics?error=settings_failed');
   }
 });
@@ -2190,6 +2244,7 @@ router.post('/analytics/refresh-stats', isAdmin, async (req, res) => {
     res.redirect('/admin/analytics?success=stats_refreshed');
   } catch (error) {
     console.error('Stats refresh error:', error);
+    captureException(error, req);
     res.redirect('/admin/analytics?error=refresh_failed');
   }
 });
@@ -2235,6 +2290,7 @@ router.get('/sections', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Sections list error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading sections');
   }
 });
@@ -2279,6 +2335,7 @@ router.post('/sections/new', isAdmin, async (req, res) => {
     res.redirect('/admin/sections?success=section_created');
   } catch (error) {
     console.error('Create section error:', error);
+    captureException(error, req);
     res.redirect('/admin/sections?error=create_failed');
   }
 });
@@ -2302,6 +2359,7 @@ router.post('/sections/reorder', isAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Reorder sections error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, message: 'Reorder failed' });
   }
 });
@@ -2326,6 +2384,7 @@ router.get('/sections/:id/edit', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Edit section form error:', error);
+    captureException(error, req);
     res.redirect('/admin/sections?error=load_failed');
   }
 });
@@ -2358,6 +2417,7 @@ router.post('/sections/:id', isAdmin, async (req, res) => {
     res.redirect('/admin/sections?success=section_updated');
   } catch (error) {
     console.error('Update section error:', error);
+    captureException(error, req);
     res.redirect('/admin/sections?error=update_failed');
   }
 });
@@ -2388,6 +2448,7 @@ router.post('/sections/:id/delete', isAdmin, async (req, res) => {
     res.redirect('/admin/sections?success=section_deleted');
   } catch (error) {
     console.error('Delete section error:', error);
+    captureException(error, req);
     res.redirect('/admin/sections?error=delete_failed');
   }
 });
@@ -2427,6 +2488,7 @@ router.get('/sections/:id/series', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Section series error:', error);
+    captureException(error, req);
     res.redirect('/admin/sections?error=load_failed');
   }
 });
@@ -2463,6 +2525,7 @@ router.post('/sections/:id/series/add', isAdmin, async (req, res) => {
     res.redirect(`/admin/sections/${req.params.id}/series?success=series_added`);
   } catch (error) {
     console.error('Add series to section error:', error);
+    captureException(error, req);
     res.redirect(`/admin/sections/${req.params.id}/series?error=add_failed`);
   }
 });
@@ -2482,6 +2545,7 @@ router.post('/sections/:id/series/:seriesId/remove', isAdmin, async (req, res) =
     res.redirect(`/admin/sections/${req.params.id}/series?success=series_removed`);
   } catch (error) {
     console.error('Remove series from section error:', error);
+    captureException(error, req);
     res.redirect(`/admin/sections/${req.params.id}/series?error=remove_failed`);
   }
 });
@@ -2512,6 +2576,7 @@ router.post('/sections/:id/series/reorder', isAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Reorder series error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, message: 'Reorder failed' });
   }
 });
@@ -2554,6 +2619,7 @@ router.post('/series/:id/assign-section', isAdmin, async (req, res) => {
     res.redirect(`/admin/series/${req.params.id}/edit?success=section_assigned`);
   } catch (error) {
     console.error('Assign section error:', error);
+    captureException(error, req);
     res.redirect(`/admin/series/${req.params.id}/edit?error=assign_failed`);
   }
 });
@@ -2581,6 +2647,7 @@ router.get('/homepage-config', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Homepage config error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading homepage configuration');
   }
 });
@@ -2614,6 +2681,7 @@ router.post('/homepage-config', isAdmin, async (req, res) => {
     res.redirect('/admin/homepage-config?success=settings_updated');
   } catch (error) {
     console.error('Homepage config update error:', error);
+    captureException(error, req);
     res.redirect('/admin/homepage-config?error=update_failed');
   }
 });
@@ -2640,6 +2708,7 @@ router.get('/maintenance-mode', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Maintenance mode config error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading maintenance mode configuration');
   }
 });
@@ -2671,6 +2740,7 @@ router.post('/maintenance-mode', isAdmin, async (req, res) => {
     res.redirect('/admin/maintenance-mode?success=settings_updated');
   } catch (error) {
     console.error('Maintenance mode config update error:', error);
+    captureException(error, req);
     res.redirect('/admin/maintenance-mode?error=update_failed');
   }
 });
@@ -2697,6 +2767,7 @@ router.get('/notice-banner', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Notice banner config error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading notice banner configuration');
   }
 });
@@ -2725,6 +2796,7 @@ router.post('/notice-banner', isAdmin, async (req, res) => {
     res.redirect('/admin/notice-banner?success=settings_updated');
   } catch (error) {
     console.error('Notice banner config update error:', error);
+    captureException(error, req);
     res.redirect('/admin/notice-banner?error=update_failed');
   }
 });
@@ -2733,357 +2805,8 @@ router.post('/notice-banner', isAdmin, async (req, res) => {
 // ARTICLES MANAGEMENT ROUTES
 // ============================================
 
-// @route   GET /admin/articles
-// @desc    List all articles with pagination, search, filters
-// @access  Private (Admin only)
-router.get('/articles', isAdmin, async (req, res) => {
-  try {
-    const { Article } = require('../../models');
-    const { search, type, status, sort, page = 1 } = req.query;
-    const limit = 20;
-    const skip = (parseInt(page) - 1) * limit;
-
-    // Build query
-    const query = {};
-
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { summary: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    if (type && type !== 'all') {
-      query.type = type;
-    }
-
-    if (status === 'published') {
-      query.isPublished = true;
-    } else if (status === 'draft') {
-      query.isPublished = false;
-    }
-
-    // Sort options
-    let sortOption = { publishedAt: -1 }; // default: newest first
-    if (sort === 'oldest') {
-      sortOption = { publishedAt: 1 };
-    } else if (sort === 'title') {
-      sortOption = { title: 1 };
-    } else if (sort === 'updated') {
-      sortOption = { updatedAt: -1 };
-    }
-
-    // Get articles with pagination
-    const [articles, totalCount] = await Promise.all([
-      Article.find(query)
-        .sort(sortOption)
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Article.countDocuments(query)
-    ]);
-
-    const totalPages = Math.ceil(totalCount / limit);
-
-    // Get stats
-    const stats = {
-      total: await Article.countDocuments(),
-      published: await Article.countDocuments({ isPublished: true }),
-      draft: await Article.countDocuments({ isPublished: false }),
-      asdaa: await Article.countDocuments({ type: 'Asdaa' }),
-      telegram: await Article.countDocuments({ type: 'TelegramArticle' })
-    };
-
-    res.render('admin/articles-list', {
-      title: 'Article Management',
-      user: req.user,
-      articles,
-      stats,
-      filters: { search, type, status, sort },
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages,
-        totalCount,
-        hasNext: parseInt(page) < totalPages,
-        hasPrev: parseInt(page) > 1
-      },
-      activePage: 'articles',
-      success: req.query.success,
-      error: req.query.error
-    });
-  } catch (error) {
-    console.error('Articles list error:', error);
-    res.status(500).send('Error loading articles');
-  }
-});
-
-// @route   POST /admin/articles/import-from-url
-// @desc    Fetch and extract article from Asdaa URL (AJAX)
-// @access  Private (Admin only)
-router.post('/articles/import-from-url', isAdmin, async (req, res) => {
-  try {
-    const { Article } = require('../../models');
-    const { extractFromUrl } = require('../../utils/asdaaExtractor');
-    const { url } = req.body;
-
-    if (!url || !url.trim()) {
-      return res.status(400).json({ success: false, message: 'الرابط مطلوب' });
-    }
-
-    const trimmedUrl = url.trim();
-
-    if (!trimmedUrl.includes('asdaa-alsaa.com')) {
-      return res.status(400).json({ success: false, message: 'يجب أن يكون الرابط من موقع أصداء (asdaa-alsaa.com)' });
-    }
-
-    const existing = await Article.findOne({
-      sourceUrl: { $regex: new RegExp(trimmedUrl.replace(/\/$/, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') }
-    }).select('shortId title isPublished').lean();
-
-    if (existing) {
-      return res.status(409).json({
-        success: false,
-        message: `هذا المقال تم استيراده مسبقاً (#${existing.shortId}: ${existing.title})`,
-        existing: { shortId: existing.shortId, title: existing.title, isPublished: existing.isPublished }
-      });
-    }
-
-    const result = await extractFromUrl(trimmedUrl);
-
-    res.json({
-      success: true,
-      data: {
-        title: result.title,
-        content: result.content,
-        publishedAt: result.publishedAt ? result.publishedAt.toISOString().split('T')[0] : null,
-        stats: result.stats
-      }
-    });
-  } catch (error) {
-    console.error('Import from URL error:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'فشل في استيراد المقال من الرابط'
-    });
-  }
-});
-
-// @route   GET /admin/articles/new
-// @desc    Create article form
-// @access  Private (Admin only)
-router.get('/articles/new', isAdmin, (req, res) => {
-  res.render('admin/article-form', {
-    title: 'Add Article',
-    user: req.user,
-    article: null,
-    isEdit: false,
-    activePage: 'articles'
-  });
-});
-
-// @route   POST /admin/articles/new
-// @desc    Create a new article
-// @access  Private (Admin only)
-router.post('/articles/new', isAdmin, async (req, res) => {
-  try {
-    const { Article } = require('../../models');
-
-    const { title, summary, content, type, publishedAt, sourceUrl, isPublished } = req.body;
-
-    const article = new Article({
-      title,
-      summary: summary || '',
-      content,
-      type: type || 'Asdaa',
-      publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
-      sourceUrl: sourceUrl || '',
-      isPublished: isPublished === 'on'
-    });
-
-    await article.save();
-
-    // Invalidate articles cache
-    cache.invalidatePattern('articles:*');
-    cache.invalidatePattern('homepage:*');
-
-    res.redirect('/admin/articles?success=article_created');
-  } catch (error) {
-    console.error('Create article error:', error);
-    res.redirect('/admin/articles/new?error=create_failed');
-  }
-});
-
-// @route   GET /admin/articles/:id/edit
-// @desc    Edit article form
-// @access  Private (Admin only)
-router.get('/articles/:id/edit', isAdmin, async (req, res) => {
-  try {
-    const { Article } = require('../../models');
-
-    const article = await Article.findById(req.params.id).lean();
-    if (!article) {
-      return res.redirect('/admin/articles?error=not_found');
-    }
-
-    res.render('admin/article-form', {
-      title: 'Edit Article',
-      user: req.user,
-      article,
-      isEdit: true,
-      activePage: 'articles'
-    });
-  } catch (error) {
-    console.error('Edit article form error:', error);
-    res.redirect('/admin/articles?error=load_failed');
-  }
-});
-
-// @route   POST /admin/articles/:id/edit
-// @desc    Update an article
-// @access  Private (Admin only)
-router.post('/articles/:id/edit', isAdmin, async (req, res) => {
-  try {
-    const { Article } = require('../../models');
-
-    const article = await Article.findById(req.params.id);
-    if (!article) {
-      return res.redirect('/admin/articles?error=not_found');
-    }
-
-    const { title, summary, content, type, publishedAt, sourceUrl, isPublished, slug } = req.body;
-
-    await Article.findByIdAndUpdate(req.params.id, {
-      title,
-      summary: summary || '',
-      content,
-      type: type || 'Asdaa',
-      publishedAt: publishedAt ? new Date(publishedAt) : article.publishedAt,
-      sourceUrl: sourceUrl || '',
-      isPublished: isPublished === 'on',
-      slug: slug || article.slug
-    });
-
-    // Invalidate articles cache
-    cache.invalidatePattern('articles:*');
-    cache.invalidatePattern('homepage:*');
-
-    res.redirect('/admin/articles?success=article_updated');
-  } catch (error) {
-    console.error('Update article error:', error);
-    res.redirect(`/admin/articles/${req.params.id}/edit?error=update_failed`);
-  }
-});
-
-// @route   POST /admin/articles/:id/delete
-// @desc    Delete an article
-// @access  Private (Admin only)
-router.post('/articles/:id/delete', isAdmin, async (req, res) => {
-  try {
-    const { Article } = require('../../models');
-
-    const article = await Article.findById(req.params.id);
-    if (!article) {
-      return res.status(404).json({ success: false, message: 'Article not found' });
-    }
-
-    await Article.findByIdAndDelete(req.params.id);
-
-    // Invalidate articles cache
-    cache.invalidatePattern('articles:*');
-    cache.invalidatePattern('homepage:*');
-
-    // Check if request expects JSON (AJAX) or redirect
-    if (req.xhr || req.headers.accept?.includes('application/json')) {
-      return res.json({ success: true, message: 'Article deleted' });
-    }
-
-    res.redirect('/admin/articles?success=article_deleted');
-  } catch (error) {
-    console.error('Delete article error:', error);
-    if (req.xhr || req.headers.accept?.includes('application/json')) {
-      return res.status(500).json({ success: false, message: error.message });
-    }
-    res.redirect('/admin/articles?error=delete_failed');
-  }
-});
-
-// @route   POST /admin/articles/:id/toggle-published
-// @desc    Toggle article published status
-// @access  Private (Admin only)
-router.post('/articles/:id/toggle-published', isAdmin, async (req, res) => {
-  try {
-    const { Article } = require('../../models');
-
-    const article = await Article.findById(req.params.id);
-    if (!article) {
-      return res.status(404).json({ success: false, message: 'Article not found' });
-    }
-
-    const newPublished = !article.isPublished;
-    await Article.findByIdAndUpdate(req.params.id, { isPublished: newPublished });
-
-    // Invalidate articles cache
-    cache.invalidatePattern('articles:*');
-    cache.invalidatePattern('homepage:*');
-
-    res.json({
-      success: true,
-      isPublished: newPublished
-    });
-  } catch (error) {
-    console.error('Toggle published error:', error);
-    res.status(500).json({ success: false, message: 'Error toggling published status' });
-  }
-});
-
-// @route   POST /admin/articles/bulk
-// @desc    Bulk operations on articles (delete, publish, unpublish)
-// @access  Private (Admin only)
-router.post('/articles/bulk', isAdmin, async (req, res) => {
-  try {
-    const { Article } = require('../../models');
-
-    const { action, articleIds } = req.body;
-
-    if (!articleIds || !Array.isArray(articleIds) || articleIds.length === 0) {
-      return res.status(400).json({ success: false, message: 'No articles selected' });
-    }
-
-    let result;
-    switch (action) {
-      case 'delete':
-        result = await Article.deleteMany({ _id: { $in: articleIds } });
-        break;
-      case 'publish':
-        result = await Article.updateMany(
-          { _id: { $in: articleIds } },
-          { $set: { isPublished: true } }
-        );
-        break;
-      case 'unpublish':
-        result = await Article.updateMany(
-          { _id: { $in: articleIds } },
-          { $set: { isPublished: false } }
-        );
-        break;
-      default:
-        return res.status(400).json({ success: false, message: 'Invalid action' });
-    }
-
-    // Invalidate articles cache
-    cache.invalidatePattern('articles:*');
-    cache.invalidatePattern('homepage:*');
-
-    res.json({
-      success: true,
-      message: `${action} completed`,
-      affected: result.modifiedCount || result.deletedCount || 0
-    });
-  } catch (error) {
-    console.error('Bulk action error:', error);
-    res.status(500).json({ success: false, message: 'Error performing bulk action' });
-  }
-});
+// Admin article management routes (extracted to ./articles.js — H7)
+router.use(require('./articles'));
 
 // ========================================
 // ARTICLE EDITORS MANAGEMENT ROUTES
@@ -3112,6 +2835,7 @@ router.get('/article-editors', isSuperAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Article editors list error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading article editors');
   }
 });
@@ -3171,6 +2895,7 @@ router.post('/article-editors/add', isSuperAdmin, async (req, res) => {
     res.json({ success: true, message: 'Article editor added successfully' });
   } catch (error) {
     console.error('Add article editor error:', error);
+    captureException(error, req);
     if (error.code === 11000) {
       return res.status(400).json({ success: false, message: 'This email is already registered' });
     }
@@ -3197,6 +2922,7 @@ router.post('/article-editors/:id/remove', isSuperAdmin, async (req, res) => {
     res.json({ success: true, message: 'Article editor access removed' });
   } catch (error) {
     console.error('Remove article editor error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, message: 'Error removing article editor' });
   }
 });
@@ -3219,6 +2945,7 @@ router.post('/article-editors/:id/reactivate', isSuperAdmin, async (req, res) =>
     res.json({ success: true, message: 'Article editor reactivated' });
   } catch (error) {
     console.error('Reactivate article editor error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, message: 'Error reactivating article editor' });
   }
 });
@@ -3248,6 +2975,7 @@ router.post('/article-editors/:id/delete', isSuperAdmin, async (req, res) => {
     res.json({ success: true, message: 'Article editor permanently deleted' });
   } catch (error) {
     console.error('Delete article editor error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, message: 'Error deleting article editor' });
   }
 });
@@ -3280,6 +3008,7 @@ router.post('/article-editors/toggle-login', isSuperAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Toggle login link error:', error);
+    captureException(error, req);
     res.status(500).json({ success: false, message: 'Error toggling login link' });
   }
 });

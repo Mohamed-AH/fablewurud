@@ -8,6 +8,9 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const { Article, Admin } = require('../../models');
 const { isArticleEditor, isArticleEditorAPI } = require('../../middleware/auth');
+const { sanitizeArticleHtml } = require('../../utils/sanitizeHtml');
+const { escapeRegex } = require('../../utils/validators');
+const { captureException } = require('../../utils/errorReporter');
 
 // Helper to build article query - only include _id if valid ObjectId
 function buildArticleQuery(idParam) {
@@ -60,9 +63,10 @@ router.get('/', isArticleEditor, async (req, res) => {
     // Base query for published articles
     const baseQuery = { isPublished: true };
     if (search) {
+      const safe = escapeRegex(String(search));
       baseQuery.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { summary: { $regex: search, $options: 'i' } }
+        { title: { $regex: safe, $options: 'i' } },
+        { summary: { $regex: safe, $options: 'i' } }
       ];
     }
 
@@ -116,6 +120,7 @@ router.get('/', isArticleEditor, async (req, res) => {
     });
   } catch (error) {
     console.error('Article editor dashboard error:', error);
+    captureException(error, req);
     res.status(500).render('article-editor/error', {
       title: 'خطأ',
       message: 'حدث خطأ في تحميل المقالات'
@@ -146,6 +151,7 @@ router.get('/article/:id', isArticleEditor, async (req, res) => {
     });
   } catch (error) {
     console.error('Article editor edit page error:', error);
+    captureException(error, req);
     res.status(500).render('article-editor/error', {
       title: 'خطأ',
       message: 'حدث خطأ في تحميل المقال'
@@ -188,14 +194,15 @@ router.post('/article/:id', isArticleEditorAPI, async (req, res) => {
       updateFields.title = title;
     }
 
-    if (content !== undefined && content !== article.content) {
+    const sanitizedContent = content !== undefined ? sanitizeArticleHtml(content) : undefined;
+    if (sanitizedContent !== undefined && sanitizedContent !== article.content) {
       changes.push({
         field: 'content',
         oldValue: article.content,
-        newValue: content
+        newValue: sanitizedContent
       });
       fieldsChanged.push('content');
-      updateFields.content = content;
+      updateFields.content = sanitizedContent;
     }
 
     if (changes.length === 0) {
@@ -229,6 +236,7 @@ router.post('/article/:id', isArticleEditorAPI, async (req, res) => {
     });
   } catch (error) {
     console.error('Article save error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'حدث خطأ في حفظ التغييرات'
@@ -268,6 +276,7 @@ router.get('/article/:id/history', isArticleEditor, async (req, res) => {
     });
   } catch (error) {
     console.error('Article history error:', error);
+    captureException(error, req);
     res.status(500).render('article-editor/error', {
       title: 'خطأ',
       message: 'حدث خطأ في تحميل سجل التعديلات'

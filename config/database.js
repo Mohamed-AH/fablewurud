@@ -24,10 +24,26 @@ const connectDB = async () => {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 10000, // Fail fast: 10 second timeout for initial connection
       socketTimeoutMS: 45000,
+      monitorCommands: true, // Emit command events for DB latency metrics (Grafana)
     });
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     console.log(`📊 Database: ${conn.connection.name}`);
+
+    // Wire MongoDB command latency into metrics (no-op if metrics disabled)
+    try {
+      require('../utils/metrics').attachDbMonitoring(conn.connection);
+    } catch (e) {
+      console.warn('Could not attach DB monitoring:', e.message);
+    }
+
+    // Detect transaction support (replica set / mongos) for atomic multi-doc writes
+    try {
+      const support = await require('../utils/dbTransaction').detectTransactionSupport();
+      console.log(`🔐 Transactions ${support ? 'supported' : 'unsupported (standalone) — using sequential writes'}`);
+    } catch (e) {
+      console.warn('Could not detect transaction support:', e.message);
+    }
 
     // Graceful shutdown
     process.on('SIGINT', async () => {

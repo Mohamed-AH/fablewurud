@@ -3,6 +3,7 @@ const router = express.Router();
 const { Series } = require('../../models');
 const { isAdminAPI } = require('../../middleware/auth');
 const { isValidObjectId } = require('../../utils/validators');
+const { captureException } = require('../../utils/errorReporter');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -43,6 +44,7 @@ router.get('/export', async (req, res) => {
     res.end(csv);
   } catch (error) {
     console.error('Export series error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to export series',
@@ -74,6 +76,7 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Get series error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch series',
@@ -98,6 +101,7 @@ router.get('/parents', isAdminAPI, async (req, res) => {
     });
   } catch (error) {
     console.error('Get parent series error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch parent series'
@@ -174,6 +178,7 @@ router.post('/', isAdminAPI, async (req, res) => {
     });
   } catch (error) {
     console.error('Create series error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to create series',
@@ -283,6 +288,7 @@ router.put('/:id', isAdminAPI, async (req, res) => {
     });
   } catch (error) {
     console.error('Update series error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to update series',
@@ -331,6 +337,7 @@ router.delete('/:id', isAdminAPI, async (req, res) => {
     });
   } catch (error) {
     console.error('Delete series error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to delete series',

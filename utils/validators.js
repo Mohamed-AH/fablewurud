@@ -255,6 +255,15 @@ const sanitizeComment = (input, maxLength = 300) => {
 };
 
 /**
+ * Escape regex special characters so user input can be safely used in a
+ * MongoDB $regex query without ReDoS / injection. Returns '' for non-strings.
+ */
+const escapeRegex = (input) => {
+  if (!input || typeof input !== 'string') return '';
+  return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+/**
  * Sanitize user input to prevent NoSQL injection
  * Removes $ and . from object keys
  */
@@ -287,5 +296,6 @@ module.exports = {
   searchValidation,
   sanitizeMongoQuery,
   sanitizeSearchInput,
-  sanitizeComment
+  sanitizeComment,
+  escapeRegex
 };

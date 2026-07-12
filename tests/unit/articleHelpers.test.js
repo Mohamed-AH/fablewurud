@@ -82,6 +82,32 @@ describe('sanitizeArticleHtml()', () => {
     const dirty = '<script>bad</script><p>Safe</p><iframe></iframe><style>.x{}</style>';
     expect(sanitize(dirty)).toBe('<p>Safe</p>');
   });
+
+  // Regression tests for the stored-XSS bypasses that the old regex blacklist
+  // allowed through (code audit finding C1).
+  it('should strip UNQUOTED inline event handlers', () => {
+    const result = sanitize('<img src=x onerror=alert(document.cookie)>');
+    expect(result).not.toContain('onerror');
+    expect(result).not.toContain('<img');
+  });
+
+  it('should strip javascript: URIs on links', () => {
+    const result = sanitize('<a href="javascript:alert(1)">click</a>');
+    expect(result).not.toContain('javascript:');
+    expect(result).toContain('click');
+  });
+
+  it('should strip svg-based handlers', () => {
+    const result = sanitize('<svg onload=alert(1)>');
+    expect(result).not.toContain('onload');
+    expect(result).not.toContain('<svg');
+  });
+
+  it('should only allow the semantic classes', () => {
+    const result = sanitize('<span class="quran">v</span><span class="evil">x</span>');
+    expect(result).toContain('class="quran"');
+    expect(result).not.toContain('evil');
+  });
 });
 
 describe('ensureHtmlParagraphs()', () => {

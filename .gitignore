@@ -1,8 +1,15 @@
 # Dependencies
 node_modules/
 
-# Environment variables
+# Environment variables (ignore all .env* except the safe example + test placeholders)
 .env
+.env.*
+!.env.example
+!.env.test
+
+# Committed data dumps / reports / large binaries (keep out of the app repo)
+data-export-*.txt
+*.pdf
 
 # Audio files (too large for git)
 /mnt/audio/

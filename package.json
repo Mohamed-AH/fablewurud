@@ -59,9 +59,11 @@
     "music-metadata": "^8.1.4",
     "oci-common": "^2.96.0",
     "oci-objectstorage": "^2.96.0",
+    "oci-workrequests": "^2.125.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "prom-client": "^15.1.0",
+    "sanitize-html": "^2.13.1",
     "xlsx": "^0.18.5",
     "xlsx-stream-reader": "^1.1.1"
   },

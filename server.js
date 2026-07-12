@@ -52,11 +52,8 @@ process.on('uncaughtException', (error) => {
 // Suppress non-essential console output in production
 suppressConsoleInProduction();
 
-// Fail fast if SESSION_SECRET is missing in production
-if (isProduction && !process.env.SESSION_SECRET) {
-  console.error('FATAL: SESSION_SECRET environment variable is required in production');
-  process.exit(1);
-}
+// Validate environment: fail fast on missing required vars, warn on optional ones
+require('./config/env').validateEnv();
 
 // Setup database health listeners immediately (before connection attempt)
 setupDbHealthListeners();
@@ -147,22 +144,25 @@ app.use(express.urlencoded({ extended: true }));
 // Request tracking middleware (metrics: HTTP errors, visitor count)
 app.use(requestTrackingMiddleware);
 
+// Request context: assigns request id, Sentry correlation, structured completion log
+const { requestContext } = require('./middleware/requestContext');
+app.use(requestContext);
+
 // Create session store with error handling (falls back to memory store on DB failure)
 let sessionStore;
 if (process.env.MONGODB_URI) {
   try {
+    // Reuse the mongoose connection's client instead of opening a second pool
+    // (memory win on 512MB; avoids a duplicate connection to the same cluster).
+    const mongoose = require('mongoose');
     sessionStore = MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI,
+      clientPromise: mongoose.connection.asPromise().then(conn => conn.getClient()),
       touchAfter: 24 * 3600, // Lazy update: only update session once per 24 hours unless data changes
       ttl: 7 * 24 * 60 * 60, // Session TTL: 7 days (matches cookie maxAge)
       crypto: {
         secret: process.env.SESSION_SECRET || 'dev-secret-local-only'
       },
-      autoRemove: 'native',
-      // Handle connection errors gracefully
-      mongoOptions: {
-        serverSelectionTimeoutMS: 5000,
-      }
+      autoRemove: 'native'
     });
     // Catch session store errors to prevent crashes
     sessionStore.on('error', (error) => {
@@ -254,9 +254,12 @@ app.get('/health', (req, res) => {
 });
 
 // Sentry verification route - intentional error for testing
-app.get('/debug-sentry', function mainHandler(req, res) {
-  throw new Error('My first Sentry error!');
-});
+// Gated to non-production so it can't be used to flood Sentry / probe error handling.
+if (!isProduction) {
+  app.get('/debug-sentry', function mainHandler(req, res) {
+    throw new Error('My first Sentry error!');
+  });
+}
 
 // Maintenance page route (always accessible)
 app.get('/maintenance', (req, res) => {
@@ -306,13 +309,32 @@ app.use((req, res) => {
 // Database error handler (fail-fast for MongoDB issues)
 app.use(dbErrorHandler);
 
-// Optional fallthrough error handler
+// Central error handler — runs after Sentry's Express handler (which captures
+// errors forwarded via next(err), e.g. from asyncHandler-wrapped routes).
+// Responds with JSON for API/XHR requests and HTML otherwise.
 app.use(function onError(err, req, res, next) {
-  // The error id is attached to `res.sentry` to be returned
-  // and optionally displayed to the user for support.
-  console.error(err.stack);
-  res.statusCode = 500;
-  res.end(res.sentry + '\n');
+  console.error(err.stack || err);
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const status = err.status || err.statusCode || 500;
+  const wantsJson = req.path.startsWith('/api/') ||
+    req.xhr ||
+    (req.headers.accept || '').includes('application/json');
+
+  if (wantsJson) {
+    return res.status(status).json({
+      success: false,
+      message: 'Internal server error',
+      // Sentry event id (if available) helps users reference an error in support
+      reference: res.sentry || undefined,
+      error: isProduction ? undefined : (err.message || String(err))
+    });
+  }
+
+  res.status(status).send('Something went wrong. Please try again later.');
 });
 
 // Start server

@@ -356,6 +356,15 @@ describe('Lecture API Extended Tests', () => {
       expect(response.body.success).toBe(false);
       expect(response.body.message).toBe('Lecture not found');
     });
+
+    // Code-audit H1: this public write endpoint must be rate-limited (30/5min/IP)
+    it('should apply the public write rate limiter', async () => {
+      const fakeId = new mongoose.Types.ObjectId();
+      const response = await request(app)
+        .post(`/api/lectures/${fakeId}/verify-duration`)
+        .send({ duration: 1000 });
+      expect(response.headers['ratelimit-limit']).toBe('30');
+    });
   });
 
   describe('POST /api/lectures/:id/play', () => {
@@ -408,6 +417,15 @@ describe('Lecture API Extended Tests', () => {
 
       expect(response.body.success).toBe(false);
       expect(response.body.message).toBe('Lecture not found');
+    });
+
+    // Code-audit H1: this public write endpoint must be rate-limited (30/5min/IP)
+    it('should apply the public write rate limiter', async () => {
+      const sheikh = await Sheikh.create({ nameArabic: 'الشيخ حد' });
+      const lecture = await Lecture.create({ titleArabic: 'محاضرة', sheikhId: sheikh._id });
+
+      const response = await request(app).post(`/api/lectures/${lecture._id}/play`);
+      expect(response.headers['ratelimit-limit']).toBe('30');
     });
   });
 

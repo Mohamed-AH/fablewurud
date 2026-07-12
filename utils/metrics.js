@@ -50,13 +50,30 @@ const metricsStore = {
 
   // Histogram: array of values
   searchLatencies: [],
+  requestLatencies: [],  // HTTP request durations (ms) — all requests
+  dbLatencies: [],       // MongoDB command durations (ms)
 
   // Gauge: visitor tracking with timestamps
-  visitors: {},          // {visitorId: lastSeenTimestamp}
-
-  // Request timing for middleware
-  requestTimings: []     // [{path, method, status, duration}]
+  visitors: {}           // {visitorId: lastSeenTimestamp}
 };
+
+/**
+ * Compute summary statistics (avg/min/max/p95/count) for a latency array.
+ * Returns null for an empty array.
+ */
+function summarizeLatencies(values) {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const sum = sorted.reduce((a, b) => a + b, 0);
+  const p95Index = Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95));
+  return {
+    avg: sum / sorted.length,
+    min: sorted[0],
+    max: sorted[sorted.length - 1],
+    p95: sorted[p95Index],
+    count: sorted.length
+  };
+}
 
 /**
  * Escape special characters for Influx line protocol
@@ -161,6 +178,11 @@ function requestTrackingMiddleware(req, res, next) {
     const status = res.statusCode;
     const path = req.path;
 
+    // Record request latency for percentile/latency dashboards (bounded buffer)
+    if (metricsStore.requestLatencies.length < 5000) {
+      metricsStore.requestLatencies.push(duration);
+    }
+
     // Record HTTP errors (4xx and 5xx)
     if (status >= 400) {
       recordHttpError(path, status);
@@ -168,6 +190,29 @@ function requestTrackingMiddleware(req, res, next) {
   });
 
   next();
+}
+
+/**
+ * Record a MongoDB command duration (ms). Wired via command monitoring.
+ * @param {number} ms
+ */
+function recordDbLatency(ms) {
+  if (typeof ms === 'number' && ms >= 0 && metricsStore.dbLatencies.length < 5000) {
+    metricsStore.dbLatencies.push(ms);
+  }
+}
+
+/**
+ * Attach MongoDB command monitoring to a mongoose connection so command
+ * durations flow into Grafana. Requires the connection to be opened with
+ * `monitorCommands: true`. Safe to call once after connect.
+ */
+function attachDbMonitoring(connection) {
+  if (!connection) return;
+  const client = connection.getClient ? connection.getClient() : null;
+  if (!client || typeof client.on !== 'function') return;
+  client.on('commandSucceeded', (e) => recordDbLatency(e.duration));
+  client.on('commandFailed', (e) => recordDbLatency(e.duration));
 }
 
 /**
@@ -252,19 +297,20 @@ function convertCustomMetricsToInflux() {
     lines.push(`wurud_http_errors_total,${instanceTag},path=${path},status=${status} value=${count} ${timestamp}`);
   }
 
-  // Search latency histogram (push individual values or summary stats)
-  if (metricsStore.searchLatencies.length > 0) {
-    const latencies = metricsStore.searchLatencies;
-    const sum = latencies.reduce((a, b) => a + b, 0);
-    const avg = sum / latencies.length;
-    const max = Math.max(...latencies);
-    const min = Math.min(...latencies);
+  // Latency summaries (avg/min/max/p95/count) for search, HTTP requests, and DB
+  const latencyMetrics = {
+    wurud_search_latency_ms: summarizeLatencies(metricsStore.searchLatencies),
+    wurud_http_latency_ms: summarizeLatencies(metricsStore.requestLatencies),
+    wurud_db_latency_ms: summarizeLatencies(metricsStore.dbLatencies)
+  };
 
-    // Push summary statistics
-    lines.push(`wurud_search_latency_ms_avg,${instanceTag} value=${avg.toFixed(2)} ${timestamp}`);
-    lines.push(`wurud_search_latency_ms_max,${instanceTag} value=${max} ${timestamp}`);
-    lines.push(`wurud_search_latency_ms_min,${instanceTag} value=${min} ${timestamp}`);
-    lines.push(`wurud_search_latency_ms_count,${instanceTag} value=${latencies.length} ${timestamp}`);
+  for (const [name, s] of Object.entries(latencyMetrics)) {
+    if (!s) continue;
+    lines.push(`${name}_avg,${instanceTag} value=${s.avg.toFixed(2)} ${timestamp}`);
+    lines.push(`${name}_p95,${instanceTag} value=${s.p95} ${timestamp}`);
+    lines.push(`${name}_max,${instanceTag} value=${s.max} ${timestamp}`);
+    lines.push(`${name}_min,${instanceTag} value=${s.min} ${timestamp}`);
+    lines.push(`${name}_count,${instanceTag} value=${s.count} ${timestamp}`);
   }
 
   // Online visitors gauge
@@ -284,6 +330,8 @@ function clearMetricsStore() {
   metricsStore.searchEmpty = {};
   metricsStore.httpErrors = {};
   metricsStore.searchLatencies = [];
+  metricsStore.requestLatencies = [];
+  metricsStore.dbLatencies = [];
   // Note: visitors are cleaned by TTL, not cleared entirely
 }
 
@@ -382,5 +430,7 @@ module.exports = {
   recordAudioPlay,
   recordSearch,
   recordHttpError,
+  recordDbLatency,
+  attachDbMonitoring,
   trackVisitor
 };

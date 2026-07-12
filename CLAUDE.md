@@ -6,6 +6,76 @@ Islamic audio archive website for Sheikh Hasan bin Mohammed Mansour Dhaghriri. S
 **CRITICAL: This is a PRODUCTION database. Do not run destructive operations.**
 
 ## Current Branch
+`claude/comprehensive-code-audit-mf1wc8`
+
+---
+
+## 🔧 ACTIVE: Code Audit Remediation (started 2026-07-12)
+
+Full findings + 6-phase plan live in **`CODE_AUDIT_REPORT.md`** (committed). Work the phases in order; each is independently shippable. Update the checkboxes below as tasks land so a context-compaction restart can resume cleanly.
+
+### Phase 0 — Emergency security hotfixes  ✅ DONE (commit pending push)
+- [x] **C1 XSS** — allowlist sanitizer `utils/sanitizeHtml.js` (sanitize-html, pinned **2.13.1** because 2.14+ pulls pure-ESM htmlparser2@12 that breaks Jest/CJS `require`). Applied on WRITE (admin create/edit `routes/admin/index.js`, article-editor POST `routes/article-editor/index.js`) AND on render (`routes/articles.js`). Migration `scripts/resanitize-articles.js` created — **dry-run default; NOT run against prod DB** (owner must run `--apply` with backup). Config verified to pass all existing `articleHelpers.test.js` assertions + block the 3 bypasses. 23/23 tests green.
+- [x] **H1/M2 unauth writes** — added `publicWriteLimiter` (30/5min/IP) to `verify-duration` + `play` in `routes/api/lectures.js`; play-count now counted only on initial request (no `Range` / `bytes=0-`) in `controllers/streamController.js` (all 3 increment sites).
+- [x] **M11 /debug-sentry** — gated behind `!isProduction` in `server.js`.
+- [x] **M3 git hygiene** — `.gitignore` now ignores `.env*` (keeps `.env.example`, `.env.test`) + `data-export-*.txt` + `*.pdf`; `git rm --cached` on `.env.production`, `data-export-2mar.txt`, `gtmetrix.pdf`. **NOT done:** history purge (BFG/filter-repo + force-push rewrites shared history — needs owner approval); spreadsheets `*.xlsx`/`*.csv` left tracked (import-data references — owner decision).
+- [x] **M1 PII log** — removed both ungated `[AUTH DEBUG]` logs in `middleware/auth.js`. `sendDefaultPii: true` in `instrument.js` still needs review in **Phase 1**.
+
+**Sanitizer config that passes all existing `tests/unit/articleHelpers.test.js` assertions AND blocks the 3 known bypasses** (verified): allowedTags = p,br,span,div,h1-h4,strong,em,b,i,u,ul,ol,li,blockquote,a; allowedClasses restricted to `quran|hadith|section-header`; schemes http/https/mailto; `a` gets `rel=noopener noreferrer`.
+
+### Phase 1 — Observability repair  ✅ DONE (commit pending push)
+- [x] **H2 Sentry release/env** — `instrument.js`: `environment` now from `SENTRY_ENVIRONMENT||NODE_ENV` (was `METRIC_TAG`); added `release` (resolves `SENTRY_RELEASE`→`RENDER_GIT_COMMIT`→git short-SHA→pkg version); `METRIC_TAG` moved to an `app_instance` tag via `initialScope`. **Owner TODO:** set `SENTRY_RELEASE` in CI + upload source maps per release.
+- [x] **C3 console/Sentry conflict** — `consoleLoggingIntegration` levels reduced to `['warn','error']` (dropped `'log'`, which `suppressConsoleInProduction` no-ops in prod). No more silent defeat.
+- [x] **C2 errors→Sentry** — new `utils/errorReporter.js` (`asyncHandler` + `captureException(error, req)` with route/method/user context). `routes/articles.js` fully converted to `asyncHandler`. `captureException` inserted into catch blocks of `routes/index.js` (11), `routes/api/lectures.js` (9), `routes/search.js` (2), `controllers/streamController.js` (2). Central error middleware in `server.js` now returns JSON for `/api`+xhr, HTML otherwise, and reports Sentry event id as `reference`. **DEFERRED to Phase 3:** per-handler capture in `routes/admin/index.js` (~60 handlers) + `routes/article-editor/index.js` + other `api/*` — swept during the controller split; interim visibility via console.error→Sentry error-level logs (now working after C3).
+- [x] **H3 latency metrics** — `utils/metrics.js`: records HTTP request duration (was computed then discarded) + MongoDB command duration; emits `wurud_http_latency_ms_*`, `wurud_db_latency_ms_*`, `wurud_search_latency_ms_*` (avg/p95/max/min/count) via `summarizeLatencies`. `config/database.js` opens with `monitorCommands:true` and calls `attachDbMonitoring`.
+- [x] **M1 leftover (PII)** — `sendDefaultPii` now `false` unless `SENTRY_SEND_PII==='true'`.
+
+Verify: `node -c` clean on all touched files; module load-test passes; articleHelpers + cache unit tests green (51/51).
+
+### Phase 2 — Data integrity  ✅ DONE (commit pending push)
+- [x] **H4 transactions** — new `utils/dbTransaction.js` (`withTransaction` + `detectTransactionSupport`). Detects replica-set/mongos support once at connect (`config/database.js`); atomic on Atlas, graceful sequential fallback on standalone (dev/test MongoMemoryServer — verified `session=null` path works). Wrapped: admin lecture delete (`routes/admin/index.js`), api lecture delete + create (`routes/api/lectures.js`). OCI/file deletes moved AFTER the DB commit so a rollback can't orphan the file.
+- [x] **M4 connection pooling** — session store now reuses the mongoose client via `clientPromise: mongoose.connection.asPromise().then(c=>c.getClient())` (`server.js`) instead of opening a 2nd pool with `mongoUrl`.
+- [x] **M5 index** — `dateRecordedHijri` now `index: true` (`models/Lecture.js`) for the `/browse` Hijri range filter. Builds in background on next deploy (autoIndex).
+- [x] **M6 regex escaping** — added `escapeRegex` to `utils/validators.js` (exported + tested); applied to admin series search, admin article search (`routes/admin/index.js`) and article-editor search (`routes/article-editor/index.js`). 40/40 validators tests green.
+- [ ] **L3 `$ne:false`→`isVisible:true`** — DEFERRED. Swapping the query would hide any legacy docs with `isVisible` undefined; needs a backfill migration run against prod first (owner decision). `Series.isVisible` already defaults `true`. Low priority; `$ne:false` is correct, just not index-optimal.
+
+Verify: `node -c` clean; all modules load; validators (40) + articleHelpers (23) unit tests green. **Owner TODO:** run `scripts/sync-lecture-counts.js` once after deploy to repair any pre-existing count drift.
+
+### Phase 3 — Architecture  ✅ DONE (commit pending push)
+- [x] **L1 dead code** — removed unused `fetchHomepageData()` (`routes/index.js`, had a dead N+1) and `proxyOciDownload()` + now-unused `https` import (`controllers/streamController.js`).
+- [x] **C2 sweep (Phase 1 deferral)** — `captureException(error, req)` inserted into ALL remaining catch blocks: admin (81), article-editor (4), api/series (6), api/sheikhs (4), api/homepage (4), api/contact (1). All 100 sites statically verified to have `req` in scope. Every catch in the app now reports to Sentry with context.
+- [x] **M7 structured logging** — new zero-dep `utils/structuredLogger.js` (JSON lines to stdout/stderr, level via `LOG_LEVEL`, bypasses console so it's neither suppressed nor double-captured by Sentry). New `middleware/requestContext.js` assigns a request id (`X-Request-Id`), tags the Sentry scope (`request_id`) for log↔issue correlation, and emits a `request.complete` JSON log per request. Wired in `server.js`; `captureException` now also stamps `request_id`. **Follow-up:** migrating existing `console.*` calls to the structured logger is incremental (not required — they still flow to Sentry via C3).
+- [x] **H7 admin split (first slice)** — extracted the 9 admin article routes into `routes/admin/articles.js` (mounted via `router.use(require('./articles'))`). Verified the admin route table is **byte-identical before/after** (87 routes, same methods/paths — see scratchpad routelist). `routes/admin/index.js`: 3287 → 3016 lines. **REMAINING (staged for follow-up):** extract sheikhs, series, sections, schedule, users, lectures, api groups the same way — each with a before/after route-table diff. Pattern is proven; do one resource per commit. **Full step-by-step guide (order, shared-helper extraction, verification, gotchas): `docs/H7-admin-split-plan.md`.** Do it in a dev env where admin can be E2E-tested.
+
+Verify: `node -c` clean; all route modules load; route-table diff identical; mock-based unit tests green (articleHelpers 23, validators 40, cache 28 = 91). NOTE: full unit suite can't run here (MongoMemoryServer binary download blocked) — DB-dependent tests must be run in CI/dev.
+
+### Phase 4 — DevOps & hardening  ✅ DONE (commit pending push)
+- [x] **H6 narrow `isMongoError`** (`middleware/dbHealth.js`) — removed bare-substring matches (`'connection'`, `'timeout'`) that misclassified unrelated errors as DB errors (dangerous: gates whether `uncaughtException` keeps the process alive). Now: precise error names + codes + SPECIFIC availability phrases only. Regression test `tests/unit/dbHealth.test.js` (7 tests) locks it in.
+- [x] **M8 Dockerfile** — multistage (builder installs with toolchain via `npm ci --omit=dev`; runtime is minimal), runs as non-root `USER node`, writable `uploads`/`logs` chowned. `.dockerignore` also excludes `data-export-*.txt`. Lockfile verified in sync (npm ci will succeed). NOTE: could not `docker build` here (daemon not running) — validated by inspection + lockfile sync.
+- [x] **M9 env validation** — new `config/env.js` `validateEnv()`: fails fast in prod on missing `MONGODB_URI`/`SESSION_SECRET`; warns (once at boot) for each optional integration that self-disables (Sentry/Grafana/OCI/Google/Telegram). Wired in `server.js` (replaced the narrower inline SESSION_SECRET check). Verified: dev warns+continues, prod-missing exits 1.
+- [x] **L2 `oci-workrequests` dep** — added to `package.json` (`^2.125.0`, matches installed) so OCI init doesn't rely on a transitive hoist.
+- [~] **L7 deploy configs** — light-touch: annotated `ecosystem.config.js` (OCI is primary; render.yaml/docker-compose legacy; memory limits are Render-tuned, revisit for OCI shape). Did NOT delete render.yaml/docker-compose (owner may rely on them) — consolidation is an owner decision.
+
+Verify: `node -c` clean; env validation behaves (dev/prod); `oci-workrequests` resolves; mock-based unit tests green (articleHelpers 23, validators 40, cache 28, dbHealth 7 = 98).
+
+### Phase 5 — Testing  ✅ DONE (commit pending push)
+- [x] **H5 coverage gates** — raised from placeholder 5/5/10/10 to interim floors branches 12 / functions 15 / lines 20 / statements 20 (`jest.config.js`), with a TODO to measure actuals in CI and ratchet up. NOTE: couldn't measure here (no Mongo); floors set conservatively below likely actuals — owner should confirm on first CI run.
+- [x] **M10 fail-not-skip in CI** — `tests/globalSetup.js` now THROWS (hard-fails the run) if `process.env.CI` is set and MongoMemoryServer can't start, instead of writing `available:false` and letting DB suites silently `describe.skip`. Local behavior unchanged (still degrades gracefully).
+- [x] **Regression tests** — C1 (XSS bypasses) already in `articleHelpers.test.js` (Phase 0). H1: added rate-limiter assertions (`ratelimit-limit: 30`) on `/play` + `/verify-duration` in `tests/integration/api/lecturesExtended.test.js`. H4: new `tests/unit/dbTransaction.test.js` (4 tests, fallback path — verifiable without a DB). H6: `tests/unit/dbHealth.test.js` (Phase 4).
+
+Verify: mock-based unit suites green — articleHelpers 23, validators 40, cache 28, dbHealth 7, dbTransaction 4 = **102**. Rate-limit header value confirmed via standalone check. Integration/H1 tests run in CI (need Mongo).
+
+### Phase 6 — Repo hygiene  ✅ DONE (commit pending push)
+- [x] **L6 docs** — moved ~19 planning/guide/report docs from repo root into `docs/{guides,plans,reports,archive}/` via `git mv` (history preserved). Root now holds only `CLAUDE.md` + `CODE_AUDIT_REPORT.md`. Verified no code/config path-depends on the moved files (3 matches were cosmetic comments/URLs).
+- [x] **M3 binaries — working tree** — confirmed `.env.production`, `data-export-2mar.txt`, `gtmetrix.pdf` untracked (Phase 0). `.xlsx`/`.csv` import data left tracked (owner decision).
+- [~] **M3 binaries — history purge** — NOT done (needs owner approval + force-push that rewrites shared history). Exact `git filter-repo` procedure + secret-rotation note documented in **`docs/repo-hygiene.md`**.
+
+### H7 remainder — see `docs/H7-admin-split-plan.md`
+Full guide to finish the admin split (order, shared-helper extraction, route-table verification, gotchas). Do in a dev env with admin E2E.
+
+---
+
+## Prior Branch (superseded)
 `claude/fix-homepage-tests-ovChk`
 
 ## Recent Work Completed
