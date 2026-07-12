@@ -20,13 +20,17 @@ module.exports = {
     '!**/coverage/**'
   ],
 
-  // Coverage thresholds
+  // Coverage thresholds (code-audit finding H5).
+  // The previous 5-10% floors enforced nothing. These are conservative INTERIM
+  // floors — with ~1,060 tests the real coverage is well above them.
+  // TODO(owner): run `npm test` in CI to read actual coverage, then ratchet
+  // these up to just below the measured numbers. Never lower them.
   coverageThreshold: {
     global: {
-      branches: 5,
-      functions: 5,
-      lines: 10,
-      statements: 10
+      branches: 12,
+      functions: 15,
+      lines: 20,
+      statements: 20
     }
   },
 

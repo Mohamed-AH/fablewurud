@@ -58,11 +58,17 @@ Verify: `node -c` clean; all route modules load; route-table diff identical; moc
 
 Verify: `node -c` clean; env validation behaves (dev/prod); `oci-workrequests` resolves; mock-based unit tests green (articleHelpers 23, validators 40, cache 28, dbHealth 7 = 98).
 
+### Phase 5 — Testing  ✅ DONE (commit pending push)
+- [x] **H5 coverage gates** — raised from placeholder 5/5/10/10 to interim floors branches 12 / functions 15 / lines 20 / statements 20 (`jest.config.js`), with a TODO to measure actuals in CI and ratchet up. NOTE: couldn't measure here (no Mongo); floors set conservatively below likely actuals — owner should confirm on first CI run.
+- [x] **M10 fail-not-skip in CI** — `tests/globalSetup.js` now THROWS (hard-fails the run) if `process.env.CI` is set and MongoMemoryServer can't start, instead of writing `available:false` and letting DB suites silently `describe.skip`. Local behavior unchanged (still degrades gracefully).
+- [x] **Regression tests** — C1 (XSS bypasses) already in `articleHelpers.test.js` (Phase 0). H1: added rate-limiter assertions (`ratelimit-limit: 30`) on `/play` + `/verify-duration` in `tests/integration/api/lecturesExtended.test.js`. H4: new `tests/unit/dbTransaction.test.js` (4 tests, fallback path — verifiable without a DB). H6: `tests/unit/dbHealth.test.js` (Phase 4).
+
+Verify: mock-based unit suites green — articleHelpers 23, validators 40, cache 28, dbHealth 7, dbTransaction 4 = **102**. Rate-limit header value confirmed via standalone check. Integration/H1 tests run in CI (need Mongo).
+
 ### H7 remainder — see `docs/H7-admin-split-plan.md`
 Full guide to finish the admin split (order, shared-helper extraction, route-table verification, gotchas). Do in a dev env with admin E2E.
 
-### Phases 5–6 — see CODE_AUDIT_REPORT.md
-5. Testing (raise coverage gates, fail-not-skip in CI, regression tests for C1/H1/H4)
+### Phase 6 — see CODE_AUDIT_REPORT.md
 6. Repo hygiene (move planning docs, confirm binaries purged)
 
 ---
