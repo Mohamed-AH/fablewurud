@@ -5,10 +5,19 @@ const fs = require('fs');
 // Ensure upload directory exists
 const uploadDir = process.env.UPLOAD_DIR || './uploads';
 
-// Create upload directory if it doesn't exist
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log(`📁 Created upload directory: ${uploadDir}`);
+// Create the upload directory if possible. This is only a LOCAL staging area for
+// uploads before they go to OCI Object Storage — so a failure here (e.g. a
+// read-only mount, or a non-root user that can't create the path) must NOT crash
+// the whole server at boot. Warn and continue; per-upload writes will surface a
+// clear error later if the directory truly isn't usable.
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    console.log(`📁 Created upload directory: ${uploadDir}`);
+  }
+} catch (err) {
+  console.warn(`⚠️ Could not create upload directory "${uploadDir}" (${err.code || err.message}). ` +
+    'Local uploads will fail until it is writable; audio storage still uses OCI.');
 }
 
 // Configure storage
