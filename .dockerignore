@@ -60,6 +60,7 @@ docker-compose*.yml
 # CSV and data files
 *.csv
 *.xlsx
+data-export-*.txt
 
 # Backup files
 *.bak

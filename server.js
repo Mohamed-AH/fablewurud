@@ -52,11 +52,8 @@ process.on('uncaughtException', (error) => {
 // Suppress non-essential console output in production
 suppressConsoleInProduction();
 
-// Fail fast if SESSION_SECRET is missing in production
-if (isProduction && !process.env.SESSION_SECRET) {
-  console.error('FATAL: SESSION_SECRET environment variable is required in production');
-  process.exit(1);
-}
+// Validate environment: fail fast on missing required vars, warn on optional ones
+require('./config/env').validateEnv();
 
 // Setup database health listeners immediately (before connection attempt)
 setupDbHealthListeners();

@@ -45,12 +45,23 @@ Verify: `node -c` clean; all modules load; validators (40) + articleHelpers (23)
 - [x] **L1 dead code** — removed unused `fetchHomepageData()` (`routes/index.js`, had a dead N+1) and `proxyOciDownload()` + now-unused `https` import (`controllers/streamController.js`).
 - [x] **C2 sweep (Phase 1 deferral)** — `captureException(error, req)` inserted into ALL remaining catch blocks: admin (81), article-editor (4), api/series (6), api/sheikhs (4), api/homepage (4), api/contact (1). All 100 sites statically verified to have `req` in scope. Every catch in the app now reports to Sentry with context.
 - [x] **M7 structured logging** — new zero-dep `utils/structuredLogger.js` (JSON lines to stdout/stderr, level via `LOG_LEVEL`, bypasses console so it's neither suppressed nor double-captured by Sentry). New `middleware/requestContext.js` assigns a request id (`X-Request-Id`), tags the Sentry scope (`request_id`) for log↔issue correlation, and emits a `request.complete` JSON log per request. Wired in `server.js`; `captureException` now also stamps `request_id`. **Follow-up:** migrating existing `console.*` calls to the structured logger is incremental (not required — they still flow to Sentry via C3).
-- [x] **H7 admin split (first slice)** — extracted the 9 admin article routes into `routes/admin/articles.js` (mounted via `router.use(require('./articles'))`). Verified the admin route table is **byte-identical before/after** (87 routes, same methods/paths — see scratchpad routelist). `routes/admin/index.js`: 3287 → 3016 lines. **REMAINING (staged for follow-up):** extract sheikhs, series, sections, schedule, users, lectures, transcripts groups the same way — each with a before/after route-table diff. Pattern is proven; do one resource per commit.
+- [x] **H7 admin split (first slice)** — extracted the 9 admin article routes into `routes/admin/articles.js` (mounted via `router.use(require('./articles'))`). Verified the admin route table is **byte-identical before/after** (87 routes, same methods/paths — see scratchpad routelist). `routes/admin/index.js`: 3287 → 3016 lines. **REMAINING (staged for follow-up):** extract sheikhs, series, sections, schedule, users, lectures, api groups the same way — each with a before/after route-table diff. Pattern is proven; do one resource per commit. **Full step-by-step guide (order, shared-helper extraction, verification, gotchas): `docs/H7-admin-split-plan.md`.** Do it in a dev env where admin can be E2E-tested.
 
 Verify: `node -c` clean; all route modules load; route-table diff identical; mock-based unit tests green (articleHelpers 23, validators 40, cache 28 = 91). NOTE: full unit suite can't run here (MongoMemoryServer binary download blocked) — DB-dependent tests must be run in CI/dev.
 
-### Phases 4–6 — see CODE_AUDIT_REPORT.md
-4. DevOps (non-root Docker, env validation, `oci-workrequests` dep, deploy-config cleanup, narrow `isMongoError`)
+### Phase 4 — DevOps & hardening  ✅ DONE (commit pending push)
+- [x] **H6 narrow `isMongoError`** (`middleware/dbHealth.js`) — removed bare-substring matches (`'connection'`, `'timeout'`) that misclassified unrelated errors as DB errors (dangerous: gates whether `uncaughtException` keeps the process alive). Now: precise error names + codes + SPECIFIC availability phrases only. Regression test `tests/unit/dbHealth.test.js` (7 tests) locks it in.
+- [x] **M8 Dockerfile** — multistage (builder installs with toolchain via `npm ci --omit=dev`; runtime is minimal), runs as non-root `USER node`, writable `uploads`/`logs` chowned. `.dockerignore` also excludes `data-export-*.txt`. Lockfile verified in sync (npm ci will succeed). NOTE: could not `docker build` here (daemon not running) — validated by inspection + lockfile sync.
+- [x] **M9 env validation** — new `config/env.js` `validateEnv()`: fails fast in prod on missing `MONGODB_URI`/`SESSION_SECRET`; warns (once at boot) for each optional integration that self-disables (Sentry/Grafana/OCI/Google/Telegram). Wired in `server.js` (replaced the narrower inline SESSION_SECRET check). Verified: dev warns+continues, prod-missing exits 1.
+- [x] **L2 `oci-workrequests` dep** — added to `package.json` (`^2.125.0`, matches installed) so OCI init doesn't rely on a transitive hoist.
+- [~] **L7 deploy configs** — light-touch: annotated `ecosystem.config.js` (OCI is primary; render.yaml/docker-compose legacy; memory limits are Render-tuned, revisit for OCI shape). Did NOT delete render.yaml/docker-compose (owner may rely on them) — consolidation is an owner decision.
+
+Verify: `node -c` clean; env validation behaves (dev/prod); `oci-workrequests` resolves; mock-based unit tests green (articleHelpers 23, validators 40, cache 28, dbHealth 7 = 98).
+
+### H7 remainder — see `docs/H7-admin-split-plan.md`
+Full guide to finish the admin split (order, shared-helper extraction, route-table verification, gotchas). Do in a dev env with admin E2E.
+
+### Phases 5–6 — see CODE_AUDIT_REPORT.md
 5. Testing (raise coverage gates, fail-not-skip in CI, regression tests for C1/H1/H4)
 6. Repo hygiene (move planning docs, confirm binaries purged)
 

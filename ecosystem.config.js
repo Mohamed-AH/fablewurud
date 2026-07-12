@@ -37,7 +37,11 @@ module.exports = {
     // Restart behavior
     autorestart: true,
     watch: false, // Don't watch in production
-    max_memory_restart: '380M', // Lower for Render Free Tier (512MB total, leave headroom for GC)
+    // NOTE: memory limits below were tuned for the Render Free Tier (512MB).
+    // Revisit for the actual OCI compute shape — raise if the shape has more RAM.
+    // Deploy story: OCI compute is primary. render.yaml/docker-compose are
+    // legacy alternatives kept for reference; consolidate per owner decision (L7).
+    max_memory_restart: '380M', // Render Free Tier (512MB total, GC headroom)
 
     // Restart on these signals
     kill_timeout: 5000,
