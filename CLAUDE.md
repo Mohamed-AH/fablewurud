@@ -65,11 +65,13 @@ Verify: `node -c` clean; env validation behaves (dev/prod); `oci-workrequests` r
 
 Verify: mock-based unit suites green — articleHelpers 23, validators 40, cache 28, dbHealth 7, dbTransaction 4 = **102**. Rate-limit header value confirmed via standalone check. Integration/H1 tests run in CI (need Mongo).
 
+### Phase 6 — Repo hygiene  ✅ DONE (commit pending push)
+- [x] **L6 docs** — moved ~19 planning/guide/report docs from repo root into `docs/{guides,plans,reports,archive}/` via `git mv` (history preserved). Root now holds only `CLAUDE.md` + `CODE_AUDIT_REPORT.md`. Verified no code/config path-depends on the moved files (3 matches were cosmetic comments/URLs).
+- [x] **M3 binaries — working tree** — confirmed `.env.production`, `data-export-2mar.txt`, `gtmetrix.pdf` untracked (Phase 0). `.xlsx`/`.csv` import data left tracked (owner decision).
+- [~] **M3 binaries — history purge** — NOT done (needs owner approval + force-push that rewrites shared history). Exact `git filter-repo` procedure + secret-rotation note documented in **`docs/repo-hygiene.md`**.
+
 ### H7 remainder — see `docs/H7-admin-split-plan.md`
 Full guide to finish the admin split (order, shared-helper extraction, route-table verification, gotchas). Do in a dev env with admin E2E.
-
-### Phase 6 — see CODE_AUDIT_REPORT.md
-6. Repo hygiene (move planning docs, confirm binaries purged)
 
 ---
 
