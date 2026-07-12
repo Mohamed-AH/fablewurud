@@ -41,8 +41,15 @@ Verify: `node -c` clean on all touched files; module load-test passes; articleHe
 
 Verify: `node -c` clean; all modules load; validators (40) + articleHelpers (23) unit tests green. **Owner TODO:** run `scripts/sync-lecture-counts.js` once after deploy to repair any pre-existing count drift.
 
-### Phases 3–6 — see CODE_AUDIT_REPORT.md
-3. Architecture (split 3287-line admin file, structured logging, dead-code removal)
+### Phase 3 — Architecture  ✅ DONE (commit pending push)
+- [x] **L1 dead code** — removed unused `fetchHomepageData()` (`routes/index.js`, had a dead N+1) and `proxyOciDownload()` + now-unused `https` import (`controllers/streamController.js`).
+- [x] **C2 sweep (Phase 1 deferral)** — `captureException(error, req)` inserted into ALL remaining catch blocks: admin (81), article-editor (4), api/series (6), api/sheikhs (4), api/homepage (4), api/contact (1). All 100 sites statically verified to have `req` in scope. Every catch in the app now reports to Sentry with context.
+- [x] **M7 structured logging** — new zero-dep `utils/structuredLogger.js` (JSON lines to stdout/stderr, level via `LOG_LEVEL`, bypasses console so it's neither suppressed nor double-captured by Sentry). New `middleware/requestContext.js` assigns a request id (`X-Request-Id`), tags the Sentry scope (`request_id`) for log↔issue correlation, and emits a `request.complete` JSON log per request. Wired in `server.js`; `captureException` now also stamps `request_id`. **Follow-up:** migrating existing `console.*` calls to the structured logger is incremental (not required — they still flow to Sentry via C3).
+- [x] **H7 admin split (first slice)** — extracted the 9 admin article routes into `routes/admin/articles.js` (mounted via `router.use(require('./articles'))`). Verified the admin route table is **byte-identical before/after** (87 routes, same methods/paths — see scratchpad routelist). `routes/admin/index.js`: 3287 → 3016 lines. **REMAINING (staged for follow-up):** extract sheikhs, series, sections, schedule, users, lectures, transcripts groups the same way — each with a before/after route-table diff. Pattern is proven; do one resource per commit.
+
+Verify: `node -c` clean; all route modules load; route-table diff identical; mock-based unit tests green (articleHelpers 23, validators 40, cache 28 = 91). NOTE: full unit suite can't run here (MongoMemoryServer binary download blocked) — DB-dependent tests must be run in CI/dev.
+
+### Phases 4–6 — see CODE_AUDIT_REPORT.md
 4. DevOps (non-root Docker, env validation, `oci-workrequests` dep, deploy-config cleanup, narrow `isMongoError`)
 5. Testing (raise coverage gates, fail-not-skip in CI, regression tests for C1/H1/H4)
 6. Repo hygiene (move planning docs, confirm binaries purged)

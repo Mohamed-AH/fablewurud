@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const https = require('https');
 const { Lecture } = require('../models');
 const { getFilePath, fileExists } = require('../utils/fileManager');
 const { getMimeType, handleRangeRequest } = require('../middleware/streamHandler');
@@ -35,47 +34,6 @@ const generateDownloadFilename = (lecture, ext) => {
     .replace(/[<>:"/\\|?*]/g, '-')
     .replace(/\s+/g, ' ')
     .trim() + ext;
-};
-
-/**
- * Proxy download from OCI with proper Content-Disposition header
- */
-const proxyOciDownload = (ociUrl, res, filename, mimeType) => {
-  return new Promise((resolve, reject) => {
-    // Parse URL to handle encoded characters properly
-    const parsedUrl = new URL(ociUrl);
-
-    const options = {
-      hostname: parsedUrl.hostname,
-      path: parsedUrl.pathname + parsedUrl.search,
-      method: 'GET'
-    };
-
-    https.get(options, (ociResponse) => {
-      if (ociResponse.statusCode === 200) {
-        res.set({
-          'Content-Type': mimeType || 'audio/mp4',
-          'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
-          'Content-Length': ociResponse.headers['content-length'],
-          'Cache-Control': 'public, max-age=31536000'
-        });
-
-        ociResponse.pipe(res);
-        ociResponse.on('end', resolve);
-        ociResponse.on('error', reject);
-      } else if (ociResponse.statusCode >= 300 && ociResponse.statusCode < 400) {
-        // Handle redirect
-        const redirectUrl = ociResponse.headers.location;
-        if (redirectUrl) {
-          proxyOciDownload(redirectUrl, res, filename, mimeType).then(resolve).catch(reject);
-        } else {
-          reject(new Error('Redirect without location header'));
-        }
-      } else {
-        reject(new Error(`OCI returned status ${ociResponse.statusCode}`));
-      }
-    }).on('error', reject);
-  });
 };
 
 /**

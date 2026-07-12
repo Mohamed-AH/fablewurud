@@ -40,6 +40,7 @@ function captureException(error, req) {
     if (req) {
       scope.setTag('route', req.route?.path || req.path);
       scope.setTag('method', req.method);
+      if (req.requestId) scope.setTag('request_id', req.requestId);
       scope.setContext('request', {
         path: req.originalUrl || req.url,
         method: req.method,

@@ -147,6 +147,10 @@ app.use(express.urlencoded({ extended: true }));
 // Request tracking middleware (metrics: HTTP errors, visitor count)
 app.use(requestTrackingMiddleware);
 
+// Request context: assigns request id, Sentry correlation, structured completion log
+const { requestContext } = require('./middleware/requestContext');
+app.use(requestContext);
+
 // Create session store with error handling (falls back to memory store on DB failure)
 let sessionStore;
 if (process.env.MONGODB_URI) {
