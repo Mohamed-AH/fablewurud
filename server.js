@@ -309,13 +309,32 @@ app.use((req, res) => {
 // Database error handler (fail-fast for MongoDB issues)
 app.use(dbErrorHandler);
 
-// Optional fallthrough error handler
+// Central error handler — runs after Sentry's Express handler (which captures
+// errors forwarded via next(err), e.g. from asyncHandler-wrapped routes).
+// Responds with JSON for API/XHR requests and HTML otherwise.
 app.use(function onError(err, req, res, next) {
-  // The error id is attached to `res.sentry` to be returned
-  // and optionally displayed to the user for support.
-  console.error(err.stack);
-  res.statusCode = 500;
-  res.end(res.sentry + '\n');
+  console.error(err.stack || err);
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const status = err.status || err.statusCode || 500;
+  const wantsJson = req.path.startsWith('/api/') ||
+    req.xhr ||
+    (req.headers.accept || '').includes('application/json');
+
+  if (wantsJson) {
+    return res.status(status).json({
+      success: false,
+      message: 'Internal server error',
+      // Sentry event id (if available) helps users reference an error in support
+      reference: res.sentry || undefined,
+      error: isProduction ? undefined : (err.message || String(err))
+    });
+  }
+
+  res.status(status).send('Something went wrong. Please try again later.');
 });
 
 // Start server

@@ -16,6 +16,7 @@ const {
   isValidObjectId
 } = require('../../utils/validators');
 const sentryMetrics = require('../../utils/sentryMetrics');
+const { captureException } = require('../../utils/errorReporter');
 const rateLimit = require('express-rate-limit');
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -175,6 +176,7 @@ router.post('/',
 
     } catch (error) {
       console.error('Lecture upload error:', error);
+      captureException(error, req);
 
       // Clean up uploaded file on error
       if (req.file) {
@@ -251,6 +253,7 @@ router.get('/', lecturesQueryValidation, async (req, res) => {
 
   } catch (error) {
     console.error('Get lectures error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch lectures',
@@ -283,6 +286,7 @@ router.get('/:id', async (req, res) => {
 
   } catch (error) {
     console.error('Get lecture error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch lecture',
@@ -361,6 +365,7 @@ router.post('/bulk-upload-audio', [isAdminAPI, upload.single('audioFile')], asyn
 
   } catch (error) {
     console.error('Bulk upload audio error:', error);
+    captureException(error, req);
 
     // Clean up uploaded file on error
     if (req.file) {
@@ -417,6 +422,7 @@ router.put('/:id', isAdminAPI, async (req, res) => {
     });
   } catch (error) {
     console.error('Update lecture error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to update lecture',
@@ -463,6 +469,7 @@ router.delete('/:id', isAdminAPI, async (req, res) => {
     });
   } catch (error) {
     console.error('Delete lecture error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to delete lecture',
@@ -550,6 +557,7 @@ router.post('/:id/verify-duration', publicWriteLimiter, verifyDurationValidation
 
   } catch (error) {
     console.error('Verify duration error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to verify duration',
@@ -582,6 +590,7 @@ router.post('/:id/play', publicWriteLimiter, playCountValidation, async (req, re
     });
   } catch (error) {
     console.error('Increment play count error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to increment play count',
@@ -667,6 +676,7 @@ router.get('/:id/transcript', idParamValidation, async (req, res) => {
     });
   } catch (error) {
     console.error('Fetch transcript error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch transcript',

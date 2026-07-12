@@ -8,6 +8,7 @@ const { getPublicUrl, isConfigured: isOciConfigured, createPreAuthenticatedReque
 const { isValidObjectId } = require('../utils/validators');
 const { recordAudioPlay } = require('../utils/metrics');
 const sentryMetrics = require('../utils/sentryMetrics');
+const { captureException } = require('../utils/errorReporter');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -193,6 +194,7 @@ const streamAudio = async (req, res) => {
 
   } catch (error) {
     console.error('Stream error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to stream audio',
@@ -338,6 +340,7 @@ const downloadAudio = async (req, res) => {
 
   } catch (error) {
     console.error('Download error:', error);
+    captureException(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to download audio',

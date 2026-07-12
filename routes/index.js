@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Lecture, Sheikh, Series, Section, Schedule, SiteSettings, Article } = require('../models');
 const cache = require('../utils/cache');
+const { captureException } = require('../utils/errorReporter');
 
 // Cache TTLs (in seconds)
 const CACHE_TTL = {
@@ -367,6 +368,7 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Homepage error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading homepage');
   }
 });
@@ -451,6 +453,7 @@ router.get('/browse', async (req, res) => {
     });
   } catch (error) {
     console.error('Browse error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading browse page');
   }
 });
@@ -556,6 +559,7 @@ router.get('/lectures/:shortId(\\d+)/:slug_en?/:slug_ar?', async (req, res) => {
     });
   } catch (error) {
     console.error('Lecture detail error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading lecture');
   }
 });
@@ -616,6 +620,7 @@ router.get('/lectures/:idOrSlug', async (req, res) => {
     });
   } catch (error) {
     console.error('Lecture detail error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading lecture');
   }
 });
@@ -635,6 +640,7 @@ router.get('/sheikhs', async (req, res) => {
     });
   } catch (error) {
     console.error('Sheikhs page error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading sheikhs page');
   }
 });
@@ -700,6 +706,7 @@ router.get('/sheikhs/:shortId(\\d+)/:slug_en?/:slug_ar?', async (req, res) => {
     });
   } catch (error) {
     console.error('Sheikh profile error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading sheikh profile');
   }
 });
@@ -761,6 +768,7 @@ router.get('/sheikhs/:idOrSlug', async (req, res) => {
     });
   } catch (error) {
     console.error('Sheikh profile error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading sheikh profile');
   }
 });
@@ -782,6 +790,7 @@ router.get('/series', async (req, res) => {
     });
   } catch (error) {
     console.error('Series page error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading series page');
   }
 });
@@ -914,6 +923,7 @@ router.get('/series/:shortId(\\d+)/:slug_en?/:slug_ar?', async (req, res) => {
     });
   } catch (error) {
     console.error('Series profile error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading series profile');
   }
 });
@@ -1028,6 +1038,7 @@ router.get('/series/:idOrSlug', async (req, res) => {
     });
   } catch (error) {
     console.error('Series profile error:', error);
+    captureException(error, req);
     res.status(500).send('Error loading series profile');
   }
 });
@@ -1177,6 +1188,7 @@ router.get('/sitemap.xml', async (req, res) => {
     res.send(xml);
   } catch (error) {
     console.error('Sitemap generation error:', error);
+    captureException(error, req);
     res.status(500).send('Error generating sitemap');
   }
 });

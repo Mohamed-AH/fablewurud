@@ -3,6 +3,7 @@ const router = express.Router();
 const { Article } = require('../models');
 const cache = require('../utils/cache');
 const { sanitizeArticleHtml } = require('../utils/sanitizeHtml');
+const { asyncHandler } = require('../utils/errorReporter');
 
 function ensureHtmlParagraphs(content) {
   if (!content) return '';
@@ -22,8 +23,7 @@ const CACHE_TTL = {
 // @route   GET /articles
 // @desc    List all articles
 // @access  Public
-router.get('/', async (req, res) => {
-  try {
+router.get('/', asyncHandler(async (req, res) => {
     const locale = res.locals.locale || 'ar';
     const page = parseInt(req.query.page) || 1;
     const limit = 20;
@@ -59,17 +59,12 @@ router.get('/', async (req, res) => {
       totalPages,
       total
     });
-  } catch (error) {
-    console.error('Articles list error:', error);
-    res.status(500).send('Error loading articles');
-  }
-});
+}));
 
 // @route   GET /articles/:slugOrId
 // @desc    Single article page
 // @access  Public
-router.get('/:slugOrId', async (req, res) => {
-  try {
+router.get('/:slugOrId', asyncHandler(async (req, res) => {
     const locale = res.locals.locale || 'ar';
     const { slugOrId } = req.params;
 
@@ -139,11 +134,7 @@ router.get('/:slugOrId', async (req, res) => {
       publishedTime: article.publishedAt ? new Date(article.publishedAt).toISOString() : null,
       modifiedTime: article.updatedAt ? new Date(article.updatedAt).toISOString() : null
     });
-  } catch (error) {
-    console.error('Article detail error:', error);
-    res.status(500).send('Error loading article');
-  }
-});
+}));
 
 router._sanitizeArticleHtml = sanitizeArticleHtml;
 router._ensureHtmlParagraphs = ensureHtmlParagraphs;

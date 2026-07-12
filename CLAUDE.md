@@ -23,8 +23,16 @@ Full findings + 6-phase plan live in **`CODE_AUDIT_REPORT.md`** (committed). Wor
 
 **Sanitizer config that passes all existing `tests/unit/articleHelpers.test.js` assertions AND blocks the 3 known bypasses** (verified): allowedTags = p,br,span,div,h1-h4,strong,em,b,i,u,ul,ol,li,blockquote,a; allowedClasses restricted to `quran|hadith|section-header`; schemes http/https/mailto; `a` gets `rel=noopener noreferrer`.
 
-### Phases 1–6 — see CODE_AUDIT_REPORT.md
-1. Observability (asyncHandler→Sentry, release/env, latency metrics, console/Sentry conflict)
+### Phase 1 — Observability repair  ✅ DONE (commit pending push)
+- [x] **H2 Sentry release/env** — `instrument.js`: `environment` now from `SENTRY_ENVIRONMENT||NODE_ENV` (was `METRIC_TAG`); added `release` (resolves `SENTRY_RELEASE`→`RENDER_GIT_COMMIT`→git short-SHA→pkg version); `METRIC_TAG` moved to an `app_instance` tag via `initialScope`. **Owner TODO:** set `SENTRY_RELEASE` in CI + upload source maps per release.
+- [x] **C3 console/Sentry conflict** — `consoleLoggingIntegration` levels reduced to `['warn','error']` (dropped `'log'`, which `suppressConsoleInProduction` no-ops in prod). No more silent defeat.
+- [x] **C2 errors→Sentry** — new `utils/errorReporter.js` (`asyncHandler` + `captureException(error, req)` with route/method/user context). `routes/articles.js` fully converted to `asyncHandler`. `captureException` inserted into catch blocks of `routes/index.js` (11), `routes/api/lectures.js` (9), `routes/search.js` (2), `controllers/streamController.js` (2). Central error middleware in `server.js` now returns JSON for `/api`+xhr, HTML otherwise, and reports Sentry event id as `reference`. **DEFERRED to Phase 3:** per-handler capture in `routes/admin/index.js` (~60 handlers) + `routes/article-editor/index.js` + other `api/*` — swept during the controller split; interim visibility via console.error→Sentry error-level logs (now working after C3).
+- [x] **H3 latency metrics** — `utils/metrics.js`: records HTTP request duration (was computed then discarded) + MongoDB command duration; emits `wurud_http_latency_ms_*`, `wurud_db_latency_ms_*`, `wurud_search_latency_ms_*` (avg/p95/max/min/count) via `summarizeLatencies`. `config/database.js` opens with `monitorCommands:true` and calls `attachDbMonitoring`.
+- [x] **M1 leftover (PII)** — `sendDefaultPii` now `false` unless `SENTRY_SEND_PII==='true'`.
+
+Verify: `node -c` clean on all touched files; module load-test passes; articleHelpers + cache unit tests green (51/51).
+
+### Phases 2–6 — see CODE_AUDIT_REPORT.md
 2. Data integrity (transactions, connection pooling, indexes, admin regex escaping)
 3. Architecture (split 3287-line admin file, structured logging, dead-code removal)
 4. DevOps (non-root Docker, env validation, `oci-workrequests` dep, deploy-config cleanup, narrow `isMongoError`)
