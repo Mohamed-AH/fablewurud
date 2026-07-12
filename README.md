@@ -31,30 +31,30 @@ for speed and SEO, and backed by cloud object storage for audio streaming.
 ## Features
 
 **For visitors**
-- 🎧 **Audio archive** — browse lectures by **series**, by **scholar**, or as a flat
+- <img src="docs/assets/icons/headphones.svg" width="16" height="16" align="center" alt=""> **Audio archive** — browse lectures by **series**, by **scholar**, or as a flat
   paginated list, with an in-page audio player (streaming with range/seek support).
-- 🔎 **Transcript search** — search the *spoken text* of the lectures, not just
+- <img src="docs/assets/icons/search.svg" width="16" height="16" align="center" alt=""> **Transcript search** — search the *spoken text* of the lectures, not just
   titles. Results jump to the moment in the audio and show surrounding context.
-- ✍️ **Articles** — a blog/articles section with rich formatted content, related
+- <img src="docs/assets/icons/pen-line.svg" width="16" height="16" align="center" alt=""> **Articles** — a blog/articles section with rich formatted content, related
   articles, and reading-progress UI.
-- 📅 **Weekly schedule** — a class timetable (card or table layout) linking to the
+- <img src="docs/assets/icons/calendar-days.svg" width="16" height="16" align="center" alt=""> **Weekly schedule** — a class timetable (card or table layout) linking to the
   relevant series.
-- 🌐 **Bilingual, RTL-first** — Arabic (default) and English, with a language toggle.
-- 📱 **Responsive** — mobile-first design with a bottom navigation bar and a
+- <img src="docs/assets/icons/globe.svg" width="16" height="16" align="center" alt=""> **Bilingual, RTL-first** — Arabic (default) and English, with a language toggle.
+- <img src="docs/assets/icons/smartphone.svg" width="16" height="16" align="center" alt=""> **Responsive** — mobile-first design with a bottom navigation bar and a
   collapsing mini audio player.
-- 📥 **Downloads** — one-click "Save As" downloads with clean, human-readable filenames.
-- 📨 **Contact form** — inquiries routed to a private Telegram chat.
-- 🔗 **SEO** — server-rendered pages, canonical URLs, JSON-LD structured data, and
+- <img src="docs/assets/icons/download.svg" width="16" height="16" align="center" alt=""> **Downloads** — one-click "Save As" downloads with clean, human-readable filenames.
+- <img src="docs/assets/icons/mail.svg" width="16" height="16" align="center" alt=""> **Contact form** — inquiries routed to a private Telegram chat.
+- <img src="docs/assets/icons/link.svg" width="16" height="16" align="center" alt=""> **SEO** — server-rendered pages, canonical URLs, JSON-LD structured data, and
   an auto-generated `sitemap.xml` / `robots.txt`.
 
 **For administrators**
-- 🛠️ **Admin panel** — manage lectures, series, scholars, sections, schedule,
+- <img src="docs/assets/icons/wrench.svg" width="16" height="16" align="center" alt=""> **Admin panel** — manage lectures, series, scholars, sections, schedule,
   articles, homepage layout, and site settings.
-- ⬆️ **Audio management** — upload audio to cloud storage, auto-extract duration/
+- <img src="docs/assets/icons/upload.svg" width="16" height="16" align="center" alt=""> **Audio management** — upload audio to cloud storage, auto-extract duration/
   metadata, and track play/download counts.
-- 📝 **Article editor role** — external contributors can be granted access to fix
+- <img src="docs/assets/icons/file-pen.svg" width="16" height="16" align="center" alt=""> **Article editor role** — external contributors can be granted access to fix
   article text, with full per-field edit history.
-- 📊 **Analytics & health** — page-view analytics, a `/health` endpoint, and a
+- <img src="docs/assets/icons/bar-chart-3.svg" width="16" height="16" align="center" alt=""> **Analytics & health** — page-view analytics, a `/health` endpoint, and a
   built-in maintenance mode.
 
 ---
@@ -210,7 +210,7 @@ annotated list). Grouped by purpose:
 |----------|-------------|
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Route contact-form messages to Telegram |
 
-> ⚠️ Never commit your real `.env`. Keep secrets out of version control and rotate
+> <img src="docs/assets/icons/triangle-alert.svg" width="15" height="15" align="center" alt="Warning:"> Never commit your real `.env`. Keep secrets out of version control and rotate
 > anything that leaks.
 
 ---
