@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 const { Article, Admin } = require('../../models');
 const { isArticleEditor, isArticleEditorAPI } = require('../../middleware/auth');
 const { sanitizeArticleHtml } = require('../../utils/sanitizeHtml');
+const { escapeRegex } = require('../../utils/validators');
 
 // Helper to build article query - only include _id if valid ObjectId
 function buildArticleQuery(idParam) {
@@ -61,9 +62,10 @@ router.get('/', isArticleEditor, async (req, res) => {
     // Base query for published articles
     const baseQuery = { isPublished: true };
     if (search) {
+      const safe = escapeRegex(String(search));
       baseQuery.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { summary: { $regex: search, $options: 'i' } }
+        { title: { $regex: safe, $options: 'i' } },
+        { summary: { $regex: safe, $options: 'i' } }
       ];
     }
 

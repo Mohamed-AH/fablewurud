@@ -37,6 +37,14 @@ const connectDB = async () => {
       console.warn('Could not attach DB monitoring:', e.message);
     }
 
+    // Detect transaction support (replica set / mongos) for atomic multi-doc writes
+    try {
+      const support = await require('../utils/dbTransaction').detectTransactionSupport();
+      console.log(`🔐 Transactions ${support ? 'supported' : 'unsupported (standalone) — using sequential writes'}`);
+    } catch (e) {
+      console.warn('Could not detect transaction support:', e.message);
+    }
+
     // Graceful shutdown
     process.on('SIGINT', async () => {
       await mongoose.connection.close();

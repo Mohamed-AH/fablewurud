@@ -151,18 +151,17 @@ app.use(requestTrackingMiddleware);
 let sessionStore;
 if (process.env.MONGODB_URI) {
   try {
+    // Reuse the mongoose connection's client instead of opening a second pool
+    // (memory win on 512MB; avoids a duplicate connection to the same cluster).
+    const mongoose = require('mongoose');
     sessionStore = MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI,
+      clientPromise: mongoose.connection.asPromise().then(conn => conn.getClient()),
       touchAfter: 24 * 3600, // Lazy update: only update session once per 24 hours unless data changes
       ttl: 7 * 24 * 60 * 60, // Session TTL: 7 days (matches cookie maxAge)
       crypto: {
         secret: process.env.SESSION_SECRET || 'dev-secret-local-only'
       },
-      autoRemove: 'native',
-      // Handle connection errors gracefully
-      mongoOptions: {
-        serverSelectionTimeoutMS: 5000,
-      }
+      autoRemove: 'native'
     });
     // Catch session store errors to prevent crashes
     sessionStore.on('error', (error) => {

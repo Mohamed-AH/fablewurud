@@ -9,7 +9,8 @@ const {
   sanitizeMongoQuery,
   handleValidationErrors,
   sanitizeSearchInput,
-  sanitizeComment
+  sanitizeComment,
+  escapeRegex
 } = require('../../utils/validators');
 
 describe('Validators Utility', () => {
@@ -342,6 +343,32 @@ describe('Validators Utility', () => {
     it('should handle empty comment after trimming', () => {
       expect(sanitizeComment('   ')).toBe('');
       expect(sanitizeComment('\n\n')).toBe('');
+    });
+  });
+
+  describe('escapeRegex()', () => {
+    it('should return empty string for non-string input', () => {
+      expect(escapeRegex(null)).toBe('');
+      expect(escapeRegex(undefined)).toBe('');
+      expect(escapeRegex(123)).toBe('');
+    });
+
+    it('should escape regex special characters', () => {
+      expect(escapeRegex('a.*b')).toBe('a\\.\\*b');
+      expect(escapeRegex('[$ne]')).toBe('\\[\\$ne\\]');
+      expect(escapeRegex('(a|b)+')).toBe('\\(a\\|b\\)\\+');
+    });
+
+    it('should leave plain text unchanged', () => {
+      expect(escapeRegex('hello world')).toBe('hello world');
+    });
+
+    it('should neutralize a ReDoS-style catastrophic pattern into a literal', () => {
+      const evil = '(a+)+$';
+      const escaped = escapeRegex(evil);
+      // Escaped form matches the literal string, not as a quantifier bomb
+      expect(new RegExp(escaped).test('(a+)+$')).toBe(true);
+      expect(escaped).not.toBe(evil);
     });
   });
 });

@@ -95,7 +95,8 @@ const lectureSchema = new mongoose.Schema({
   },
   dateRecordedHijri: {
     type: String,
-    trim: true
+    trim: true,
+    index: true // supports /browse Hijri-date range filter ($gte/$lte)
   },
   published: {
     type: Boolean,

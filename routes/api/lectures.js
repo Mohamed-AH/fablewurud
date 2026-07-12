@@ -17,6 +17,7 @@ const {
 } = require('../../utils/validators');
 const sentryMetrics = require('../../utils/sentryMetrics');
 const { captureException } = require('../../utils/errorReporter');
+const { withTransaction } = require('../../utils/dbTransaction');
 const rateLimit = require('express-rate-limit');
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -123,37 +124,34 @@ router.post('/',
         hijriDate = convertToHijri(recordedDate);
       }
 
-      // Create lecture document
-      const lecture = await Lecture.create({
-        audioFileName: file.filename,
-        titleArabic: titleArabic.trim(),
-        titleEnglish: titleEnglish ? titleEnglish.trim() : '',
-        descriptionArabic: descriptionArabic ? descriptionArabic.trim() : '',
-        descriptionEnglish: descriptionEnglish ? descriptionEnglish.trim() : '',
-        sheikhId: sheikhId,
-        seriesId: seriesId || null,
-        lectureNumber: lectureNumber ? parseInt(lectureNumber) : null,
-        duration: audioMetadata.duration,
-        fileSize: audioMetadata.fileSize,
-        location: location ? location.trim() : 'غير محدد',
-        category: category || 'Other',
-        dateRecorded: recordedDate,
-        dateRecordedHijri: hijriDate,
-        published: published === 'true' || published === true,
-        featured: featured === 'true' || featured === true
-      });
+      // Create lecture document + update counts atomically (see utils/dbTransaction)
+      let lecture;
+      await withTransaction(async (session) => {
+        const created = await Lecture.create([{
+          audioFileName: file.filename,
+          titleArabic: titleArabic.trim(),
+          titleEnglish: titleEnglish ? titleEnglish.trim() : '',
+          descriptionArabic: descriptionArabic ? descriptionArabic.trim() : '',
+          descriptionEnglish: descriptionEnglish ? descriptionEnglish.trim() : '',
+          sheikhId: sheikhId,
+          seriesId: seriesId || null,
+          lectureNumber: lectureNumber ? parseInt(lectureNumber) : null,
+          duration: audioMetadata.duration,
+          fileSize: audioMetadata.fileSize,
+          location: location ? location.trim() : 'غير محدد',
+          category: category || 'Other',
+          dateRecorded: recordedDate,
+          dateRecordedHijri: hijriDate,
+          published: published === 'true' || published === true,
+          featured: featured === 'true' || featured === true
+        }], { session });
+        lecture = created[0];
 
-      // Update sheikh lecture count
-      await Sheikh.findByIdAndUpdate(sheikhId, {
-        $inc: { lectureCount: 1 }
+        await Sheikh.findByIdAndUpdate(sheikhId, { $inc: { lectureCount: 1 } }, { session });
+        if (seriesId) {
+          await Series.findByIdAndUpdate(seriesId, { $inc: { lectureCount: 1 } }, { session });
+        }
       });
-
-      // Update series lecture count (if applicable)
-      if (seriesId) {
-        await Series.findByIdAndUpdate(seriesId, {
-          $inc: { lectureCount: 1 }
-        });
-      }
 
       // Populate references for response
       await lecture.populate('sheikhId', 'nameArabic nameEnglish honorific');
@@ -445,23 +443,17 @@ router.delete('/:id', isAdminAPI, async (req, res) => {
       });
     }
 
-    // Delete the audio file
-    fileManager.deleteFile(lecture.audioFileName);
-
-    // Decrement sheikh lecture count
-    await Sheikh.findByIdAndUpdate(lecture.sheikhId, {
-      $inc: { lectureCount: -1 }
+    // Atomic multi-document update: decrement counts + delete lecture together
+    await withTransaction(async (session) => {
+      await Sheikh.findByIdAndUpdate(lecture.sheikhId, { $inc: { lectureCount: -1 } }, { session });
+      if (lecture.seriesId) {
+        await Series.findByIdAndUpdate(lecture.seriesId, { $inc: { lectureCount: -1 } }, { session });
+      }
+      await Lecture.findByIdAndDelete(req.params.id, { session });
     });
 
-    // Decrement series lecture count (if applicable)
-    if (lecture.seriesId) {
-      await Series.findByIdAndUpdate(lecture.seriesId, {
-        $inc: { lectureCount: -1 }
-      });
-    }
-
-    // Delete lecture from database
-    await Lecture.findByIdAndDelete(req.params.id);
+    // Delete the audio file after the DB delete commits (best-effort)
+    fileManager.deleteFile(lecture.audioFileName);
 
     res.json({
       success: true,

@@ -5,6 +5,8 @@ const { convertToHijri } = require('../../utils/dateUtils');
 const { adminI18nMiddleware, invalidateNoticeBannerCache } = require('../../utils/i18n');
 const cache = require('../../utils/cache');
 const { sanitizeArticleHtml } = require('../../utils/sanitizeHtml');
+const { withTransaction } = require('../../utils/dbTransaction');
+const { escapeRegex } = require('../../utils/validators');
 
 // Apply admin i18n middleware to all admin routes
 router.use(adminI18nMiddleware);
@@ -196,10 +198,11 @@ router.get('/lectures', isAdmin, async (req, res) => {
     const query = {};
 
     if (search) {
+      const safe = escapeRegex(String(search));
       query.$or = [
-        { titleArabic: { $regex: search, $options: 'i' } },
-        { titleEnglish: { $regex: search, $options: 'i' } },
-        { slug: { $regex: search, $options: 'i' } }
+        { titleArabic: { $regex: safe, $options: 'i' } },
+        { titleEnglish: { $regex: safe, $options: 'i' } },
+        { slug: { $regex: safe, $options: 'i' } }
       ];
     }
 
@@ -244,7 +247,20 @@ router.post('/lectures/:id/delete', isAdmin, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Lecture not found' });
     }
 
-    // Delete audio from OCI if exists
+    // Atomic multi-document update: decrement counts + delete lecture together
+    // so a partial failure can't drift lectureCount (see utils/sync-lecture-counts).
+    await withTransaction(async (session) => {
+      if (lecture.seriesId) {
+        await Series.findByIdAndUpdate(lecture.seriesId, { $inc: { lectureCount: -1 } }, { session });
+      }
+      if (lecture.sheikhId) {
+        await Sheikh.findByIdAndUpdate(lecture.sheikhId, { $inc: { lectureCount: -1 } }, { session });
+      }
+      await Lecture.findByIdAndDelete(req.params.id, { session });
+    });
+
+    // Delete audio from OCI AFTER the DB delete commits (avoids orphaning the
+    // file if the transaction rolls back). Best-effort — file cleanup is not fatal.
     if (lecture.audioFileName) {
       try {
         await deleteFromOCI(lecture.audioFileName);
@@ -252,19 +268,6 @@ router.post('/lectures/:id/delete', isAdmin, async (req, res) => {
         console.warn('Could not delete OCI file:', ociError.message);
       }
     }
-
-    // Decrement series lecture count
-    if (lecture.seriesId) {
-      await Series.findByIdAndUpdate(lecture.seriesId, { $inc: { lectureCount: -1 } });
-    }
-
-    // Decrement sheikh lecture count
-    if (lecture.sheikhId) {
-      await Sheikh.findByIdAndUpdate(lecture.sheikhId, { $inc: { lectureCount: -1 } });
-    }
-
-    // Delete the lecture
-    await Lecture.findByIdAndDelete(req.params.id);
 
     // Invalidate homepage cache
     invalidateHomepageCache();
@@ -2748,9 +2751,10 @@ router.get('/articles', isAdmin, async (req, res) => {
     const query = {};
 
     if (search) {
+      const safe = escapeRegex(String(search));
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { summary: { $regex: search, $options: 'i' } }
+        { title: { $regex: safe, $options: 'i' } },
+        { summary: { $regex: safe, $options: 'i' } }
       ];
     }
 

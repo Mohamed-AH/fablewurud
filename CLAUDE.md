@@ -32,8 +32,16 @@ Full findings + 6-phase plan live in **`CODE_AUDIT_REPORT.md`** (committed). Wor
 
 Verify: `node -c` clean on all touched files; module load-test passes; articleHelpers + cache unit tests green (51/51).
 
-### Phases 2–6 — see CODE_AUDIT_REPORT.md
-2. Data integrity (transactions, connection pooling, indexes, admin regex escaping)
+### Phase 2 — Data integrity  ✅ DONE (commit pending push)
+- [x] **H4 transactions** — new `utils/dbTransaction.js` (`withTransaction` + `detectTransactionSupport`). Detects replica-set/mongos support once at connect (`config/database.js`); atomic on Atlas, graceful sequential fallback on standalone (dev/test MongoMemoryServer — verified `session=null` path works). Wrapped: admin lecture delete (`routes/admin/index.js`), api lecture delete + create (`routes/api/lectures.js`). OCI/file deletes moved AFTER the DB commit so a rollback can't orphan the file.
+- [x] **M4 connection pooling** — session store now reuses the mongoose client via `clientPromise: mongoose.connection.asPromise().then(c=>c.getClient())` (`server.js`) instead of opening a 2nd pool with `mongoUrl`.
+- [x] **M5 index** — `dateRecordedHijri` now `index: true` (`models/Lecture.js`) for the `/browse` Hijri range filter. Builds in background on next deploy (autoIndex).
+- [x] **M6 regex escaping** — added `escapeRegex` to `utils/validators.js` (exported + tested); applied to admin series search, admin article search (`routes/admin/index.js`) and article-editor search (`routes/article-editor/index.js`). 40/40 validators tests green.
+- [ ] **L3 `$ne:false`→`isVisible:true`** — DEFERRED. Swapping the query would hide any legacy docs with `isVisible` undefined; needs a backfill migration run against prod first (owner decision). `Series.isVisible` already defaults `true`. Low priority; `$ne:false` is correct, just not index-optimal.
+
+Verify: `node -c` clean; all modules load; validators (40) + articleHelpers (23) unit tests green. **Owner TODO:** run `scripts/sync-lecture-counts.js` once after deploy to repair any pre-existing count drift.
+
+### Phases 3–6 — see CODE_AUDIT_REPORT.md
 3. Architecture (split 3287-line admin file, structured logging, dead-code removal)
 4. DevOps (non-root Docker, env validation, `oci-workrequests` dep, deploy-config cleanup, narrow `isMongoError`)
 5. Testing (raise coverage gates, fail-not-skip in CI, regression tests for C1/H1/H4)
