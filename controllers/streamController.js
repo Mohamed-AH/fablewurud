@@ -46,7 +46,7 @@ const generateDownloadFilename = (lecture, ext) => {
 // Count a "play" only on the initial request (no Range, or Range starting at byte 0)
 // so playCount reflects real plays instead of seek count.
 const isInitialPlaybackRequest = (req) => {
-  const range = req.headers.range;
+  const range = req.headers && req.headers.range;
   return !range || /^bytes=0-/.test(range);
 };
 
