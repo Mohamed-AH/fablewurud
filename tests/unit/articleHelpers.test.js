@@ -108,6 +108,37 @@ describe('sanitizeArticleHtml()', () => {
     expect(result).toContain('class="quran"');
     expect(result).not.toContain('evil');
   });
+
+  // Structure-preservation guarantees — articles rely on HTML for layout, so
+  // these must survive sanitization untouched.
+  it('should preserve headings h1-h6', () => {
+    expect(sanitize('<h2>A</h2><h5>B</h5><h6>C</h6>')).toBe('<h2>A</h2><h5>B</h5><h6>C</h6>');
+  });
+
+  it('should preserve semantic classes on headings and blockquotes', () => {
+    expect(sanitize('<h3 class="section-header">T</h3>')).toBe('<h3 class="section-header">T</h3>');
+    expect(sanitize('<blockquote class="hadith">H</blockquote>')).toBe('<blockquote class="hadith">H</blockquote>');
+  });
+
+  it('should preserve lists, blockquotes, and inline emphasis', () => {
+    const html = '<ul><li>one</li><li>two</li></ul><blockquote>q</blockquote><p><strong>b</strong><em>i</em></p>';
+    expect(sanitize(html)).toBe(html);
+  });
+
+  it('should preserve RTL direction attributes', () => {
+    expect(sanitize('<p dir="rtl">نص عربي</p>')).toBe('<p dir="rtl">نص عربي</p>');
+  });
+
+  it('should preserve tables', () => {
+    const html = '<table><thead><tr><th>h</th></tr></thead><tbody><tr><td>d</td></tr></tbody></table>';
+    expect(sanitize(html)).toBe(html);
+  });
+
+  it('should keep safe links but neutralize javascript: and add rel', () => {
+    expect(sanitize('<a href="https://example.com">ok</a>')).toContain('href="https://example.com"');
+    expect(sanitize('<a href="https://example.com">ok</a>')).toContain('rel="noopener noreferrer"');
+    expect(sanitize('<a href="javascript:alert(1)">x</a>')).not.toContain('javascript:');
+  });
 });
 
 describe('ensureHtmlParagraphs()', () => {
