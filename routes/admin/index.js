@@ -245,6 +245,7 @@ router.post('/lectures/:id/delete', isAdmin, async (req, res) => {
   try {
     const { Lecture, Series, Sheikh } = require('../../models');
     const { deleteFromOCI } = require('../../utils/ociStorage');
+    const { isR2Url, deleteFromR2 } = require('../../utils/r2Storage');
 
     const lecture = await Lecture.findById(req.params.id);
 
@@ -264,13 +265,18 @@ router.post('/lectures/:id/delete', isAdmin, async (req, res) => {
       await Lecture.findByIdAndDelete(req.params.id, { session });
     });
 
-    // Delete audio from OCI AFTER the DB delete commits (avoids orphaning the
+    // Delete audio from storage AFTER the DB delete commits (avoids orphaning the
     // file if the transaction rolls back). Best-effort — file cleanup is not fatal.
+    // Route to the correct backend: R2 when the URL is an R2 URL, else OCI.
     if (lecture.audioFileName) {
       try {
-        await deleteFromOCI(lecture.audioFileName);
-      } catch (ociError) {
-        console.warn('Could not delete OCI file:', ociError.message);
+        if (lecture.audioUrl && isR2Url(lecture.audioUrl)) {
+          await deleteFromR2(lecture.audioFileName);
+        } else {
+          await deleteFromOCI(lecture.audioFileName);
+        }
+      } catch (storageError) {
+        console.warn('Could not delete storage file:', storageError.message);
       }
     }
 

@@ -53,7 +53,12 @@ node scripts/import-excel-generic.js data.xlsx --batch june2026
 
 ## Step 2: Upload Audio (Local PC)
 
-Upload audio files to OCI Object Storage.
+Upload audio files to cloud storage. Two backends are available:
+
+- **OCI Object Storage** — Used for admin-panel single-file uploads (existing files live here)
+- **Cloudflare R2** — Used for new bulk imports (S3-compatible, zero egress fees)
+
+### Option A: Upload to OCI (existing workflow)
 
 ```bash
 # Preview
@@ -63,11 +68,41 @@ node scripts/upload-to-oci-local.js /path/to/audio --dry-run
 node scripts/upload-to-oci-local.js /path/to/audio --skip-existing
 ```
 
-### Options
+### Option B: Upload to R2 (recommended for new bulk imports)
+
+#### R2 Setup (one-time)
+
+1. Sign up at [Cloudflare Dashboard](https://dash.cloudflare.com)
+2. Go to **R2 Object Storage** > **Create bucket** (name: `wurud-audio`)
+3. Enable public access: Bucket Settings > **Public Access** > Allow Access
+4. Copy the public URL (e.g., `https://pub-xxxx.r2.dev`)
+5. Create API token: **Manage R2 API Tokens** > **Create API Token**
+   - Permissions: Object Read & Write
+   - Scope: Apply to specific bucket (`wurud-audio`)
+6. Add to your `.env` file:
+   ```
+   R2_ACCOUNT_ID=your-account-id
+   R2_ACCESS_KEY_ID=your-access-key-id
+   R2_SECRET_ACCESS_KEY=your-secret-access-key
+   R2_BUCKET_NAME=wurud-audio
+   R2_PUBLIC_URL=https://pub-xxxx.r2.dev
+   ```
+
+#### Upload to R2
+
+```bash
+# Preview
+node scripts/upload-to-r2-local.js /path/to/audio --dry-run
+
+# Upload (skip existing files)
+node scripts/upload-to-r2-local.js /path/to/audio --skip-existing
+```
+
+### Upload Options (same for both OCI and R2)
 
 | Option | Description |
 |--------|-------------|
-| `--skip-existing` | Skip files already in OCI |
+| `--skip-existing` | Skip files already in storage |
 | `--output <file>` | Output manifest filename (default: upload-manifest.json) |
 | `--limit <n>` | Process only first N files |
 | `--verbose` | Show detailed progress |
@@ -76,6 +111,7 @@ node scripts/upload-to-oci-local.js /path/to/audio --skip-existing
 ### Output
 
 Creates `upload-manifest.json` with uploaded file info. Transfer this to Cloud VM.
+The verify script (Step 3) auto-detects whether the manifest came from OCI or R2.
 
 ---
 
@@ -150,11 +186,12 @@ node scripts/publish-batch.js --batch june2026
 # 1. Import (Cloud VM)
 node scripts/import-excel-generic.js data.xlsx --batch june2026
 
-# 2. Upload (Local PC)
-node scripts/upload-to-oci-local.js ./audio --skip-existing
+# 2. Upload (Local PC) — pick one:
+node scripts/upload-to-oci-local.js ./audio --skip-existing   # OCI (admin uploads)
+node scripts/upload-to-r2-local.js ./audio --skip-existing    # R2 (bulk imports)
 # Transfer upload-manifest.json to Cloud VM
 
-# 3. Update DB (Cloud VM)
+# 3. Update DB (Cloud VM) — works with both OCI and R2 manifests
 node scripts/upload-to-oci-verify.js --manifest upload-manifest.json
 
 # 4. Fix titles if needed (Cloud VM)

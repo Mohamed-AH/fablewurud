@@ -4,6 +4,7 @@ const { Lecture } = require('../models');
 const { getFilePath, fileExists } = require('../utils/fileManager');
 const { getMimeType, handleRangeRequest } = require('../middleware/streamHandler');
 const { getPublicUrl, isConfigured: isOciConfigured, createPreAuthenticatedRequest } = require('../utils/ociStorage');
+const { isR2Url, createR2PresignedUrl } = require('../utils/r2Storage');
 const { isValidObjectId } = require('../utils/validators');
 const { recordAudioPlay } = require('../utils/metrics');
 const sentryMetrics = require('../utils/sentryMetrics');
@@ -72,25 +73,25 @@ const streamAudio = async (req, res) => {
       });
     }
 
-    // Check if lecture has an OCI URL (stored in audioUrl field)
-    if (lecture.audioUrl && lecture.audioUrl.includes('objectstorage')) {
+    // Check if lecture has an external audioUrl (OCI, R2, or other cloud storage)
+    if (lecture.audioUrl && lecture.audioUrl.startsWith('http')) {
       if (countThisPlay) {
         // Increment play count (async, don't wait)
         Lecture.updateOne({ _id: lecture._id }, { $inc: { playCount: 1 } }).catch(err => {
           console.error('Error incrementing play count:', err);
         });
 
-        // Record audio play metric
+        // Record audio play metric (provider inferred from the URL)
         recordAudioPlay(lecture.audioFileName || lecture.titleArabic || 'unknown');
-        sentryMetrics.audioPlay('oci');
+        sentryMetrics.audioPlay(lecture.audioUrl.includes('objectstorage') ? 'oci' : 'r2');
       }
 
-      // Redirect to OCI Object Storage URL
+      // Redirect to the storage URL (OCI/R2/other)
       return res.redirect(lecture.audioUrl);
     }
 
-    // Check if OCI is configured and file exists there
-    if (isOciConfigured() && lecture.audioFileName) {
+    // Check if OCI is configured and file has no audioUrl yet — construct OCI URL
+    if (isOciConfigured() && lecture.audioFileName && !lecture.audioUrl) {
       const ociUrl = getPublicUrl(lecture.audioFileName);
 
       if (countThisPlay) {
@@ -199,59 +200,51 @@ const downloadAudio = async (req, res) => {
     const mimeType = getMimeType(lecture.audioFileName || 'audio.m4a');
     const downloadFilename = generateDownloadFilename(lecture, ext);
 
-    // Check if OCI is configured and lecture has audioFileName - use PAR redirect
-    if (isOciConfigured() && lecture.audioFileName) {
+    // If lecture has an external audioUrl (OCI/R2/other), use it for download
+    if (lecture.audioUrl && lecture.audioUrl.startsWith('http')) {
+      const isOci = lecture.audioUrl.includes('objectstorage');
       try {
-        // Generate presigned URL with 1-hour expiry for authenticated access
-        const parUrl = await createPreAuthenticatedRequest(lecture.audioFileName, 1);
+        let downloadUrl;
+        if (isOci && isOciConfigured()) {
+          // OCI: generate PAR for authenticated download with Content-Disposition
+          const urlMatch = lecture.audioUrl.match(/\/o\/(.+)$/);
+          const objectName = urlMatch ? decodeURIComponent(urlMatch[1]) : lecture.audioFileName;
+          downloadUrl = await createPreAuthenticatedRequest(objectName, 1);
+        } else if (!isOci && isR2Url(lecture.audioUrl)) {
+          // R2: generate presigned URL for download
+          downloadUrl = await createR2PresignedUrl(lecture.audioFileName, 3600);
+        } else {
+          // Direct redirect for any other external URL (R2 public, etc.)
+          downloadUrl = lecture.audioUrl;
+        }
 
-        // Redirect to PAR URL - OCI object has Content-Disposition: attachment header
-        // This triggers "Save As" dialog and avoids server proxy latency (~5s -> ~250ms)
-        res.redirect(302, parUrl);
-
-        // Increment download count AFTER redirect sent (fire-and-forget)
+        res.redirect(302, downloadUrl);
         Lecture.updateOne({ _id: lecture._id }, { $inc: { downloadCount: 1 } }).catch(err => {
           console.error('Error incrementing download count:', err);
         });
+        sentryMetrics.audioDownload(isOci ? 'oci' : 'r2', lecture.fileSize ? lecture.fileSize / 1024 / 1024 : 0);
+        return;
+      } catch (err) {
+        console.error('Download error:', err);
+        captureException(err, req);
+        return res.status(500).json({ success: false, message: 'Download failed from cloud storage' });
+      }
+    }
 
-        // Record metrics (fire-and-forget)
+    // Fallback: OCI configured but no audioUrl set — construct OCI PAR from the filename
+    if (isOciConfigured() && lecture.audioFileName && !lecture.audioUrl) {
+      try {
+        const parUrl = await createPreAuthenticatedRequest(lecture.audioFileName, 1);
+        res.redirect(302, parUrl);
+        Lecture.updateOne({ _id: lecture._id }, { $inc: { downloadCount: 1 } }).catch(err => {
+          console.error('Error incrementing download count:', err);
+        });
         sentryMetrics.audioDownload('oci', lecture.fileSize ? lecture.fileSize / 1024 / 1024 : 0);
         return;
       } catch (err) {
         console.error('Download error:', err);
-        return res.status(500).json({
-          success: false,
-          message: 'Download failed from cloud storage'
-        });
-      }
-    }
-
-    // Fallback: If lecture has direct OCI URL but no audioFileName, use PAR redirect
-    if (lecture.audioUrl && lecture.audioUrl.includes('objectstorage')) {
-      try {
-        // Try to create PAR for authenticated access with Content-Disposition
-        const urlMatch = lecture.audioUrl.match(/\/o\/(.+)$/);
-        if (urlMatch && isOciConfigured()) {
-          const objectName = decodeURIComponent(urlMatch[1]);
-          const parUrl = await createPreAuthenticatedRequest(objectName, 1);
-          res.redirect(302, parUrl);
-        } else {
-          // No PAR available, redirect to direct URL
-          res.redirect(302, lecture.audioUrl);
-        }
-
-        Lecture.updateOne({ _id: lecture._id }, { $inc: { downloadCount: 1 } }).catch(err => {
-          console.error('Error incrementing download count:', err);
-        });
-
-        sentryMetrics.audioDownload('oci', lecture.fileSize ? lecture.fileSize / 1024 / 1024 : 0);
-        return;
-      } catch (err) {
-        console.error('Download error for URL:', err);
-        return res.status(500).json({
-          success: false,
-          message: 'Download failed from cloud storage'
-        });
+        captureException(err, req);
+        return res.status(500).json({ success: false, message: 'Download failed from cloud storage' });
       }
     }
 

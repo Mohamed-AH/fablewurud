@@ -285,6 +285,16 @@
           </button>
         </div>
         <div class="import-status" id="importStatus"></div>
+
+        <div id="pasteSection" style="display:none; margin-top: 12px;">
+          <p style="font-size: 13px; color: #7A5C3A; margin-bottom: 8px;">
+            الموقع يمنع الوصول من الخادم. افتح الرابط في متصفحك، اضغط <kbd>Ctrl+U</kbd> لعرض مصدر الصفحة، انسخ كل المحتوى والصقه هنا:
+          </p>
+          <textarea id="pasteHtml" rows="6" dir="ltr" placeholder="الصق مصدر HTML هنا..." style="width:100%; font-family: monospace; font-size: 12px;"></textarea>
+          <button type="button" class="btn-import" id="pasteBtn" onclick="importFromPaste()" style="margin-top: 6px;">
+            معالجة HTML
+          </button>
+        </div>
       </div>
       <% } %>
 
@@ -420,6 +430,9 @@
           if (response.status === 429 || (errorMsg && errorMsg.includes('429'))) {
             errorMsg = 'الموقع يحد من الطلبات. انتظر دقيقة ثم حاول مرة أخرى';
           }
+          if (result.showPasteOption) {
+            document.getElementById('pasteSection').style.display = 'block';
+          }
           showStatus(errorMsg, 'error');
           return;
         }
@@ -457,6 +470,64 @@
       const el = document.getElementById('importStatus');
       el.textContent = msg;
       el.className = 'import-status ' + type;
+    }
+
+    async function importFromPaste() {
+      const pasteArea = document.getElementById('pasteHtml');
+      const btn = document.getElementById('pasteBtn');
+      const html = pasteArea.value.trim();
+      const sourceUrl = document.getElementById('importUrl').value.trim();
+
+      if (!html) {
+        showStatus('الرجاء لصق مصدر HTML للصفحة', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'جاري المعالجة...';
+      showStatus('جاري استخراج المقال من HTML...', 'loading');
+
+      try {
+        const response = await fetch('/admin/articles/import-from-html', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ html, sourceUrl })
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+          showStatus(result.message, 'error');
+          return;
+        }
+
+        const { data } = result;
+        document.getElementById('title').value = data.title;
+        document.getElementById('content').value = data.content;
+        document.getElementById('sourceUrl').value = sourceUrl;
+        document.getElementById('type').value = 'Asdaa';
+        if (data.publishedAt) {
+          document.getElementById('publishedAt').value = data.publishedAt;
+        }
+        document.getElementById('isPublished').checked = true;
+
+        let msg = 'تم استيراد المقال بنجاح';
+        const stats = [];
+        if (data.stats.paragraphs) stats.push(data.stats.paragraphs + ' فقرة');
+        if (data.stats.hasQuran) stats.push('آيات قرآنية');
+        if (data.stats.hasHadith) stats.push('أحاديث');
+        if (data.stats.hasHeaders) stats.push('عناوين فرعية');
+        if (stats.length) msg += ' — ' + stats.join('، ');
+
+        showStatus(msg, 'success');
+        document.getElementById('pasteSection').style.display = 'none';
+      } catch (error) {
+        console.error('Paste import error:', error);
+        showStatus('فشل في معالجة HTML', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'معالجة HTML';
+      }
     }
 
     document.getElementById('importUrl').addEventListener('keydown', function(e) {
