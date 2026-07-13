@@ -78,6 +78,21 @@ async function initOciClient() {
   return new os.ObjectStorageClient({ authenticationDetailsProvider: provider });
 }
 
+function initR2Client() {
+  const { S3Client } = require('@aws-sdk/client-s3');
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+
+  if (!accountId || !accessKeyId || !secretAccessKey) return null;
+
+  return new S3Client({
+    region: 'auto',
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+}
+
 async function verifyObject(client, namespace, bucketName, objectName) {
   try {
     const response = await client.headObject({
@@ -96,6 +111,32 @@ async function verifyObject(client, namespace, bucketName, objectName) {
     }
     throw error;
   }
+}
+
+async function verifyR2Object(client, bucketName, objectName) {
+  const { HeadObjectCommand } = require('@aws-sdk/client-s3');
+  try {
+    const response = await client.send(new HeadObjectCommand({
+      Bucket: bucketName,
+      Key: objectName
+    }));
+    return {
+      exists: true,
+      size: response.ContentLength,
+      etag: response.ETag
+    };
+  } catch (error) {
+    if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+      return { exists: false };
+    }
+    throw error;
+  }
+}
+
+function detectProvider(manifest) {
+  if (manifest.storageConfig?.provider === 'r2') return 'r2';
+  if (manifest.ociConfig) return 'oci';
+  return 'oci';
 }
 
 async function main() {
@@ -134,25 +175,40 @@ async function main() {
   console.log(`   Files to process: ${files.length}`);
   console.log('');
 
-  // Initialize OCI client for verification
-  let ociClient = null;
-  const namespace = manifest.ociConfig?.namespace || process.env.OCI_NAMESPACE;
-  const bucketName = manifest.ociConfig?.bucket || process.env.OCI_BUCKET || 'wurud-audio';
+  // Detect storage provider
+  const provider = detectProvider(manifest);
+  console.log(`   Storage provider: ${provider.toUpperCase()}\n`);
+
+  // Initialize storage client for verification
+  let storageClient = null;
+  let namespace = null;
+  let bucketName = null;
+
+  if (provider === 'r2') {
+    bucketName = manifest.storageConfig?.bucket || process.env.R2_BUCKET_NAME || 'wurud-audio';
+  } else {
+    namespace = manifest.ociConfig?.namespace || process.env.OCI_NAMESPACE;
+    bucketName = manifest.ociConfig?.bucket || process.env.OCI_BUCKET || 'wurud-audio';
+  }
 
   if (!SKIP_VERIFY) {
-    console.log('☁️  Initializing OCI client for verification...');
+    console.log(`☁️  Initializing ${provider.toUpperCase()} client for verification...`);
     try {
-      ociClient = await initOciClient();
-      if (ociClient) {
-        console.log('   ✅ OCI client ready\n');
+      if (provider === 'r2') {
+        storageClient = initR2Client();
       } else {
-        console.log('   ⚠️  OCI not configured, skipping verification\n');
+        storageClient = await initOciClient();
+      }
+      if (storageClient) {
+        console.log(`   ✅ ${provider.toUpperCase()} client ready\n`);
+      } else {
+        console.log(`   ⚠️  ${provider.toUpperCase()} not configured, skipping verification\n`);
       }
     } catch (error) {
-      console.log(`   ⚠️  OCI init failed: ${error.message}, skipping verification\n`);
+      console.log(`   ⚠️  ${provider.toUpperCase()} init failed: ${error.message}, skipping verification\n`);
     }
   } else {
-    console.log('⏭️  Skipping OCI verification (--skip-verify)\n');
+    console.log('⏭️  Skipping storage verification (--skip-verify)\n');
   }
 
   // Connect to MongoDB
@@ -185,18 +241,20 @@ async function main() {
     const file = files[i];
     const progress = `[${i + 1}/${files.length}]`;
 
-    // Verify in OCI (if client available and not skipped)
-    if (ociClient && !SKIP_VERIFY) {
+    // Verify in storage (if client available and not skipped)
+    if (storageClient && !SKIP_VERIFY) {
       try {
-        const verification = await verifyObject(ociClient, namespace, bucketName, file.filename);
+        const verification = provider === 'r2'
+          ? await verifyR2Object(storageClient, bucketName, file.filename)
+          : await verifyObject(storageClient, namespace, bucketName, file.filename);
         if (!verification.exists) {
-          console.log(`${progress} ❌ Not in OCI: ${file.filename}`);
+          console.log(`${progress} ❌ Not in ${provider.toUpperCase()}: ${file.filename}`);
           stats.verifyFailed++;
           results.push({ ...file, dbStatus: 'verify-failed' });
           continue;
         }
         stats.verified++;
-        if (VERBOSE) console.log(`${progress} ✅ Verified in OCI: ${file.filename}`);
+        if (VERBOSE) console.log(`${progress} ✅ Verified in ${provider.toUpperCase()}: ${file.filename}`);
       } catch (error) {
         console.log(`${progress} ⚠️  Verify error: ${file.filename} - ${error.message}`);
       }
@@ -283,8 +341,8 @@ async function main() {
   console.log('📊 SUMMARY');
   console.log('='.repeat(60));
   console.log(`  Total files:       ${stats.total}`);
-  if (!SKIP_VERIFY && ociClient) {
-    console.log(`  Verified in OCI:   ${stats.verified}`);
+  if (!SKIP_VERIFY && storageClient) {
+    console.log(`  Verified in ${provider.toUpperCase()}:   ${stats.verified}`);
     console.log(`  Verify failed:     ${stats.verifyFailed}`);
   }
   console.log(`  DB updated:        ${stats.updated}`);

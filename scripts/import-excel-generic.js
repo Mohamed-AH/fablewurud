@@ -59,7 +59,7 @@
  *   - Serial            : Alternative to SequenceInSeries
  *   - TitleEnglish      : English title (falls back to Arabic if missing)
  *   - Category          : Aqeedah, Fiqh, Tafsir, Hadith, Seerah, Akhlaq, Other
- *   - Type              : "Series" or "Khutba"
+ *   - Type              : "Series", "Khutba", or "Lecture"
  *   - ClipLength        : Duration (MM:SS or HH:MM:SS)
  *   - DateInGreg        : Recording date (DD.MM.YYYY)
  *   - Location/Online   : Location or "Online"
@@ -205,6 +205,7 @@ function getTags(row) {
   if (loc === 'Online') tags.push('online', 'عن بعد');
   if (loc === 'Archive') tags.push('archive', 'أرشيف');
   if (row.Type === 'Khutba') tags.push('khutba', 'خطبة');
+  if (row.Type === 'Lecture') tags.push('lecture', 'محاضرة');
   return [...new Set(tags)];
 }
 
@@ -368,8 +369,20 @@ async function main() {
 
         // Series
         const seriesTitle = String(row.SeriesName || '').trim();
+        const isKhutba = row.Type === 'Khutba';
+        const isLecture = row.Type === 'Lecture';
         let series = null;
-        if (seriesTitle) {
+
+        if (isLecture) {
+          const miscKey = 'محاضرات متفرقة' + SERIES_SUFFIX;
+          if (!seriesMap.has(miscKey)) {
+            series = await findOrCreateSeries('محاضرات متفرقة', sheikh._id, 'Other', null, getTags(row));
+            seriesMap.set(miscKey, series);
+            if (series.isNew) stats.series++;
+          } else {
+            series = seriesMap.get(miscKey);
+          }
+        } else if (seriesTitle) {
           const key = seriesTitle + SERIES_SUFFIX;
           if (!seriesMap.has(key)) {
             series = await findOrCreateSeries(seriesTitle, sheikh._id, mapCategory(row.Category), row.OriginalAuthor, getTags(row));
@@ -382,9 +395,8 @@ async function main() {
 
         // Title
         const seq = String(row.SequenceInSeries || row.Serial || '').trim();
-        const isKhutba = row.Type === 'Khutba';
         let titleAr;
-        if (isKhutba) {
+        if (isKhutba || isLecture) {
           const parts = seriesTitle.split('-');
           titleAr = parts.length > 1 ? parts.slice(1).join('-').trim() : seriesTitle;
         } else if (seq && seriesTitle) {

@@ -5,6 +5,14 @@ into this fork, which additionally carries the code-audit remediation (Phases
 0–6). Once this fork is confident/complete it becomes canonical and `wurud` is
 retired.
 
+> **STATUS: EXECUTED** (all 10 upstream commits ported). Highlights: R2 storage
+> backend (config/r2.js, utils/r2Storage.js, streamController multi-provider
+> serving/download, CSP, deps), Asdaa 403 fix + paste-HTML import (added to the
+> extracted `routes/admin/articles.js` **with sanitization**), OCI/R2-aware
+> transactional lecture delete, and the utility scripts/report generator.
+> The article sanitizer was also broadened to preserve structural HTML.
+> Remaining owner step: run/verify in a dev env with real R2 credentials.
+
 ## Divergence analysis
 
 - **Fork point:** this fork's `Initial commit` (`c56bc28`) has a tree **identical**
