@@ -10,6 +10,73 @@ Islamic audio archive website for Sheikh Hasan bin Mohammed Mansour Dhaghriri. S
 
 ---
 
+## 🟢 ACTIVE: Sheikh Ahmed Al-Najmi Archive (started 2026-07-22)
+
+Adding the archive of **العلامة أحمد بن يحيى النجمي رحمه الله** (teacher of Sheikh Hasan) alongside Hasan's existing archive. **~1,545 audio / 54 series / 116 PDFs (4 categories) / ~7 GB on a NEW Cloudflare R2 bucket.** Design approved from `docs/mocks/najmi-archive-mocks.html`.
+
+### Locked decisions (owner-approved 2026-07-22)
+- **Strategy: Complete Architectural Separation.** Najmi is a dedicated parallel realm under **`/najmi/*`**. Zero content bleed. Hasan stays the site default at existing routes.
+- **Identity:** Hasan = Gold `#C49A3C` / Brown `#2C1508` (unchanged). Najmi = **Deep Teal/Emerald `#2E6E5B`** / Dark Forest `#14231d`.
+- **Dynamic context header:** global header accent + brand badge switch Gold↔Teal by realm.
+- **Cross-archive banners:** Hasan home (post-hero) → Najmi ("جديد: أرشيف شيخه العلامة أحمد بن يحيى النجمي رحمه الله — 1,545 درساً · 54 سلسلة · 116 كتاباً" + CTA "انتقل إلى أرشيف الشيخ أحمد ←"). Najmi home → Hasan ("العودة إلى دروس الشيخ حسن الدغريري ←").
+- **Najmi mobile bottom nav (5):** الرئيسية · السلاسل · البحث · المكتبة · السيرة (Library replaces Articles; Biography replaces Schedule).
+- **PDF library:** cover-grid with generated cover art + metadata (pages/volumes). **Phase 1** = direct R2 download (`Content-Disposition: attachment`) + "open in new tab" viewer. **Phase 2** = integrated reader (PDF.js/embed).
+- **PDF categories (4):** العقيدة · الفقه · الحديث · الردود والفتاوى.
+
+### Architecture approach
+- **Realm generically, keyed on Sheikh.** Add fields to `models/Sheikh.js`: `key` (url slug e.g. "najmi"), `theme`/`accent`, `isPrimary` (Hasan=true), `hasLibrary`. Najmi realm mounted at `/najmi` but built via a scholar-realm mechanism so future scholars are cheap.
+- **Theming via `--realm-accent` tokens** + `data-realm` on `<body>`. A `scholarContext` middleware sets `{ key, name, accent, gradient, basePath, isPrimary }`; header/footer/player/cards read it. Hasan pages keep gold (default); `/najmi/*` = teal. No visual change to Hasan side.
+- **Reuse Series/Lecture models** for Najmi audio (just `sheikhId=Najmi`); realm context drives theming + breadcrumb, not new models.
+- **New `models/Resource.js`** (PDF book): title, category (4-enum), sheikhId, fileUrl (R2 public URL), fileSize, pages/volumes, coverColor, shortId, slug, isPublished, order, view/downloadCount.
+- **Storage:** each Lecture/Resource stores its **full public R2 URL**; serving = redirect (audio already works via streamController R2 path). No per-bucket runtime config needed for Phase-1 public downloads. Upload/import is owner-run offline. CSP already allows `*.r2.dev` (add custom R2 domain if used).
+- **Category enum gap:** `Series`/`Lecture` enums lack `الردود والفتاوى` (Radd). Extend enums (add `Radd`/`Fatawa`) or relax to free-form — decide in N0.
+
+### Phased plan (work in order; each independently shippable; update checkboxes as done)
+
+**Phase N0 — Data model + theming scaffold** (no visible change) ☐
+- [ ] `Sheikh`: add `key`, `theme/accent`, `isPrimary`, `hasLibrary`. Backfill Hasan (`isPrimary:true`, gold).
+- [ ] New `models/Resource.js` (PDF) + register in `models/index.js` + Counter sequence.
+- [ ] Extend category enum(s) for `الردود والفتاوى` (or free-form) — Series/Lecture/Resource.
+- [ ] `middleware/scholarContext.js` + `--realm-accent` CSS tokens (gold default). Verify Hasan pages unchanged.
+
+**Phase N1 — Najmi realm shell + routing + banners** ☐
+- [ ] `routes/najmi/index.js` mounted `/najmi`: home (hero + bio + stats 1545/54/116), teal theme, return banner → Hasan.
+- [ ] Realm-aware header/footer/player (accent switches).
+- [ ] Cross-archive invite banner on Hasan home (post-hero) → `/najmi`.
+
+**Phase N2 — Najmi audio (series + lectures)** ☐
+- [ ] `/najmi/series` listing (sheikhId=Najmi, category filter, teal cards).
+- [ ] `/najmi/series/:shortId/...` detail (teal hero, breadcrumb "الرئيسية ‹ الشيخ أحمد النجمي ‹ السلاسل ‹ …", lecture list, teal player).
+- [ ] Lecture play/detail within realm (reuse streaming; R2 URLs already served).
+
+**Phase N3 — PDF Library** ☐
+- [ ] `/najmi/library` hub: 4 category tabs, cover-grid cards, generated covers.
+- [ ] Download route (R2 redirect, `Content-Disposition: attachment`) + open-in-new-tab view.
+- [ ] Resource rendering + view/download counts.
+
+**Phase N4 — Biography + mobile nav + SEO** ☐
+- [ ] `/najmi/about` biography page.
+- [ ] Najmi realm mobile bottom nav (Home/Series/Search/Library/Biography).
+- [ ] Sitemap includes `/najmi/*` + PDFs; canonical; Article/Book JSON-LD.
+
+**Phase N5 — Import & content load** (owner-run against prod, dry-run first) ☐
+- [ ] Import scripts: create Najmi `Sheikh`; 54 `Series`; 1,545 `Lecture`s (R2 audioUrl, series/order); 116 `Resource`s (category, R2 fileUrl, metadata). Driven by an owner-provided manifest (CSV/Excel/JSON). R2 upload verification.
+
+**Phase N6 — Admin management** ☐
+- [ ] Admin: scholar realm fields (key/theme/hasLibrary); Resource (PDF) CRUD; Najmi content management.
+
+**Phase N7 — Integrated PDF reader (PDF.js)** ☐ (later enhancement)
+
+### Owner inputs still needed
+- Content **manifest** mapping files → series/category/titles/order (for N5).
+- Confirm Najmi audio-series categories (do any use الردود والفتاوى, or only PDFs?).
+- Whether the new R2 bucket is **public** (r2.dev or custom domain) — determines direct vs presigned URLs. If custom domain, provide it for CSP.
+- Biography text (Arabic) + optional photo for the hero.
+
+### Status: PLAN APPROVED — awaiting go-ahead to start **Phase N0**. No feature code written yet.
+
+---
+
 ## 🔧 ACTIVE: Code Audit Remediation (started 2026-07-12)
 
 Full findings + 6-phase plan live in **`CODE_AUDIT_REPORT.md`** (committed). Work the phases in order; each is independently shippable. Update the checkboxes below as tasks land so a context-compaction restart can resume cleanly.
