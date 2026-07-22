@@ -1,0 +1,700 @@
+<title>الورود · مخطط إضافة أرشيف الشيخ أحمد النجمي</title>
+<style>
+/* ============================================================
+   DOCUMENT CHROME  (the design-review page itself)
+   Warm neutral biased toward the site's gold. Theme-aware.
+   ============================================================ */
+:root{
+  --paper:#F3EEE6; --paper-2:#FBF8F2; --ink:#2A2113; --ink-soft:#6B5E48;
+  --line:#DED3C0; --accent:#B8862E; --accent-2:#2E6E5B;
+  --shadow:0 1px 2px rgba(50,35,10,.06),0 8px 24px rgba(50,35,10,.08);
+  --radius:14px;
+  /* site tokens (used INSIDE previews) */
+  --s-gold:#C49A3C; --s-gold-d:#A97F28; --s-brown:#2C1508; --s-sage:#6B7A4E;
+  --s-cream:#F5EDE0; --s-card:#FDF8F2; --s-gold-l:#DEC99A; --s-badge:#E8D5A0;
+  --s-text:#3A2A18; --s-text-mid:#7A5C3A; --s-text-mut:#A89070;
+  /* per-scholar accents */
+  --sch-hasan:#C49A3C; --sch-hasan-d:#8A6417;
+  --sch-ahmed:#2E6E5B; --sch-ahmed-d:#1F5142;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --paper:#171410; --paper-2:#201b14; --ink:#F0E9DC; --ink-soft:#B6A98F;
+    --line:#33291d; --accent:#E4BA5E; --accent-2:#5FB79E; }
+}
+:root[data-theme="dark"]{ --paper:#171410; --paper-2:#201b14; --ink:#F0E9DC; --ink-soft:#B6A98F; --line:#33291d; --accent:#E4BA5E; --accent-2:#5FB79E; }
+:root[data-theme="light"]{ --paper:#F3EEE6; --paper-2:#FBF8F2; --ink:#2A2113; --ink-soft:#6B5E48; --line:#DED3C0; --accent:#B8862E; --accent-2:#2E6E5B; }
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:'Segoe UI','Helvetica Neue',system-ui,sans-serif;
+  line-height:1.6;-webkit-font-smoothing:antialiased}
+[dir]{}
+h1,h2,h3,h4{margin:0;line-height:1.2;text-wrap:balance;font-weight:800}
+p{margin:0}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+/* top bar */
+.topbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;gap:18px;height:60px}
+.brand{font-weight:800;letter-spacing:.2px;display:flex;align-items:center;gap:9px}
+.brand b{color:var(--accent)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+.tnav{margin-inline-start:auto;display:flex;gap:4px;flex-wrap:wrap}
+.tnav a{font-size:13px;color:var(--ink-soft);text-decoration:none;padding:7px 11px;border-radius:8px;white-space:nowrap}
+.tnav a:hover{background:var(--paper-2);color:var(--ink)}
+@media(max-width:820px){.tnav{display:none}}
+
+/* hero */
+.hero{padding:56px 0 30px}
+.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.hero h1{font-size:clamp(28px,5vw,46px);margin:14px 0 0}
+.hero p.lede{font-size:clamp(16px,2.2vw,19px);color:var(--ink-soft);max-width:64ch;margin-top:16px}
+.meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.stat{background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;flex-direction:column}
+.stat b{font-size:20px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--ink-soft)}
+
+/* section scaffolding */
+section.block{padding:40px 0;border-top:1px solid var(--line)}
+.sec-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+.sec-tag{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent);border:1px solid var(--line);border-radius:999px;padding:4px 10px;background:var(--paper-2)}
+.sec-head h2{font-size:clamp(22px,3.4vw,30px)}
+.sec-sub{color:var(--ink-soft);max-width:70ch;margin:10px 0 26px;font-size:15.5px}
+
+/* option cards */
+.opts{display:grid;gap:22px}
+.opt{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 18px 20px;box-shadow:var(--shadow)}
+.opt-h{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.badge-opt{font-weight:800;font-size:12px;color:#fff;background:var(--accent);
+  border-radius:7px;padding:3px 9px;letter-spacing:.04em}
+.opt-h h3{font-size:18px}
+.opt-note{color:var(--ink-soft);font-size:14px;margin:8px 0 16px}
+.recc{background:var(--accent-2);color:#fff}
+.tag-recc{display:inline-block;font-size:11px;font-weight:800;color:var(--accent-2);
+  border:1px solid var(--accent-2);border-radius:999px;padding:2px 9px;margin-inline-start:8px}
+.pc{display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;font-size:13.5px}
+.pc ul{margin:6px 0 0;padding-inline-start:18px}
+.pc .pro strong{color:var(--accent-2)} .pc .con strong{color:#b56a4a}
+.pc li{margin:3px 0;color:var(--ink-soft)}
+
+/* device frames */
+.frames{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start;margin-top:6px}
+.frame{flex:0 0 auto}
+.frame .cap{font-size:12px;color:var(--ink-soft);margin:0 0 8px;display:flex;align-items:center;gap:7px}
+.frame .cap b{color:var(--ink);font-weight:700}
+.screen{background:var(--s-cream);border:1px solid var(--line);border-radius:16px;overflow:hidden;
+  box-shadow:var(--shadow);color:var(--s-text);direction:rtl;text-align:right;position:relative}
+/* desktop preview scaled to fit column */
+.dsk-scale{width:100%;overflow:hidden;border-radius:16px}
+.dsk-scale .screen{width:1240px;transform-origin:top right}
+.dsk-1 .screen{transform:scale(.62)} /* used inside ~770 col via aspect wrapper */
+.mob{width:340px}
+.tab{width:430px}
+
+/* generic scaling wrapper: renders a fixed-width canvas scaled down */
+.canvas{border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);background:var(--s-cream)}
+.canvas .inner{transform-origin:top right;direction:rtl}
+.cv-desktop{width:100%} .cv-desktop .inner{width:1240px}
+.cv-tablet{width:100%;max-width:430px} .cv-tablet .inner{width:768px}
+
+/* ===== SITE PREVIEW COMPONENTS (use site tokens) ===== */
+.s{font-family:'Segoe UI',Tahoma,'Geeza Pro','Noto Sans Arabic',sans-serif}
+.s-nav{display:flex;align-items:center;gap:16px;padding:12px 20px;background:#fff;border-bottom:1px solid var(--s-gold-l)}
+.s-logo{font-weight:800;color:var(--s-brown);font-size:17px;display:flex;gap:8px;align-items:center}
+.s-logo .m{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--s-brown),var(--s-sage));display:inline-block}
+.s-navlinks{display:flex;gap:6px;margin-inline-start:auto;flex-wrap:wrap}
+.s-navlinks a{font-size:13.5px;color:var(--s-text-mid);text-decoration:none;padding:7px 10px;border-radius:8px}
+.s-navlinks a.on{color:var(--s-brown);font-weight:700;background:var(--s-badge)}
+.s-hero{padding:30px 24px;color:#fff;background:linear-gradient(to left,#2C1508 0%,#3D2815 32%,#5A6944 72%,#6B7A4E 100%)}
+.s-hero.teal{background:linear-gradient(to left,#14231d 0%,#1c332b 32%,#2E6E5B 78%,#3f8b75 100%)}
+.s-hero h1{font-size:26px}
+.s-hero p{opacity:.9;margin-top:6px;font-size:14px}
+.s-sec{padding:22px 24px}
+.s-sec-h{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.s-sec-h h2{font-size:19px;color:var(--s-brown)}
+.s-divider{height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,var(--s-gold-l),transparent);margin:6px 0 18px}
+
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+
+.card{background:var(--s-card);border:1px solid var(--s-gold-l);border-radius:14px;padding:14px;position:relative;overflow:hidden}
+.card .rail{position:absolute;inset-block:0;inset-inline-end:0;width:5px}
+.card h3{font-size:15px;color:var(--s-brown);margin-bottom:5px;line-height:1.35}
+.card .sub{font-size:12.5px;color:var(--s-text-mid)}
+.card .meta{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+
+.chip{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;display:inline-flex;gap:5px;align-items:center;white-space:nowrap}
+.chip.gold{background:var(--s-badge);color:#6b4e12}
+.chip.count{background:#efe7d6;color:var(--s-text-mid)}
+.chip.cat{background:#eae2d1;color:var(--s-text-mid)}
+/* scholar chips */
+.sch{font-size:11.5px;font-weight:800;padding:3px 9px 3px 6px;border-radius:999px;display:inline-flex;gap:6px;align-items:center}
+.sch .av{width:16px;height:16px;border-radius:50%;display:inline-block}
+.sch.hasan{background:#F6ECD4;color:#7A5A12} .sch.hasan .av{background:var(--sch-hasan)}
+.sch.ahmed{background:#DCEDE7;color:#1F5142} .sch.ahmed .av{background:var(--sch-ahmed)}
+
+.btn{font-size:12.5px;font-weight:700;padding:7px 12px;border-radius:9px;border:none;display:inline-flex;gap:6px;align-items:center;cursor:default}
+.btn.play{background:var(--s-gold);color:#3a2a10}
+.btn.play.teal{background:var(--sch-ahmed);color:#fff}
+.btn.ghost{background:transparent;border:1px solid var(--s-gold-l);color:var(--s-text-mid)}
+.btn.dl{background:#efe7d6;color:var(--s-text-mid)}
+
+/* scholar switcher segmented control */
+.switcher{display:inline-flex;background:#fff;border:1px solid var(--s-gold-l);border-radius:999px;padding:3px;gap:2px}
+.switcher .seg{font-size:12.5px;font-weight:700;padding:6px 13px;border-radius:999px;color:var(--s-text-mid);display:flex;gap:6px;align-items:center}
+.switcher .seg .av{width:14px;height:14px;border-radius:50%}
+.switcher .seg.on-hasan{background:var(--sch-hasan);color:#3a2a10}
+.switcher .seg.on-hasan .av{background:#fff}
+.switcher .seg.on-ahmed{background:var(--sch-ahmed);color:#fff}
+.switcher .seg.on-ahmed .av{background:#fff}
+
+/* two-doors landing */
+.doors{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.door{border-radius:16px;padding:24px;color:#fff;min-height:210px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden}
+.door.hasan{background:linear-gradient(160deg,#3D2815,#6B7A4E)}
+.door.ahmed{background:linear-gradient(160deg,#14231d,#2E6E5B)}
+.door .kicker{font-size:12px;opacity:.85;position:absolute;top:20px;inset-inline-start:24px}
+.door h3{font-size:22px}
+.door p{font-size:13px;opacity:.9;margin-top:6px}
+.door .go{margin-top:14px;font-size:12.5px;font-weight:800;background:rgba(255,255,255,.16);border-radius:999px;padding:7px 14px;align-self:flex-start}
+.door .portrait{position:absolute;top:18px;inset-inline-end:22px;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.35)}
+
+/* library pdf */
+.pdf{background:#fff;border:1px solid var(--s-gold-l);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.pdf .cover{height:96px;background:linear-gradient(150deg,#2E6E5B,#1F5142);position:relative;display:flex;align-items:flex-end;padding:10px}
+.pdf .cover .t{color:#fff;font-size:12.5px;font-weight:800;line-height:1.35}
+.pdf .cover .badge{position:absolute;top:8px;inset-inline-start:8px;background:rgba(255,255,255,.9);color:#1F5142;font-size:10px;font-weight:800;border-radius:6px;padding:2px 7px}
+.pdf .body{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.pdf .body .cat{font-size:11px;color:var(--s-text-mut)}
+.pdf .acts{display:flex;gap:6px}
+.pdf .acts .btn{flex:1;justify-content:center;padding:6px}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tabpill{font-size:12.5px;font-weight:700;padding:6px 13px;border-radius:999px;background:#fff;border:1px solid var(--s-gold-l);color:var(--s-text-mid)}
+.tabpill.on{background:var(--sch-ahmed);color:#fff;border-color:var(--sch-ahmed)}
+.tabpill.on.gold{background:var(--s-gold);color:#3a2a10;border-color:var(--s-gold)}
+
+/* filter chips row */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filters .lbl{font-size:12px;color:var(--s-text-mut)}
+
+/* section band per scholar (unified home) */
+.band{border-radius:16px;padding:18px;margin-bottom:16px;border:1px solid var(--s-gold-l)}
+.band.hasan{background:linear-gradient(180deg,#FBF3E1,#FDF8F2)}
+.band.ahmed{background:linear-gradient(180deg,#E9F2EE,#F7FBF9);border-color:#BFD9CF}
+.band-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.band-h .av{width:34px;height:34px;border-radius:50%}
+.band.hasan .av{background:var(--sch-hasan)} .band.ahmed .av{background:var(--sch-ahmed)}
+.band-h h3{font-size:16px;color:var(--s-brown)}
+.band-h .rel{font-size:11.5px;color:var(--s-text-mut)}
+.band-h .more{margin-inline-start:auto;font-size:12px;font-weight:700;color:var(--s-gold-d)}
+.band.ahmed .more{color:#1F5142}
+
+/* mobile bottom nav */
+.bnav{display:flex;justify-content:space-around;padding:8px 6px 10px;background:#fff;border-top:1px solid var(--s-gold-l)}
+.bnav .i{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--s-text-mut)}
+.bnav .i .g{width:20px;height:20px;border-radius:6px;background:#e7dcc6}
+.bnav .i.on{color:var(--s-gold-d)} .bnav .i.on .g{background:var(--s-gold)}
+
+/* list row (series list-by-scholar) */
+.row{display:flex;align-items:center;gap:12px;background:var(--s-card);border:1px solid var(--s-gold-l);border-radius:12px;padding:11px 13px}
+.row .num{width:30px;height:30px;border-radius:8px;background:var(--s-badge);color:#6b4e12;font-weight:800;display:grid;place-items:center;font-size:13px}
+.row .num.teal{background:#DCEDE7;color:#1F5142}
+.row .t h4{font-size:14px;color:var(--s-brown)}
+.row .t p{font-size:12px;color:var(--s-text-mid)}
+.row .end{margin-inline-start:auto;display:flex;gap:6px;align-items:center}
+
+/* schematic IA diagrams */
+.ia{display:grid;gap:16px}
+.ia-card{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);padding:16px 16px 18px}
+.ia-diagram{display:flex;flex-direction:column;gap:8px;align-items:center;padding:16px;background:var(--paper);border-radius:10px;border:1px dashed var(--line);margin-top:12px}
+.node{border-radius:9px;padding:8px 12px;font-size:12px;font-weight:700;text-align:center;border:1px solid var(--line);background:#fff;color:var(--ink)}
+:root[data-theme="dark"] .node,.node{color:#2A2113}
+.node.top{background:var(--accent);color:#fff;border:none}
+.node.h{background:#F6ECD4;color:#7A5A12;border-color:#e6d3a4}
+.node.a{background:#DCEDE7;color:#1F5142;border-color:#bfd9cf}
+.branch{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.arrow{color:var(--ink-soft);font-size:16px}
+
+.callout{background:color-mix(in srgb,var(--accent-2) 8%,var(--paper-2));border:1px solid color-mix(in srgb,var(--accent-2) 30%,var(--line));border-radius:12px;padding:14px 16px;margin-top:18px;font-size:14.5px}
+.callout b{color:var(--accent-2)}
+.note-font{font-size:12.5px;color:var(--ink-soft);background:var(--paper-2);border:1px dashed var(--line);border-radius:10px;padding:9px 13px;margin-top:14px;display:inline-block}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px}
+.legend .li{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft)}
+.legend .sw{width:18px;height:18px;border-radius:5px}
+footer{padding:40px 0 60px;color:var(--ink-soft);font-size:13.5px;border-top:1px solid var(--line)}
+.small{font-size:12.5px;color:var(--ink-soft)}
+@media(max-width:640px){.doors{grid-template-columns:1fr}.g3,.g4{grid-template-columns:1fr 1fr}}
+</style>
+
+<div class="topbar"><div class="wrap">
+  <span class="brand"><span class="dot"></span> الورود · <b>مخطط النجمي</b></span>
+  <nav class="tnav">
+    <a href="#ia">البنية</a>
+    <a href="#home">الرئيسية</a>
+    <a href="#hub">صفحة الشيخ</a>
+    <a href="#series">السلاسل</a>
+    <a href="#detail">تفاصيل السلسلة</a>
+    <a href="#library">المكتبة (PDF)</a>
+    <a href="#components">مكوّنات</a>
+  </nav>
+</div></div>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">مخطط تصميم · للمراجعة قبل التنفيذ</div>
+  <h1>إضافة أرشيف العلامة أحمد بن يحيى النجمي إلى موقع الورود</h1>
+  <p class="lede">شيخنا الشيخ حسن الدغريري تلميذٌ للعلامة أحمد النجمي رحمه الله. هذه الوثيقة تعرض خيارات لعرض أرشيف الشيخين معًا مع الإبقاء على تمييزٍ واضح بينهما — مع خيارات لكل صفحة على مقاسات الشاشات المختلفة. <b>لا يوجد أي كود بعد؛</b> هذه مخططات بصرية للموافقة عليها أولًا.</p>
+  <div class="meta-row">
+    <div class="stat"><b>1,545</b><span>ملف صوتي</span></div>
+    <div class="stat"><b>54</b><span>سلسلة</span></div>
+    <div class="stat"><b>116</b><span>كتاب PDF · 4 تصنيفات</span></div>
+    <div class="stat"><b>~7 GB</b><span>على Cloudflare R2 جديد</span></div>
+    <div class="stat"><b>2</b><span>عالِمان — شيخ وتلميذه</span></div>
+  </div>
+  <div class="legend">
+    <div class="li"><span class="sw" style="background:#C49A3C"></span> لون الشيخ حسن الدغريري (ذهبي — الحالي)</div>
+    <div class="li"><span class="sw" style="background:#2E6E5B"></span> لون الشيخ أحمد النجمي (أخضر مقترح — للتمييز)</div>
+  </div>
+  <div class="note-font">ملاحظة: الخط في هذا النموذج خطّ النظام؛ في الموقع الفعلي الخط هو <b>Cairo</b> (حُجبت خطوط CDN داخل المعاينة). الألوان والبنية مطابقة لنظام تصميم الموقع.</div>
+</div></header>
+
+<!-- ============ IA OPTIONS ============ -->
+<section class="block" id="ia"><div class="wrap">
+  <div class="sec-head"><span class="sec-tag">القرار الأهم</span><h2>كيف نفصل بين أرشيف الشيخين؟</h2></div>
+  <p class="sec-sub">الموقع اليوم أحادي (كل المحتوى للشيخ حسن). إضافة الشيخ أحمد تتطلب قرارًا في البنية: كيف يتنقّل الزائر بين العالِمين دون خلط. ثلاثة اتجاهات — تختار واحدًا وتُبنى بقية الصفحات عليه.</p>
+
+  <div class="ia" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+    <div class="ia-card">
+      <div class="opt-h"><span class="badge-opt">أ</span><h3>بابان (اختيار الشيخ أولًا)</h3></div>
+      <p class="opt-note">الرئيسية تعرض بطاقتين كبيرتين — الشيخ حسن والشيخ أحمد. باختيار أحدهما يدخل الزائر تجربةً مخصّصةً لذلك الشيخ (رئيسيته، سلاسله، مكتبته). أقوى فصلٍ ممكن، وأوضح إبرازٍ لعلاقة الشيخ بتلميذه.</p>
+      <div class="ia-diagram">
+        <div class="node top">الرئيسية — اختر الشيخ</div>
+        <div class="arrow">▾</div>
+        <div class="branch"><span class="node h">عالَم الشيخ حسن</span><span class="node a">عالَم الشيخ أحمد</span></div>
+        <div class="branch"><span class="node">سلاسل · دروس · مكتبة</span><span class="node">سلاسل · دروس · مكتبة</span></div>
+      </div>
+      <div class="pc"><div class="pro"><strong>مزايا</strong><ul><li>فصلٌ تام، صفر خلط</li><li>يليق بمقام الشيخ المعلّم</li></ul></div>
+      <div class="con"><strong>مقابل</strong><ul><li>نقرة إضافية للوصول للمحتوى</li><li>يغيّر شكل الرئيسية الحالية</li></ul></div></div>
+    </div>
+
+    <div class="ia-card">
+      <div class="opt-h"><span class="badge-opt">ب</span><h3>مبدّل الشيخ<span class="tag-recc">موصى به</span></h3></div>
+      <p class="opt-note">مبدّلٌ ثابت في الرأس (وشريط الجوال) يحصر الموقع كله على شيخٍ واحد. الافتراضي: الشيخ حسن (أصل الموقع). كل الصفحات (السلاسل، التصفّح، المكتبة) تتبع الشيخ النشط، مع لافتةٍ ولونٍ يوضّحان مَن تُشاهد. احتكاكٌ أقل، وفصلٌ قويّ عبر السياق الدائم واللون.</p>
+      <div class="ia-diagram">
+        <div class="node top">أي صفحة + مبدّل الشيخ (حسن ⇄ أحمد)</div>
+        <div class="arrow">▾</div>
+        <div class="branch"><span class="node h">السياق: الشيخ حسن</span><span class="node a">السياق: الشيخ أحمد</span></div>
+        <div class="node">نفس الصفحات، مُرشَّحة تلقائيًا حسب الشيخ النشط</div>
+      </div>
+      <div class="pc"><div class="pro"><strong>مزايا</strong><ul><li>يبقي الرئيسية الحالية كما هي</li><li>تمييزٌ دائمٌ بلا نقرات زائدة</li></ul></div>
+      <div class="con"><strong>مقابل</strong><ul><li>يجب إبراز الشيخ النشط بوضوح دائم</li></ul></div></div>
+    </div>
+
+    <div class="ia-card">
+      <div class="opt-h"><span class="badge-opt">ج</span><h3>رئيسية موحّدة بأقسام مفصولة</h3></div>
+      <p class="opt-note">رئيسيةٌ واحدة تعرض الشيخين في أقسامٍ مميّزةٍ بالألوان والعناوين («من دروس شيخنا حسن» / «من دروس شيخه العلامة أحمد النجمي»)، مع مُرشِّح شيخٍ في صفحات القوائم وشارة شيخٍ على كل بطاقة. كل شيء مكتشَفٌ دفعةً واحدة؛ الفصل بصريٌّ لا حصريّ.</p>
+      <div class="ia-diagram">
+        <div class="node top">رئيسية واحدة</div>
+        <div class="arrow">▾</div>
+        <div class="branch"><span class="node h">قسم الشيخ حسن</span><span class="node a">قسم الشيخ أحمد</span></div>
+        <div class="node">القوائم = مُرشِّح شيخ + شارة على كل بطاقة</div>
+      </div>
+      <div class="pc"><div class="pro"><strong>مزايا</strong><ul><li>اكتشافٌ فوريّ للأرشيفين</li><li>يُظهر ثراء المحتوى دفعةً</li></ul></div>
+      <div class="con"><strong>مقابل</strong><ul><li>فصلٌ أضعف — يعتمد على انضباط اللون/الشارة</li></ul></div></div>
+    </div>
+  </div>
+
+  <div class="callout"><b>توصيتي:</b> الاتجاه (ب) مبدّل الشيخ كأساس، مع استعارة «البابين» من (أ) في بطاقة ترحيبٍ صغيرة على الرئيسية تُبرز علاقة الشيخ بتلميذه. هذا يجمع أقلّ احتكاكٍ مع أوضح تمييز. الشاشات أدناه تعرض هذا الأساس مع بدائل لكل صفحة.</div>
+</div></section>
+
+<!-- ============ HOMEPAGE ============ -->
+<section class="block" id="home"><div class="wrap">
+  <div class="sec-head"><span class="sec-tag">الصفحة الرئيسية</span><h2>ثلاثة خيارات للرئيسية</h2></div>
+  <p class="sec-sub">كيف نُقدّم الشيخ أحمد على الرئيسية؟ ثلاث معالجات — كلٌّ معروضٌ على سطح المكتب والجوال.</p>
+
+  <!-- Option B: switcher -->
+  <div class="opt">
+    <div class="opt-h"><span class="badge-opt">ب</span><h3>مبدّل الشيخ + بطاقة الترحيب<span class="tag-recc">موصى به</span></h3></div>
+    <p class="opt-note">الرئيسية الحالية تبقى للشيخ حسن، مع مبدّلٍ في الرأس وبطاقة ترحيبٍ تُعرّف بالشيخ أحمد وعلاقته. تبديلٌ واحدٌ ينقل كل الصفحة لعالَم الشيخ أحمد.</p>
+    <div class="frames">
+      <div class="frame">
+        <p class="cap"><b>سطح المكتب</b> · 1240px</p>
+        <div class="canvas cv-desktop" style="max-width:720px"><div class="inner" style="transform:scale(.58)">
+          <div class="s">
+            <div class="s-nav"><span class="s-logo"><span class="m"></span> الورود</span>
+              <div class="switcher"><span class="seg on-hasan"><span class="av"></span> الشيخ حسن</span><span class="seg"><span class="av" style="background:#2E6E5B"></span> الشيخ أحمد</span></div>
+              <div class="s-navlinks"><a class="on">الرئيسية</a><a>السلاسل</a><a>التصفّح</a><a>المكتبة</a><a>المقالات</a><a>الجدول</a></div>
+            </div>
+            <div class="s-hero"><h1>البحث في التفريغ الصوتي لدروس الشيخ حسن الدغريري</h1><p>من الكلمة المكتوبة إلى اللحظة المسموعة — أكثر من ٩٩٢ درسًا</p></div>
+            <div class="s-sec">
+              <div class="band ahmed"><div class="band-h"><span class="av"></span><div><h3>جديد: أرشيف شيخه العلامة أحمد بن يحيى النجمي رحمه الله</h3><span class="rel">شيخ الشيخ حسن · ١٥٤٥ درسًا · ٥٤ سلسلة · ١١٦ كتابًا</span></div><span class="more">ادخل أرشيفه ←</span></div></div>
+              <div class="s-sec-h"><h2>سلاسل مختارة</h2></div><div class="s-divider"></div>
+              <div class="grid g3">
+                <div class="card"><span class="rail" style="background:#C49A3C"></span><span class="sch hasan"><span class="av"></span> الشيخ حسن</span><h3 style="margin-top:8px">شرح كتاب التوحيد</h3><div class="sub">العقيدة · ٤٢ درسًا</div><div class="meta"><button class="btn play">▶ استمع</button></div></div>
+                <div class="card"><span class="rail" style="background:#C49A3C"></span><span class="sch hasan"><span class="av"></span> الشيخ حسن</span><h3 style="margin-top:8px">عمدة الأحكام</h3><div class="sub">الفقه · ٣٦ درسًا</div><div class="meta"><button class="btn play">▶ استمع</button></div></div>
+                <div class="card"><span class="rail" style="background:#C49A3C"></span><span class="sch hasan"><span class="av"></span> الشيخ حسن</span><h3 style="margin-top:8px">تفسير جزء عمّ</h3><div class="sub">التفسير · ٣٠ درسًا</div><div class="meta"><button class="btn play">▶ استمع</button></div></div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+      <div class="frame">
+        <p class="cap"><b>الجوال</b> · 340px</p>
+        <div class="screen mob"><div class="s">
+          <div class="s-nav" style="padding:10px 12px"><span class="s-logo" style="font-size:15px"><span class="m"></span> الورود</span><span style="margin-inline-start:auto">☰</span></div>
+          <div style="padding:10px 12px;display:flex;justify-content:center"><div class="switcher" style="width:100%;justify-content:center"><span class="seg on-hasan"><span class="av"></span> الشيخ حسن</span><span class="seg"><span class="av" style="background:#2E6E5B"></span> الشيخ أحمد</span></div></div>
+          <div class="s-hero" style="padding:20px 16px"><h1 style="font-size:19px">دروس الشيخ حسن الدغريري</h1><p>٩٩٢ درسًا · بحثٌ في التفريغ</p></div>
+          <div class="s-sec" style="padding:14px">
+            <div class="band ahmed" style="padding:13px"><div class="band-h"><span class="av" style="width:28px;height:28px"></span><div><h3 style="font-size:14px">أرشيف العلامة أحمد النجمي</h3><span class="rel">شيخ الشيخ حسن · جديد</span></div></div><span class="more" style="font-size:12px">ادخل ←</span></div>
+            <div class="s-sec-h" style="margin-top:14px"><h2 style="font-size:16px">سلاسل مختارة</h2></div>
+            <div class="grid"><div class="card"><span class="sch hasan"><span class="av"></span> الشيخ حسن</span><h3 style="margin-top:8px">شرح كتاب التوحيد</h3><div class="sub">العقيدة · ٤٢ درسًا</div><div class="meta"><button class="btn play">▶ استمع</button><button class="btn dl">⬇</button></div></div></div>
+          </div>
+          <div class="bnav"><span class="i on"><span class="g"></span>الرئيسية</span><span class="i"><span class="g"></span>السلاسل</span><span class="i"><span class="g"></span>بحث</span><span class="i"><span class="g"></span>المكتبة</span><span class="i"><span class="g"></span>الجدول</span></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="pc"><div class="pro"><strong>مزايا</strong><ul><li>لا يُربك زائر الشيخ حسن الحالي</li><li>تبديلٌ فوريّ لعالَم الشيخ أحمد</li></ul></div><div class="con"><strong>مقابل</strong><ul><li>يحتاج لافتة سياقٍ واضحة عند التبديل</li></ul></div></div>
+  </div>
+
+  <!-- Option A: two doors -->
+  <div class="opt" style="margin-top:22px">
+    <div class="opt-h"><span class="badge-opt">أ</span><h3>بابان — اختيار الشيخ من الرئيسية</h3></div>
+    <p class="opt-note">الرئيسية تفتح على بطاقتين. مناسبة إن أردنا إبراز مقام الشيخين بالتساوي وجعل الاختيار واعيًا.</p>
+    <div class="frames">
+      <div class="frame">
+        <p class="cap"><b>سطح المكتب</b> · 1240px</p>
+        <div class="canvas cv-desktop" style="max-width:720px"><div class="inner" style="transform:scale(.58)">
+          <div class="s">
+            <div class="s-nav"><span class="s-logo"><span class="m"></span> الورود</span><div class="s-navlinks"><a>عن الموقع</a><a>بحث</a><a>تواصل</a></div></div>
+            <div style="padding:34px 30px;text-align:center;background:linear-gradient(180deg,#F5EDE0,#FDF8F2)">
+              <h1 style="color:#2C1508;font-size:26px">أرشيفٌ لعالِمين: شيخٌ وتلميذه</h1>
+              <p style="color:#7A5C3A;margin-top:8px;font-size:14px">اختر الأرشيف الذي تودّ تصفّحه</p>
+              <div class="doors" style="margin-top:22px">
+                <div class="door ahmed"><span class="portrait"></span><span class="kicker">المُعلّم رحمه الله</span><h3>العلامة أحمد بن يحيى النجمي</h3><p>١٥٤٥ درسًا · ٥٤ سلسلة · ١١٦ كتابًا</p><span class="go">ادخل أرشيفه ←</span></div>
+                <div class="door hasan"><span class="portrait"></span><span class="kicker">التلميذ</span><h3>الشيخ حسن الدغريري</h3><p>٩٩٢ درسًا · سلاسل · مقالات</p><span class="go">ادخل أرشيفه ←</span></div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+      <div class="frame">
+        <p class="cap"><b>الجوال</b> · 340px</p>
+        <div class="screen mob"><div class="s">
+          <div class="s-nav" style="padding:10px 12px"><span class="s-logo" style="font-size:15px"><span class="m"></span> الورود</span></div>
+          <div style="padding:20px 14px;text-align:center;background:linear-gradient(180deg,#F5EDE0,#FDF8F2)">
+            <h1 style="color:#2C1508;font-size:18px">شيخٌ وتلميذه</h1><p style="color:#7A5C3A;font-size:13px;margin-top:6px">اختر الأرشيف</p>
+            <div style="display:grid;gap:12px;margin-top:16px">
+              <div class="door ahmed" style="min-height:150px"><span class="kicker">المُعلّم</span><h3 style="font-size:18px">أحمد بن يحيى النجمي</h3><p>١٥٤٥ درسًا · ١١٦ كتابًا</p><span class="go">ادخل ←</span></div>
+              <div class="door hasan" style="min-height:150px"><span class="kicker">التلميذ</span><h3 style="font-size:18px">حسن الدغريري</h3><p>٩٩٢ درسًا</p><span class="go">ادخل ←</span></div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="pc"><div class="pro"><strong>مزايا</strong><ul><li>فصلٌ تامّ وإبرازٌ للمقام</li></ul></div><div class="con"><strong>مقابل</strong><ul><li>نقرةٌ قبل الوصول للمحتوى · يغيّر عادة الزوّار الحاليين</li></ul></div></div>
+  </div>
+
+  <!-- Option C: unified rails -->
+  <div class="opt" style="margin-top:22px">
+    <div class="opt-h"><span class="badge-opt">ج</span><h3>رئيسية موحّدة — قسمان ملوّنان</h3></div>
+    <p class="opt-note">قسمٌ لكل شيخٍ على الرئيسية نفسها، بخلفيةٍ ولونٍ مميّزين، وشارة شيخٍ على كل بطاقة.</p>
+    <div class="frames">
+      <div class="frame">
+        <p class="cap"><b>سطح المكتب</b> · 1240px</p>
+        <div class="canvas cv-desktop" style="max-width:720px"><div class="inner" style="transform:scale(.58)">
+          <div class="s">
+            <div class="s-nav"><span class="s-logo"><span class="m"></span> الورود</span><div class="s-navlinks"><a class="on">الرئيسية</a><a>السلاسل</a><a>الشيوخ</a><a>المكتبة</a><a>المقالات</a></div></div>
+            <div class="s-sec" style="padding-top:18px">
+              <div class="band hasan"><div class="band-h"><span class="av"></span><div><h3>من دروس شيخنا حسن الدغريري</h3><span class="rel">صاحب الموقع</span></div><span class="more">كل سلاسله ←</span></div>
+                <div class="grid g3"><div class="card"><span class="rail" style="background:#C49A3C"></span><h3>شرح كتاب التوحيد</h3><div class="sub">العقيدة · ٤٢ درسًا</div></div><div class="card"><span class="rail" style="background:#C49A3C"></span><h3>عمدة الأحكام</h3><div class="sub">الفقه · ٣٦</div></div><div class="card"><span class="rail" style="background:#C49A3C"></span><h3>الأصول الثلاثة</h3><div class="sub">العقيدة · ١٨</div></div></div>
+              </div>
+              <div class="band ahmed"><div class="band-h"><span class="av"></span><div><h3>من دروس شيخه العلامة أحمد النجمي رحمه الله</h3><span class="rel">شيخ الشيخ حسن</span></div><span class="more">كل سلاسله ←</span></div>
+                <div class="grid g3"><div class="card"><span class="rail" style="background:#2E6E5B"></span><h3>شرح سنن أبي داود</h3><div class="sub">الحديث · ٢١٠ دروس</div></div><div class="card"><span class="rail" style="background:#2E6E5B"></span><h3>فتح رب البرية</h3><div class="sub">العقيدة · ٤٥</div></div><div class="card"><span class="rail" style="background:#2E6E5B"></span><h3>تأسيس الأحكام</h3><div class="sub">الحديث · ٦٠</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+      <div class="frame">
+        <p class="cap"><b>الجوال</b> · 340px</p>
+        <div class="screen mob"><div class="s">
+          <div class="s-nav" style="padding:10px 12px"><span class="s-logo" style="font-size:15px"><span class="m"></span> الورود</span><span style="margin-inline-start:auto">☰</span></div>
+          <div class="s-sec" style="padding:12px">
+            <div class="band hasan" style="padding:12px"><div class="band-h"><span class="av" style="width:26px;height:26px"></span><h3 style="font-size:14px">شيخنا حسن الدغريري</h3><span class="more" style="font-size:11px">الكل ←</span></div><div class="grid"><div class="card"><span class="rail" style="background:#C49A3C"></span><h3>شرح كتاب التوحيد</h3><div class="sub">العقيدة · ٤٢</div></div></div></div>
+            <div class="band ahmed" style="padding:12px"><div class="band-h"><span class="av" style="width:26px;height:26px"></span><h3 style="font-size:14px">شيخه أحمد النجمي</h3><span class="more" style="font-size:11px">الكل ←</span></div><div class="grid"><div class="card"><span class="rail" style="background:#2E6E5B"></span><h3>شرح سنن أبي داود</h3><div class="sub">الحديث · ٢١٠</div></div></div></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="pc"><div class="pro"><strong>مزايا</strong><ul><li>اكتشافٌ فوريّ للأرشيفين معًا</li></ul></div><div class="con"><strong>مقابل</strong><ul><li>رئيسيةٌ أطول · الفصل بصريٌّ لا حصريّ</li></ul></div></div>
+  </div>
+</div></section>
+
+<!-- ============ SCHOLAR HUB ============ -->
+<section class="block" id="hub"><div class="wrap">
+  <div class="sec-head"><span class="sec-tag">صفحة الشيخ</span><h2>صفحة الشيخ أحمد (المركز)</h2></div>
+  <p class="sec-sub">عند اختيار الشيخ أحمد: صفحةٌ جامعة بلونه الأخضر — سيرةٌ موجزة، سلاسله، أحدث الدروس، ومدخل المكتبة. خياران للترويسة.</p>
+
+  <div class="opts" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+    <div class="opt">
+      <div class="opt-h"><span class="badge-opt">١</span><h3>ترويسةٌ بلون الشيخ + تبويبات</h3></div>
+      <p class="opt-note">لافتةٌ خضراء بالاسم والإحصاءات، ثم تبويبات: السلاسل · الدروس · المكتبة · السيرة.</p>
+      <div class="frame">
+        <div class="canvas cv-desktop"><div class="inner" style="transform:scale(.56)">
+          <div class="s">
+            <div class="s-nav"><span class="s-logo"><span class="m"></span> الورود</span><div class="switcher"><span class="seg"><span class="av"></span> حسن</span><span class="seg on-ahmed"><span class="av"></span> أحمد</span></div><div class="s-navlinks"><a>السلاسل</a><a>المكتبة</a></div></div>
+            <div class="s-hero teal"><div style="display:flex;gap:16px;align-items:center"><span style="width:74px;height:74px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.35);flex:0 0 auto"></span><div><h1>العلامة أحمد بن يحيى النجمي</h1><p>رحمه الله · شيخ الشيخ حسن الدغريري · مفتي المنطقة الجنوبية سابقًا</p><div style="display:flex;gap:8px;margin-top:10px"><span class="chip" style="background:rgba(255,255,255,.18);color:#fff">١٥٤٥ درسًا</span><span class="chip" style="background:rgba(255,255,255,.18);color:#fff">٥٤ سلسلة</span><span class="chip" style="background:rgba(255,255,255,.18);color:#fff">١١٦ كتابًا</span></div></div></div></div>
+            <div style="padding:0 24px"><div class="tabs" style="margin:16px 0"><span class="tabpill on">السلاسل</span><span class="tabpill">الدروس المفردة</span><span class="tabpill">المكتبة (١١٦)</span><span class="tabpill">السيرة</span></div></div>
+            <div class="s-sec" style="padding-top:0"><div class="grid g3">
+              <div class="card"><span class="rail" style="background:#2E6E5B"></span><h3>شرح سنن أبي داود</h3><div class="sub">الحديث · ٢١٠ دروس</div><div class="meta"><button class="btn play teal">▶ ابدأ</button></div></div>
+              <div class="card"><span class="rail" style="background:#2E6E5B"></span><h3>فتح رب البرية بتلخيص الحموية</h3><div class="sub">العقيدة · ٤٥ درسًا</div><div class="meta"><button class="btn play teal">▶ ابدأ</button></div></div>
+              <div class="card"><span class="rail" style="background:#2E6E5B"></span><h3>تأسيس الأحكام شرح عمدة الأحكام</h3><div class="sub">الحديث · ٦٠ درسًا</div><div class="meta"><button class="btn play teal">▶ ابدأ</button></div></div>
+            </div></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt-h"><span class="badge-opt">٢</span><h3>الجوال — نفس الصفحة مكدّسة</h3></div>
+      <p class="opt-note">اللافتة أصغر، التبويبات قابلة للتمرير أفقيًا، بطاقاتٌ بعمودٍ واحد.</p>
+      <div class="frame" style="display:flex;justify-content:center">
+        <div class="screen mob"><div class="s">
+          <div class="s-hero teal" style="padding:18px 16px"><div style="display:flex;gap:12px;align-items:center"><span style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.35)"></span><div><h1 style="font-size:17px">أحمد بن يحيى النجمي</h1><p style="font-size:12px">رحمه الله · شيخ الشيخ حسن</p></div></div>
+            <div style="display:flex;gap:6px;margin-top:10px;overflow:auto"><span class="chip" style="background:rgba(255,255,255,.18);color:#fff">١٥٤٥ درسًا</span><span class="chip" style="background:rgba(255,255,255,.18);color:#fff">٥٤ سلسلة</span><span class="chip" style="background:rgba(255,255,255,.18);color:#fff">١١٦ كتابًا</span></div>
+          </div>
+          <div style="padding:12px 14px 0"><div class="tabs" style="flex-wrap:nowrap;overflow:auto"><span class="tabpill on">السلاسل</span><span class="tabpill">الدروس</span><span class="tabpill">المكتبة</span><span class="tabpill">السيرة</span></div></div>
+          <div class="s-sec" style="padding:0 14px 14px"><div class="grid">
+            <div class="card"><span class="rail" style="background:#2E6E5B"></span><h3>شرح سنن أبي داود</h3><div class="sub">الحديث · ٢١٠ دروس</div><div class="meta"><button class="btn play teal">▶ ابدأ</button><button class="btn dl">⬇</button></div></div>
+            <div class="card"><span class="rail" style="background:#2E6E5B"></span><h3>فتح رب البرية</h3><div class="sub">العقيدة · ٤٥ درسًا</div><div class="meta"><button class="btn play teal">▶ ابدأ</button><button class="btn dl">⬇</button></div></div>
+          </div></div>
+          <div class="bnav"><span class="i on" style="color:#1F5142"><span class="g" style="background:#2E6E5B"></span>الشيخ</span><span class="i"><span class="g"></span>السلاسل</span><span class="i"><span class="g"></span>بحث</span><span class="i"><span class="g"></span>المكتبة</span></div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ============ SERIES LISTING ============ -->
+<section class="block" id="series"><div class="wrap">
+  <div class="sec-head"><span class="sec-tag">قائمة السلاسل</span><h2>عرض ٥٤+ سلسلة دون خلط</h2></div>
+  <p class="sec-sub">صفحة «السلاسل» ستحوي سلاسل الشيخين. ثلاث طرق للتمييز — معروضةٌ على ثلاثة مقاسات.</p>
+
+  <div class="opt">
+    <div class="opt-h"><span class="badge-opt">١</span><h3>مُرشِّح شيخ + شارة على كل بطاقة<span class="tag-recc">موصى به</span></h3></div>
+    <p class="opt-note">صفٌّ من المُرشِّحات أعلى القائمة (الكل · الشيخ حسن · الشيخ أحمد + التصنيف)، وكل بطاقة تحمل شارة شيخٍ ملوّنة وشريطًا جانبيًا بلونه.</p>
+    <div class="frames">
+      <div class="frame">
+        <p class="cap"><b>سطح المكتب</b> · 1240px</p>
+        <div class="canvas cv-desktop" style="max-width:640px"><div class="inner" style="transform:scale(.5)">
+          <div class="s"><div class="s-nav"><span class="s-logo"><span class="m"></span> الورود</span><div class="s-navlinks"><a class="on">السلاسل</a><a>المكتبة</a></div></div>
+            <div class="s-hero"><h1>جميع السلاسل</h1><p>٧٠+ سلسلة للشيخين</p></div>
+            <div class="s-sec">
+              <div class="filters"><span class="lbl">الشيخ:</span><span class="tabpill">الكل</span><span class="tabpill on gold">الشيخ حسن</span><span class="tabpill">الشيخ أحمد</span><span class="lbl" style="margin-inline-start:10px">التصنيف:</span><span class="tabpill">العقيدة</span><span class="tabpill">الفقه</span><span class="tabpill">الحديث</span></div>
+              <div class="grid g3">
+                <div class="card"><span class="rail" style="background:#C49A3C"></span><span class="sch hasan"><span class="av"></span> حسن</span><h3 style="margin-top:8px">شرح كتاب التوحيد</h3><div class="sub">العقيدة · ٤٢ درسًا</div></div>
+                <div class="card"><span class="rail" style="background:#2E6E5B"></span><span class="sch ahmed"><span class="av"></span> أحمد</span><h3 style="margin-top:8px">شرح سنن أبي داود</h3><div class="sub">الحديث · ٢١٠ دروس</div></div>
+                <div class="card"><span class="rail" style="background:#C49A3C"></span><span class="sch hasan"><span class="av"></span> حسن</span><h3 style="margin-top:8px">عمدة الأحكام</h3><div class="sub">الفقه · ٣٦ درسًا</div></div>
+                <div class="card"><span class="rail" style="background:#2E6E5B"></span><span class="sch ahmed"><span class="av"></span> أحمد</span><h3 style="margin-top:8px">فتح رب البرية</h3><div class="sub">العقيدة · ٤٥ درسًا</div></div>
+                <div class="card"><span class="rail" style="background:#2E6E5B"></span><span class="sch ahmed"><span class="av"></span> أحمد</span><h3 style="margin-top:8px">إرشاد الساري شرح السنة</h3><div class="sub">الحديث · ٣٨ درسًا</div></div>
+                <div class="card"><span class="rail" style="background:#C49A3C"></span><span class="sch hasan"><span class="av"></span> حسن</span><h3 style="margin-top:8px">الأصول الثلاثة</h3><div class="sub">العقيدة · ١٨ درسًا</div></div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+      <div class="frame">
+        <p class="cap"><b>لوحيّ</b> · 768px</p>
+        <div class="canvas cv-tablet"><div class="inner" style="transform:scale(.56)">
+          <div class="s"><div class="s-sec" style="padding-top:16px">
+            <div class="filters"><span class="tabpill on">الكل</span><span class="tabpill gold">حسن</span><span class="tabpill">أحمد</span></div>
+            <div class="grid g2">
+              <div class="card"><span class="rail" style="background:#2E6E5B"></span><span class="sch ahmed"><span class="av"></span> أحمد</span><h3 style="margin-top:8px">شرح سنن أبي داود</h3><div class="sub">الحديث · ٢١٠</div></div>
+              <div class="card"><span class="rail" style="background:#C49A3C"></span><span class="sch hasan"><span class="av"></span> حسن</span><h3 style="margin-top:8px">شرح كتاب التوحيد</h3><div class="sub">العقيدة · ٤٢</div></div>
+            </div>
+          </div></div>
+        </div></div>
+      </div>
+      <div class="frame">
+        <p class="cap"><b>الجوال</b> · 340px</p>
+        <div class="screen mob"><div class="s">
+          <div class="s-sec" style="padding:12px">
+            <div class="filters" style="flex-wrap:nowrap;overflow:auto;margin-bottom:12px"><span class="tabpill on">الكل</span><span class="tabpill gold">حسن</span><span class="tabpill">أحمد</span><span class="tabpill">العقيدة</span></div>
+            <div class="grid">
+              <div class="card"><span class="rail" style="background:#2E6E5B"></span><span class="sch ahmed"><span class="av"></span> الشيخ أحمد</span><h3 style="margin-top:8px">شرح سنن أبي داود</h3><div class="sub">الحديث · ٢١٠ دروس</div></div>
+              <div class="card"><span class="rail" style="background:#C49A3C"></span><span class="sch hasan"><span class="av"></span> الشيخ حسن</span><h3 style="margin-top:8px">شرح كتاب التوحيد</h3><div class="sub">العقيدة · ٤٢ درسًا</div></div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="opt" style="margin-top:22px">
+    <div class="opt-h"><span class="badge-opt">٢</span><h3>مجموعتان بعنوانَي شيخ (بلا مُرشِّح)</h3></div>
+    <p class="opt-note">القائمة مقسومة لقسمين معنونين، سلاسل كلّ شيخٍ تحت اسمه. أوضح فصلًا، لكن يطول التمرير.</p>
+    <div class="frames">
+      <div class="frame"><p class="cap"><b>سطح المكتب</b> · 1240px</p>
+        <div class="canvas cv-desktop" style="max-width:640px"><div class="inner" style="transform:scale(.5)">
+          <div class="s"><div class="s-sec" style="padding-top:16px">
+            <div class="band ahmed"><div class="band-h"><span class="av"></span><h3>سلاسل العلامة أحمد النجمي (٥٤)</h3></div><div class="grid g3"><div class="card"><span class="rail" style="background:#2E6E5B"></span><h3>شرح سنن أبي داود</h3><div class="sub">الحديث · ٢١٠</div></div><div class="card"><span class="rail" style="background:#2E6E5B"></span><h3>فتح رب البرية</h3><div class="sub">العقيدة · ٤٥</div></div><div class="card"><span class="rail" style="background:#2E6E5B"></span><h3>تأسيس الأحكام</h3><div class="sub">الحديث · ٦٠</div></div></div></div>
+            <div class="band hasan"><div class="band-h"><span class="av"></span><h3>سلاسل الشيخ حسن الدغريري</h3></div><div class="grid g3"><div class="card"><span class="rail" style="background:#C49A3C"></span><h3>شرح كتاب التوحيد</h3><div class="sub">العقيدة · ٤٢</div></div><div class="card"><span class="rail" style="background:#C49A3C"></span><h3>عمدة الأحكام</h3><div class="sub">الفقه · ٣٦</div></div><div class="card"><span class="rail" style="background:#C49A3C"></span><h3>الأصول الثلاثة</h3><div class="sub">العقيدة · ١٨</div></div></div></div>
+          </div></div>
+        </div></div>
+      </div>
+      <div class="frame"><p class="cap"><b>الجوال</b> · 340px</p>
+        <div class="screen mob"><div class="s"><div class="s-sec" style="padding:12px">
+          <div class="band ahmed" style="padding:12px"><div class="band-h"><span class="av" style="width:26px;height:26px"></span><h3 style="font-size:13px">النجمي (٥٤)</h3></div><div class="row"><span class="num teal">١</span><div class="t"><h4>شرح سنن أبي داود</h4><p>الحديث · ٢١٠</p></div></div></div>
+          <div class="band hasan" style="padding:12px;margin-top:12px"><div class="band-h"><span class="av" style="width:26px;height:26px"></span><h3 style="font-size:13px">الدغريري</h3></div><div class="row"><span class="num">١</span><div class="t"><h4>شرح كتاب التوحيد</h4><p>العقيدة · ٤٢</p></div></div></div>
+        </div></div></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ============ SERIES DETAIL ============ -->
+<section class="block" id="detail"><div class="wrap">
+  <div class="sec-head"><span class="sec-tag">تفاصيل السلسلة/الدرس</span><h2>سياق الشيخ داخل الصفحة</h2></div>
+  <p class="sec-sub">داخل سلسلةٍ أو درسٍ للشيخ أحمد: مسارٌ علويّ يوضّح الشيخ، ترويسةٌ بلونه، وقائمة الدروس بأزراره الخضراء — فلا يلتبس على الزائر لمن يستمع.</p>
+  <div class="frames">
+    <div class="frame"><p class="cap"><b>سطح المكتب</b> · 1240px</p>
+      <div class="canvas cv-desktop" style="max-width:700px"><div class="inner" style="transform:scale(.56)">
+        <div class="s">
+          <div style="padding:10px 24px;font-size:12px;color:#7A5C3A;background:#fff;border-bottom:1px solid #DEC99A">الرئيسية ‹ <b style="color:#1F5142">الشيخ أحمد النجمي</b> ‹ السلاسل ‹ شرح سنن أبي داود</div>
+          <div class="s-hero teal"><h1>شرح سنن أبي داود</h1><p>العلامة أحمد النجمي · الحديث · ٢١٠ دروس · ~٩٠ ساعة</p></div>
+          <div class="s-sec"><div class="grid" style="gap:10px">
+            <div class="row"><span class="num teal">١</span><div class="t"><h4>مقدمة الكتاب وكتاب الطهارة (١)</h4><p>٤٢:١٠ دقيقة</p></div><div class="end"><button class="btn play teal">▶ استمع</button><button class="btn dl">⬇ تحميل</button></div></div>
+            <div class="row"><span class="num teal">٢</span><div class="t"><h4>باب الاستطابة</h4><p>٣٨:٢٢ دقيقة</p></div><div class="end"><button class="btn play teal">▶ استمع</button><button class="btn dl">⬇ تحميل</button></div></div>
+            <div class="row"><span class="num teal">٣</span><div class="t"><h4>باب كراهية استقبال القبلة</h4><p>٤٥:٠١ دقيقة</p></div><div class="end"><button class="btn play teal">▶ استمع</button><button class="btn dl">⬇ تحميل</button></div></div>
+          </div></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="frame"><p class="cap"><b>الجوال</b> · 340px · مشغّل مصغّر</p>
+      <div class="screen mob"><div class="s">
+        <div style="padding:8px 12px;font-size:11px;color:#1F5142;background:#fff;border-bottom:1px solid #DEC99A">‹ الشيخ أحمد · شرح سنن أبي داود</div>
+        <div class="s-hero teal" style="padding:16px"><h1 style="font-size:17px">شرح سنن أبي داود</h1><p style="font-size:12px">النجمي · ٢١٠ دروس</p></div>
+        <div class="s-sec" style="padding:12px"><div class="grid" style="gap:8px">
+          <div class="row" style="padding:9px"><span class="num teal">١</span><div class="t"><h4 style="font-size:13px">مقدمة الكتاب (١)</h4><p>٤٢:١٠</p></div><div class="end"><button class="btn play teal">▶</button></div></div>
+          <div class="row" style="padding:9px"><span class="num teal">٢</span><div class="t"><h4 style="font-size:13px">باب الاستطابة</h4><p>٣٨:٢٢</p></div><div class="end"><button class="btn play teal">▶</button></div></div>
+        </div></div>
+        <div style="position:sticky;bottom:0;background:#1F5142;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px"><span style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center">▶</span><div style="flex:1"><div style="font-size:12px;font-weight:700">باب الاستطابة</div><div style="font-size:10px;opacity:.8">الشيخ أحمد النجمي</div></div><span style="font-size:11px">١٢:٣٠</span></div>
+      </div></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ============ PDF LIBRARY ============ -->
+<section class="block" id="library"><div class="wrap">
+  <div class="sec-head"><span class="sec-tag">المكتبة · PDF</span><h2>عرض وتحميل ١١٦ كتابًا في ٤ تصنيفات</h2></div>
+  <p class="sec-sub">نوع محتوى جديد: الكتب/الرسائل. تصنيفات مقترحة: العقيدة · الفقه · الحديث · الردود والفتاوى. خياران للعرض + معاينة داخل المتصفح.</p>
+
+  <div class="opt">
+    <div class="opt-h"><span class="badge-opt">١</span><h3>شبكة أغلفة + تبويبات تصنيف<span class="tag-recc">موصى به</span></h3></div>
+    <p class="opt-note">تبويبات التصنيف أعلى، وبطاقات بأغلفةٍ مولّدة (عنوان على خلفية بلون الشيخ)، مع زرّي «معاينة» و«تحميل».</p>
+    <div class="frames">
+      <div class="frame"><p class="cap"><b>سطح المكتب</b> · 1240px</p>
+        <div class="canvas cv-desktop" style="max-width:700px"><div class="inner" style="transform:scale(.56)">
+          <div class="s"><div class="s-nav"><span class="s-logo"><span class="m"></span> الورود</span><div class="switcher"><span class="seg"><span class="av"></span> حسن</span><span class="seg on-ahmed"><span class="av"></span> أحمد</span></div><div class="s-navlinks"><a class="on">المكتبة</a></div></div>
+            <div class="s-hero teal"><h1>مكتبة العلامة أحمد النجمي</h1><p>١١٦ كتابًا ورسالة · للقراءة والتحميل</p></div>
+            <div class="s-sec">
+              <div class="tabs"><span class="tabpill on">الكل (١١٦)</span><span class="tabpill">العقيدة (٤٨)</span><span class="tabpill">الفقه (٣١)</span><span class="tabpill">الحديث (٢٢)</span><span class="tabpill">الردود والفتاوى (١٥)</span></div>
+              <div class="grid g4">
+                <div class="pdf"><div class="cover"><span class="badge">العقيدة</span><span class="t">المورد العذب الزلال</span></div><div class="body"><span class="cat">٢٤٠ صفحة · PDF</span><div class="acts"><button class="btn play teal">قراءة</button><button class="btn dl">⬇</button></div></div></div>
+                <div class="pdf"><div class="cover"><span class="badge">الحديث</span><span class="t">تأسيس الأحكام</span></div><div class="body"><span class="cat">٥ مجلدات · PDF</span><div class="acts"><button class="btn play teal">قراءة</button><button class="btn dl">⬇</button></div></div></div>
+                <div class="pdf"><div class="cover"><span class="badge">الردود</span><span class="t">الفتاوى الجلية</span></div><div class="body"><span class="cat">١٩٠ صفحة · PDF</span><div class="acts"><button class="btn play teal">قراءة</button><button class="btn dl">⬇</button></div></div></div>
+                <div class="pdf"><div class="cover"><span class="badge">الفقه</span><span class="t">أوضح الإشارة</span></div><div class="body"><span class="cat">١١٠ صفحة · PDF</span><div class="acts"><button class="btn play teal">قراءة</button><button class="btn dl">⬇</button></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+      <div class="frame"><p class="cap"><b>الجوال</b> · 340px</p>
+        <div class="screen mob"><div class="s">
+          <div class="s-hero teal" style="padding:16px"><h1 style="font-size:17px">مكتبة النجمي</h1><p style="font-size:12px">١١٦ كتابًا · قراءة وتحميل</p></div>
+          <div class="s-sec" style="padding:12px">
+            <div class="tabs" style="flex-wrap:nowrap;overflow:auto"><span class="tabpill on">الكل</span><span class="tabpill">العقيدة</span><span class="tabpill">الفقه</span><span class="tabpill">الحديث</span></div>
+            <div class="grid g2">
+              <div class="pdf"><div class="cover" style="height:80px"><span class="badge">العقيدة</span><span class="t">المورد العذب الزلال</span></div><div class="body"><span class="cat">٢٤٠ صفحة</span><div class="acts"><button class="btn play teal">قراءة</button><button class="btn dl">⬇</button></div></div></div>
+              <div class="pdf"><div class="cover" style="height:80px"><span class="badge">الحديث</span><span class="t">تأسيس الأحكام</span></div><div class="body"><span class="cat">٥ مجلدات</span><div class="acts"><button class="btn play teal">قراءة</button><button class="btn dl">⬇</button></div></div></div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="pc"><div class="pro"><strong>مزايا</strong><ul><li>بصريّ وجذّاب · التصنيفات واضحة</li><li>يميّز الكتب عن الدروس الصوتية بشكلٍ فطريّ</li></ul></div><div class="con"><strong>مقابل</strong><ul><li>الأغلفة مولّدة (لا صور فعلية) — نحتاج نمط غلافٍ ثابت</li></ul></div></div>
+  </div>
+
+  <div class="opt" style="margin-top:22px">
+    <div class="opt-h"><span class="badge-opt">٢</span><h3>قائمة مُصنّفة (كثيفة) + معاينة داخل المتصفح</h3></div>
+    <p class="opt-note">قائمةٌ نصيّة مقسومة بالتصنيف — أنسب لتصفّح ١١٦ عنوانًا بسرعة. النقر على «معاينة» يفتح قارئ PDF داخل الموقع.</p>
+    <div class="frames">
+      <div class="frame"><p class="cap"><b>سطح المكتب</b> · القائمة</p>
+        <div class="canvas cv-desktop" style="max-width:560px"><div class="inner" style="transform:scale(.5)">
+          <div class="s"><div class="s-sec" style="padding-top:16px">
+            <h2 style="color:#1F5142;font-size:18px;margin-bottom:10px">العقيدة (٤٨)</h2>
+            <div class="grid" style="gap:8px">
+              <div class="row"><span class="num teal">PDF</span><div class="t"><h4>المورد العذب الزلال فيما انتُقد على بعض المناهج</h4><p>٢٤٠ صفحة</p></div><div class="end"><button class="btn ghost">معاينة</button><button class="btn dl">⬇ تحميل</button></div></div>
+              <div class="row"><span class="num teal">PDF</span><div class="t"><h4>فتح الرب الودود في الفتاوى والرسائل والردود</h4><p>٣ مجلدات</p></div><div class="end"><button class="btn ghost">معاينة</button><button class="btn dl">⬇ تحميل</button></div></div>
+              <div class="row"><span class="num teal">PDF</span><div class="t"><h4>أوضح الإشارة في الرد على من أباح المحرّم من الزيارة</h4><p>١١٠ صفحة</p></div><div class="end"><button class="btn ghost">معاينة</button><button class="btn dl">⬇ تحميل</button></div></div>
+            </div>
+          </div></div>
+        </div></div>
+      </div>
+      <div class="frame"><p class="cap"><b>معاينة داخل الموقع</b> · قارئ PDF</p>
+        <div class="screen" style="width:300px"><div class="s">
+          <div style="background:#1F5142;color:#fff;padding:9px 12px;display:flex;align-items:center;gap:8px;font-size:12px"><span>✕</span><span style="flex:1">المورد العذب الزلال</span><span>⬇</span></div>
+          <div style="background:#3a3a3a;height:320px;display:flex;align-items:center;justify-content:center;color:#bbb;position:relative">
+            <div style="background:#fff;width:190px;height:270px;border-radius:3px;box-shadow:0 6px 20px rgba(0,0,0,.4);padding:18px;color:#222;font-size:9px;line-height:1.9;text-align:center">بسم الله الرحمن الرحيم<br><br><b>المورد العذب الزلال</b><br><br>تأليف<br>العلامة أحمد بن يحيى النجمي<br>رحمه الله<br><br>…</div>
+          </div>
+          <div style="padding:8px;display:flex;justify-content:center;gap:14px;background:#2a2a2a;color:#ccc;font-size:12px"><span>‹</span><span>صفحة ١ / ٢٤٠</span><span>›</span></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="pc"><div class="pro"><strong>مزايا</strong><ul><li>تصفّح سريع لعددٍ كبير · معاينة دون مغادرة الموقع</li></ul></div><div class="con"><strong>مقابل</strong><ul><li>أقل جاذبيةً بصريًا · قارئ PDF يزيد التعقيد التقني</li></ul></div></div>
+  </div>
+
+  <div class="callout"><b>ملاحظة تقنية:</b> يمكن البدء بـ«تحميل مباشر + فتح في تبويب» (بسيط، يعمل فورًا عبر R2)، ثم إضافة القارئ داخل الموقع (PDF.js) لاحقًا كتحسين. التصنيفات الأربعة قابلة للتعديل — أخبِرونا بالأسماء النهائية.</div>
+</div></section>
+
+<!-- ============ COMPONENTS ============ -->
+<section class="block" id="components"><div class="wrap">
+  <div class="sec-head"><span class="sec-tag">مكوّنات مشتركة</span><h2>عناصر التمييز بين الشيخين</h2></div>
+  <p class="sec-sub">هذه العناصر الصغيرة هي ما يحفظ الفصل عبر الموقع كله. بدائل للاختيار.</p>
+  <div class="opts" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">
+    <div class="opt"><h3 style="font-size:15px;margin-bottom:12px">مبدّل الشيخ — بدائل</h3>
+      <div class="s" style="display:flex;flex-direction:column;gap:14px;background:var(--s-cream);padding:16px;border-radius:12px">
+        <div class="switcher"><span class="seg on-hasan"><span class="av"></span> الشيخ حسن</span><span class="seg"><span class="av" style="background:#2E6E5B"></span> الشيخ أحمد</span></div>
+        <div class="switcher"><span class="seg on-ahmed"><span class="av"></span> أحمد النجمي</span><span class="seg"><span class="av" style="background:#C49A3C"></span> حسن الدغريري</span></div>
+        <div style="display:flex;gap:8px"><span class="chip" style="background:#fff;border:1px solid #DEC99A;color:#7A5C3A">▾ اختر الشيخ</span></div>
+      </div>
+      <p class="small" style="margin-top:10px">مقطعيّ (Segmented) أوضح من قائمةٍ منسدلة لعالِمَين فقط.</p>
+    </div>
+    <div class="opt"><h3 style="font-size:15px;margin-bottom:12px">شارة الشيخ على البطاقة</h3>
+      <div class="s" style="display:flex;flex-direction:column;gap:10px;background:var(--s-cream);padding:16px;border-radius:12px">
+        <span class="sch hasan" style="align-self:flex-start"><span class="av"></span> الشيخ حسن الدغريري</span>
+        <span class="sch ahmed" style="align-self:flex-start"><span class="av"></span> العلامة أحمد النجمي</span>
+        <div style="display:flex;gap:8px"><span class="chip cat">شريط جانبي</span><span class="chip cat">+ نقطة لون</span></div>
+      </div>
+      <p class="small" style="margin-top:10px">الشارة + الشريط الجانبي الملوّن = تمييزٌ حتى في قائمةٍ مختلطة.</p>
+    </div>
+    <div class="opt"><h3 style="font-size:15px;margin-bottom:12px">شريط الجوال السفلي</h3>
+      <div class="s" style="background:var(--s-cream);padding:12px;border-radius:12px">
+        <div class="bnav" style="border-radius:10px;border:1px solid #DEC99A"><span class="i on"><span class="g"></span>الرئيسية</span><span class="i"><span class="g"></span>السلاسل</span><span class="i"><span class="g"></span>بحث</span><span class="i"><span class="g"></span>المكتبة</span><span class="i"><span class="g"></span>الجدول</span></div>
+      </div>
+      <p class="small" style="margin-top:10px">إضافة «المكتبة» للشريط السفلي (٥ عناصر). يمكن استبدال «الجدول» بها للشيخ أحمد.</p>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <p><b>الخطوة التالية:</b> اخترْ اتجاه البنية (أ/ب/ج)، ولون الشيخ أحمد، وطريقة المكتبة، وأسماء التصنيفات الأربعة. عند الموافقة نبدأ التنفيذ على مراحل (نموذج البيانات + دلو R2 + الصفحات) مع تتبّع الحالة في CLAUDE.md.</p>
+  <p class="small" style="margin-top:10px">مخطط بصري للمراجعة — لا يمثّل الكود النهائي. الألوان والبنية مبنية على نظام تصميم موقع الورود.</p>
+</div></footer>
