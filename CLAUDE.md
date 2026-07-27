@@ -81,7 +81,22 @@ Owner chose to adopt upstream's implementation (merged Content page + row-list P
 - **Audit patterns carried in:** publications → own `routes/admin/publications.js` (split pattern, `captureException`); admin route-table 88→96; `r2Storage` inline disposition for PDF open-in-tab; kept our M10 CI-fail + bumped Mongo 7.0.14.
 - **Data:** already live in production (rasmihassan.com) on the Najmi R2 bucket (`*.r2.dev`, already in CSP). Import scripts present (`scripts/import-najmi-lectures.js`, `import-publications.js`, `upload-pdfs-to-r2.js`).
 
-**Remaining / verify:** run full unit+integration suite in CI (Mongo) — mock-based suites green here (101); E2E the `/najmi` realm + admin publications in a dev env; N7 integrated PDF.js reader is still a future enhancement (current = R2 direct download + open-in-tab).
+**Remaining / verify:** run full unit+integration suite in CI (Mongo) — mock-based suites green here (105); E2E the `/najmi` realm + admin publications in a dev env; N7 integrated PDF.js reader is still a future enhancement (current = R2 direct download + open-in-tab).
+
+### 🩹 Upload ENOENT fix (2026-07-27) — commit `9a41ce6`
+Admin PDF **and** audio uploads failed with `ENOENT ... /mnt/audio/...` — multer wrote to an unwritable `UPLOAD_DIR`. Fixed at the source in `config/storage.js` with best-practice resilient dir resolution (does NOT replicate upstream's fixed-path assumption):
+- `resolveUploadDir()` picks the first **writable** candidate: `UPLOAD_DIR` → `<app>/uploads` (Dockerfile chowns it) → `<os.tmpdir>/wurud-uploads`; warns (once, at boot) when it falls back off an unwritable `UPLOAD_DIR`.
+- `ensureUploadDir()` re-`mkdir -p`s right before every write, so a transient/missing dir can't ENOENT mid-upload. Both audio (`upload`/`uploadMultiple`) and PDF (`routes/admin/publications.js` reuses `ensureUploadDir`) go through it.
+- Files are only staged locally briefly before R2/OCI push + unlink, so any writable dir is fine.
+- `tests/unit/storage.test.js` updated for the resilient behavior — 25/25 green.
+
+### 🔄 Upstream re-sync (2026-07-27) — reviewed wurud `0de1cdc..adee4c5`
+Reviewed the 8 newest upstream commits (checked each for mistakes/errors/bugs before porting); applied the code, kept our own docs:
+- **Bug fixes:** `fdd062f` — `getNajmiSheikh()` now returns `null` when the `Sheikh` model is absent (guards unit mocks + prod model-init race; fixes 64 homepageApi failures → 68/68 green). `07b0e2d` — admin router now defaults `layout:false` via a `res.render` shim (all 30 admin views are full HTML docs; the global `app.set('layout','layout')` was double-wrapping them in the public chrome/CSS). Shim registered first so it also covers the mounted `articles.js`/`publications.js` sub-routers; login's explicit `layout:false` still honored. Route table unchanged (96).
+- **SEO bundle** (`5462694`+`0356f24`+`221eb65`+`b5562cb`+`51de814`): realm-aware `layout.ejs` — title/OG/Twitter/JSON-LD branch by realm with **distinct Person @id** (`#person-hasan` vs `#person-najmi`); Najmi emits `CollectionPage`+`Person`; optional per-page `jsonld`+`ogImage`; realm-default og images (`public/og-hasan.png`/`og-najmi.png`, 1200×630) with dimensions/type/alt; `worksFor` `Mosque`→`Organization` (schema-validator fix). Najmi routes: `metaKeywords` (AR/EN) + `cache.getOrSet('najmi:home|series|library', 600s)`; admin `invalidateHomepageCache()` also clears `najmi:*`. `generate-report.js`: per-realm "العالِم" column + breakdown. JSON-LD validated for both realms × both locales.
+- **Bug caught during port:** the ported `publications.js` called `invalidateHomepageCache()` which was **undefined in that module** (ReferenceError on every create/edit/delete) — added a local helper (mirrors the parent, uses `cache` directly like `articles.js`).
+- **Consistency:** added `captureException` to all `routes/najmi/index.js` catch blocks (audit C2 pattern).
+- **Skipped:** upstream `README.md`/`CLAUDE.md` (`612f3ef`) — we maintain our own.
 
 ---
 

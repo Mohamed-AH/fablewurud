@@ -73,6 +73,11 @@ async function main() {
   const sheikhMap = {};
   allSheikhs.forEach(s => { sheikhMap[s._id.toString()] = s.nameArabic || s.nameEnglish; });
 
+  // Realm attribution (Najmi vs Hasan) by sheikh — each series/lecture counted once.
+  const najmiSheikh = allSheikhs.find(s => /النجمي/.test(s.nameArabic || ''));
+  const najmiId = najmiSheikh ? najmiSheikh._id.toString() : null;
+  const realmOf = (sheikhId) => (najmiId && sheikhId && sheikhId.toString() === najmiId) ? 'النجمي' : 'حسن';
+
   const sectionMap = {};
   allSections.forEach(s => { sectionMap[s._id.toString()] = s; });
 
@@ -217,7 +222,7 @@ async function main() {
   // --- Section 2: Series Summary ---
   html += `<h2>٢. ملخص السلاسل (${allSeries.length} سلسلة)</h2>
 <table>
-<tr><th>#</th><th>اسم السلسلة</th><th>التصنيف</th><th>القسم</th><th>المحاضرات</th><th>الحالة</th></tr>\n`;
+<tr><th>#</th><th>اسم السلسلة</th><th>العالِم</th><th>التصنيف</th><th>القسم</th><th>المحاضرات</th><th>الحالة</th></tr>\n`;
 
   allSeries.sort((a, b) => (a.titleArabic || '').localeCompare(b.titleArabic || '', 'ar'));
   allSeries.forEach((s, i) => {
@@ -229,6 +234,7 @@ async function main() {
     html += `<tr>
   <td>${i + 1}</td>
   <td>${esc(s.titleArabic)}</td>
+  <td>${esc(realmOf(s.sheikhId))}</td>
   <td>${esc(s.category || 'Other')}</td>
   <td>${esc(sectionName)}</td>
   <td style="text-align:center">${count}</td>
@@ -237,6 +243,15 @@ async function main() {
   });
 
   html += `</table>\n`;
+
+  // Per-realm breakdown (each series/lecture attributed once — no double counting)
+  const najmiSeriesCount = allSeries.filter(s => realmOf(s.sheikhId) === 'النجمي').length;
+  const najmiLectureCount = allLectures.filter(l => realmOf(l.sheikhId) === 'النجمي').length;
+  html += `<p style="font-size:14px;color:#555;margin:6px 0 18px;">
+  <strong>حسب العالِم:</strong>
+  الشيخ حسن — ${allSeries.length - najmiSeriesCount} سلسلة / ${allLectures.length - najmiLectureCount} محاضرة &nbsp;·&nbsp;
+  الشيخ النجمي — ${najmiSeriesCount} سلسلة / ${najmiLectureCount} محاضرة
+</p>\n`;
 
   // --- Section 3: All Lectures by Series ---
   html += `<h2>٣. تفصيل المحاضرات حسب السلسلة</h2>\n`;

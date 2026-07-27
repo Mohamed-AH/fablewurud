@@ -16,6 +16,12 @@ async function getNajmiSheikh() {
   const now = Date.now();
   if (cached && (now - cachedAt) < TTL_MS) return cached;
 
+  // Defensive: the Sheikh model may be absent (e.g. unit tests that mock
+  // ../models without it). Treat that as "realm not resolvable" → null, so
+  // callers (realmFilter) simply skip Najmi filtering instead of throwing.
+  // Also guards against any model-init race in production.
+  if (!Sheikh || typeof Sheikh.findOne !== 'function') return null;
+
   const sheikh = await Sheikh.findOne({ nameArabic: /النجمي/ })
     .select('_id shortId nameArabic nameEnglish honorific titlePrefix titlePrefixEnglish bioArabic bioEnglish slug_en slug_ar photoUrl')
     .lean();

@@ -9,6 +9,22 @@ const { withTransaction } = require('../../utils/dbTransaction');
 const { escapeRegex } = require('../../utils/validators');
 const { captureException } = require('../../utils/errorReporter');
 
+// Admin views are complete HTML documents — never wrap them in the public
+// layout.ejs (app.set('layout','layout') is global). Double-wrapping bled the
+// public header/footer + main.css onto every admin page. Default layout:false
+// for every admin render unless a handler explicitly opts in. Registered first
+// so it also covers the mounted sub-routers (articles.js, publications.js).
+router.use((req, res, next) => {
+  const _render = res.render.bind(res);
+  res.render = function (view, options, callback) {
+    if (typeof options === 'function') { callback = options; options = {}; }
+    options = options || {};
+    if (options.layout === undefined) options.layout = false;
+    return _render(view, options, callback);
+  };
+  next();
+});
+
 // Apply admin i18n middleware to all admin routes
 router.use(adminI18nMiddleware);
 
@@ -39,6 +55,7 @@ router.get('/set-realm', isAdmin, (req, res) => {
 // Helper function to invalidate homepage cache after admin changes
 function invalidateHomepageCache() {
   cache.invalidatePattern('homepage:*');
+  cache.invalidatePattern('najmi:*');   // Najmi realm content/portal pages
   cache.invalidatePattern('search:*');
   cache.del('sitemap:xml');
 }
