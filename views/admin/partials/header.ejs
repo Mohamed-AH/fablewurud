@@ -5,6 +5,7 @@
     <a href="/admin/upload" class="<%= typeof activePage !== 'undefined' && activePage === 'upload' ? 'active' : '' %>"><%= t('admin_upload') %></a>
     <a href="/admin/manage" class="<%= typeof activePage !== 'undefined' && activePage === 'manage' ? 'active' : '' %>"><%= t('admin_manage') %></a>
     <a href="/admin/articles" class="<%= typeof activePage !== 'undefined' && activePage === 'articles' ? 'active' : '' %>"><%= t('admin_articles') %></a>
+    <a href="/admin/publications" class="<%= typeof activePage !== 'undefined' && activePage === 'publications' ? 'active' : '' %>"><%= adminLocale === 'ar' ? 'مكتبة النجمي' : 'Najmi Library' %></a>
     <a href="/admin/schedule" class="<%= typeof activePage !== 'undefined' && activePage === 'schedule' ? 'active' : '' %>"><%= t('admin_schedule') %></a>
     <a href="/admin/analytics" class="<%= typeof activePage !== 'undefined' && activePage === 'analytics' ? 'active' : '' %>"><%= t('admin_analytics') %></a>
     <% if (typeof user !== 'undefined' && user && user.role === 'admin') { %>
@@ -12,6 +13,14 @@
     <% } %>
   </nav>
   <div class="admin-user-section">
+    <% var _curPath = (typeof currentPath !== 'undefined' && currentPath) ? currentPath : '/admin/dashboard'; %>
+    <% var _rn = (typeof adminRealm !== 'undefined') ? adminRealm : 'hasan'; %>
+    <div class="realm-toggle" title="<%= adminLocale === 'ar' ? 'العالِم الذي تديره' : 'Active realm' %>">
+      <a href="/admin/set-realm?realm=hasan&return=<%= encodeURIComponent(_curPath) %>"
+         class="<%= _rn === 'hasan' ? 'active gold' : '' %>"><%= adminLocale === 'ar' ? 'الشيخ حسن' : 'Hasan' %></a>
+      <a href="/admin/set-realm?realm=najmi&return=<%= encodeURIComponent(_curPath) %>"
+         class="<%= _rn === 'najmi' ? 'active teal' : '' %>"><%= adminLocale === 'ar' ? 'الشيخ النجمي' : 'Najmi' %></a>
+    </div>
     <div class="lang-toggle">
       <a href="?lang=en" class="<%= adminLocale === 'en' ? 'active' : '' %>">EN</a>
       <a href="?lang=ar" class="<%= adminLocale === 'ar' ? 'active' : '' %>">عربي</a>

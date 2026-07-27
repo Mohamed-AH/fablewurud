@@ -139,14 +139,37 @@
           <label for="sheikhId">
             <%= adminLocale === 'ar' ? 'الشيخ' : 'Sheikh' %>
             <span class="required">*</span>
+            <% var _najmiId = (typeof najmiSheikhId !== 'undefined') ? najmiSheikhId : null; %>
+            <% var _realm = (typeof adminRealm !== 'undefined') ? adminRealm : 'hasan'; %>
+            <% if (_realm === 'najmi') { %>
+              <span style="font-size:11px;background:#14231D;color:#A8CFC2;padding:2px 8px;border-radius:10px;margin-inline-start:6px;"><%= adminLocale === 'ar' ? 'واقع النجمي' : 'Najmi realm' %></span>
+            <% } %>
           </label>
+          <%
+            // Pre-select: edit → existing sheikh; new → the active realm's sheikh
+            var _selected = (series && series.sheikhId) ? (series.sheikhId._id || series.sheikhId).toString()
+                          : (_realm === 'najmi' && _najmiId ? _najmiId : '');
+            var _najmiSheikhs = sheikhs.filter(s => _najmiId && s._id.toString() === _najmiId);
+            var _otherSheikhs = sheikhs.filter(s => !_najmiId || s._id.toString() !== _najmiId);
+          %>
           <select id="sheikhId" name="sheikhId" required class="form-control">
             <option value=""><%= adminLocale === 'ar' ? '-- اختر الشيخ --' : '-- Select Sheikh --' %></option>
-            <% sheikhs.forEach(sheikh => { %>
-              <option value="<%= sheikh._id %>" <%= series && series.sheikhId && (series.sheikhId._id || series.sheikhId).toString() === sheikh._id.toString() ? 'selected' : '' %>>
-                <%= sheikh.nameArabic %><%= sheikh.nameEnglish ? ` (${sheikh.nameEnglish})` : '' %>
-              </option>
-            <% }) %>
+            <% if (_najmiSheikhs.length) { %>
+            <optgroup label="<%= adminLocale === 'ar' ? 'واقع الشيخ النجمي' : 'Najmi realm' %>">
+              <% _najmiSheikhs.forEach(sheikh => { %>
+                <option value="<%= sheikh._id %>" <%= _selected === sheikh._id.toString() ? 'selected' : '' %>>
+                  <%= sheikh.nameArabic %><%= sheikh.nameEnglish ? ` (${sheikh.nameEnglish})` : '' %>
+                </option>
+              <% }) %>
+            </optgroup>
+            <% } %>
+            <optgroup label="<%= adminLocale === 'ar' ? 'واقع الشيخ حسن' : 'Hasan realm' %>">
+              <% _otherSheikhs.forEach(sheikh => { %>
+                <option value="<%= sheikh._id %>" <%= _selected === sheikh._id.toString() ? 'selected' : '' %>>
+                  <%= sheikh.nameArabic %><%= sheikh.nameEnglish ? ` (${sheikh.nameEnglish})` : '' %>
+                </option>
+              <% }) %>
+            </optgroup>
           </select>
         </div>
 

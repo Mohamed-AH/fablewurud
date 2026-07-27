@@ -285,15 +285,23 @@
     // Load sheikhs and series
     async function loadData() {
       try {
+        const ADMIN_REALM = '<%= typeof adminRealm !== "undefined" ? adminRealm : "hasan" %>';
+        const NAJMI_SHEIKH_ID = '<%= typeof najmiSheikhId !== "undefined" && najmiSheikhId ? najmiSheikhId : "" %>';
         const sheikhsRes = await fetch('/api/sheikhs');
         const sheikhsData = await sheikhsRes.json();
         if (sheikhsData.success) {
           sheikhsData.sheikhs.forEach(sheikh => {
             const option = document.createElement('option');
             option.value = sheikh._id;
-            option.textContent = `${sheikh.nameArabic} - ${sheikh.nameEnglish || ''}`;
+            const isNajmi = NAJMI_SHEIKH_ID && sheikh._id === NAJMI_SHEIKH_ID;
+            option.textContent = `${sheikh.nameArabic} - ${sheikh.nameEnglish || ''}`.trim() + (isNajmi ? ' — [النجمي]' : '');
             sheikhSelect.appendChild(option);
           });
+          // Default the dropdown to the active realm's sheikh
+          if (ADMIN_REALM === 'najmi' && NAJMI_SHEIKH_ID) {
+            sheikhSelect.value = NAJMI_SHEIKH_ID;
+            sheikhSelect.dispatchEvent(new Event('change'));
+          }
         }
 
         const seriesRes = await fetch('/api/series');

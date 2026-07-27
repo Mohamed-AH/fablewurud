@@ -65,7 +65,35 @@
         <h3><%= t('admin_total_articles') %></h3>
         <div class="value"><%= stats.totalArticles %></div>
       </div>
+      <div class="stat-card">
+        <h3><%= (typeof adminLocale !== 'undefined' && adminLocale === 'ar') ? 'كتب المكتبة' : 'Publications' %></h3>
+        <div class="value"><%= stats.totalPublications || 0 %></div>
+      </div>
     </div>
+
+    <% if (stats.realmStats) { var _ar = (typeof adminLocale !== 'undefined' && adminLocale === 'ar'); %>
+    <section class="admin-section">
+      <h2><%= _ar ? 'المحتوى حسب العالِم' : 'Content by scholar' %></h2>
+      <div class="stats-grid">
+        <div class="stat-card" style="border-inline-start:4px solid #C49A3C;">
+          <h3><%= _ar ? 'الشيخ حسن الدغريري' : 'Sheikh Hasan al-Daghreeri' %></h3>
+          <div class="value"><%= stats.realmStats.hasan.lectures %></div>
+          <div style="font-size:12px;color:#888;margin-top:4px;">
+            <%= _ar ? 'درس' : 'lectures' %> · <%= stats.realmStats.hasan.series %> <%= _ar ? 'سلسلة' : 'series' %>
+          </div>
+        </div>
+        <div class="stat-card" style="border-inline-start:4px solid #2E6E5B;">
+          <h3><%= _ar ? 'الشيخ أحمد النجمي' : 'Sheikh Ahmad al-Najmi' %>
+            <a href="/admin/publications" style="font-size:11px;color:#2E6E5B;text-decoration:none;">(<%= _ar ? 'المكتبة' : 'library' %> →)</a>
+          </h3>
+          <div class="value"><%= stats.realmStats.najmi.lectures %></div>
+          <div style="font-size:12px;color:#888;margin-top:4px;">
+            <%= _ar ? 'درس' : 'lectures' %> · <%= stats.realmStats.najmi.series %> <%= _ar ? 'سلسلة' : 'series' %> · <%= stats.realmStats.najmi.publications %> <%= _ar ? 'كتاب' : 'books' %>
+          </div>
+        </div>
+      </div>
+    </section>
+    <% } %>
 
     <section class="admin-section">
       <h2><%= t('admin_manage_quick_actions') %></h2>
