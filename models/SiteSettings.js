@@ -60,6 +60,16 @@ const siteSettingsSchema = new mongoose.Schema({
     showKhutbasTab: {
       type: Boolean,
       default: true
+    },
+    // Per-realm config for the Sheikh Ahmed Al-Najmi archive homepage (/najmi).
+    // Tailored to an archive: no weekly schedule, no standalone/khutba tabs.
+    najmi: {
+      showFeaturedSeries: { type: Boolean, default: true },
+      featuredSeriesCount: { type: Number, default: 6, min: 2, max: 12 },
+      showLibrary: { type: Boolean, default: true },
+      showSections: { type: Boolean, default: true }, // admin-curated realm sections
+      // Order of the configurable blocks below the hero
+      blockOrder: { type: [String], default: ['sections', 'featuredSeries', 'library'] }
     }
   },
 

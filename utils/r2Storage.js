@@ -26,9 +26,11 @@ async function uploadToR2(filePath, objectName, options = {}) {
 
   const filename = path.basename(objectName);
   const hasNonAscii = /[^\x00-\x7F]/.test(filename);
+  // `attachment` (default) forces download; `inline` lets PDFs open in the browser tab.
+  const disposition = options.disposition === 'inline' ? 'inline' : 'attachment';
   const contentDisposition = hasNonAscii
-    ? `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`
-    : `attachment; filename="${filename}"`;
+    ? `${disposition}; filename*=UTF-8''${encodeURIComponent(filename)}`
+    : `${disposition}; filename="${filename}"`;
 
   const params = {
     Bucket: r2.getBucketName(),

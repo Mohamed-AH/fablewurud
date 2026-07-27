@@ -1,0 +1,167 @@
+<%
+  // enum → Arabic label for filter chips
+  const CAT_LABELS = { Aqeedah:'العقيدة', Hadith:'الحديث', Fiqh:'الفقه', Tafsir:'التفسير', Seerah:'السيرة', Akhlaq:'الأخلاق', Other:'أخرى' };
+  const present = [...new Set((series||[]).map(s => s.category).filter(Boolean))];
+  const orderedCats = ['Aqeedah','Hadith','Fiqh','Tafsir','Seerah','Akhlaq','Other'].filter(c => present.includes(c));
+%>
+<style>
+  .najmi-list-page { background: #EEF5F1; min-height: 60vh; }
+  html[data-theme="dark"] .najmi-list-page { background: #14231D; }
+  .najmi-list-hero {
+    background: linear-gradient(135deg, #14231D 0%, #2E6E5B 100%); color: #fff;
+    padding: 30px 20px; text-align: center; border-bottom: 3px solid #3D8570;
+  }
+  .najmi-list-hero h1 { font-family: var(--font-cairo,'Cairo',sans-serif); font-size: 24px; font-weight: 800; }
+  .najmi-list-hero p { color: rgba(255,255,255,0.85); font-size: 13px; margin-top: 4px; }
+
+  /* Search */
+  .najmi-search-wrap { max-width: 960px; margin: 18px auto 0; padding: 0 20px; }
+  .najmi-search {
+    display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #C9E2D8;
+    border-radius: 12px; padding: 0 14px;
+  }
+  html[data-theme="dark"] .najmi-search { background: #16221D; border-color: #2E4A40; }
+  .najmi-search:focus-within { border-color: #2E6E5B; }
+  .najmi-search svg { flex-shrink: 0; color: #6f9184; }
+  .najmi-search input { flex: 1; background: transparent; border: none; padding: 12px 0; font-family: inherit; font-size: 15px; color: #14231D; }
+  html[data-theme="dark"] .najmi-search input { color: #E8DDD0; }
+  .najmi-search input::placeholder { color: #8aa79c; }
+  .najmi-search input:focus { outline: none; }
+  .najmi-search-clear { border: none; background: transparent; color: #8aa79c; font-size: 22px; line-height: 1; cursor: pointer; padding: 4px; display: none; }
+  .najmi-search-clear.visible { display: block; }
+  .najmi-search-info { max-width: 960px; margin: 8px auto 0; padding: 0 22px; font-size: 12.5px; color: #5f7168; text-align: right; }
+  html[dir="ltr"] .najmi-search-info { text-align: left; }
+
+  .najmi-filter-bar {
+    display: flex; gap: 8px; padding: 14px 20px; max-width: 960px; margin: 0 auto;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .najmi-filter-bar::-webkit-scrollbar { display: none; }
+  .najmi-chip {
+    white-space: nowrap; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 600;
+    background: #fff; color: #3D8570; border: 1px solid #D4E8E0; cursor: pointer; transition: all .15s;
+  }
+  .najmi-chip.active { background: #2E6E5B; color: #fff; border-color: #2E6E5B; }
+  html[data-theme="dark"] .najmi-chip { background: #16221D; color: #A8CFC2; border-color: #2E4A40; }
+
+  .najmi-series-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 960px; margin: 0 auto; padding: 4px 20px 40px; }
+  .najmi-series-card {
+    background: #fff; border: 1px solid #D4E8E0; border-radius: 12px; padding: 16px; text-decoration: none;
+    display: block; transition: transform .15s, box-shadow .15s;
+  }
+  .najmi-series-card.hidden { display: none; }
+  .najmi-series-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(20,35,29,0.10); }
+  .najmi-series-card .ic { color: #2E6E5B; margin-bottom: 6px; }
+  .najmi-series-card .t { font-size: 15px; font-weight: 700; color: #14231D; line-height: 1.45; margin-bottom: 8px; }
+  .najmi-series-card .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .najmi-cat-badge { font-size: 10px; font-weight: 700; background: #D4E8E0; color: #14231D; padding: 2px 8px; border-radius: 5px; }
+  .najmi-count { font-size: 12px; color: #5f7168; }
+  html[data-theme="dark"] .najmi-series-card { background: #1C2A24; border-color: #2E4A40; }
+  html[data-theme="dark"] .najmi-series-card .t { color: #E8DDD0; }
+  .najmi-empty { text-align:center; color:#5f7168; padding: 40px 20px; }
+  .najmi-empty .t { font-size: 16px; font-weight: 600; color: #3D8570; }
+
+  @media (max-width: 900px) { .najmi-series-grid { grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 560px) { .najmi-series-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="najmi-list-page">
+  <section class="najmi-list-hero">
+    <h1><%= locale === 'ar' ? 'سلاسل الشيخ أحمد النجمي' : 'Sheikh al-Najmi — Series' %></h1>
+    <p><%= series.length %> <%= locale === 'ar' ? 'سلسلة في العقيدة والحديث والفقه والتفسير' : 'series in Aqeedah, Hadith, Fiqh & Tafsir' %></p>
+  </section>
+
+  <div class="najmi-search-wrap">
+    <div class="najmi-search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="najmiSeriesSearch" placeholder="<%= locale === 'ar' ? 'ابحث عن سلسلة أو تصنيف...' : 'Search a series or category...' %>" />
+      <button type="button" class="najmi-search-clear" id="najmiSearchClear" title="<%= locale === 'ar' ? 'مسح' : 'Clear' %>">×</button>
+    </div>
+  </div>
+  <div class="najmi-search-info" id="najmiSearchInfo"></div>
+
+  <% var _initCat = (typeof initialCat !== 'undefined' && initialCat) ? initialCat : 'all'; %>
+  <div class="najmi-filter-bar" id="najmiFilterBar">
+    <button class="najmi-chip<%= _initCat === 'all' ? ' active' : '' %>" data-cat="all"><%= locale === 'ar' ? 'الكل' : 'All' %></button>
+    <% orderedCats.forEach(c => { %>
+      <button class="najmi-chip<%= _initCat === c ? ' active' : '' %>" data-cat="<%= c %>"><%= CAT_LABELS[c] || c %></button>
+    <% }) %>
+  </div>
+
+  <div class="najmi-series-grid" id="najmiSeriesGrid">
+    <% series.forEach(s => { %>
+      <a href="<%= s.url %>" class="najmi-series-card"
+         data-cat="<%= s.category || 'Other' %>"
+         data-title-ar="<%= (s.titleArabic || '').toLowerCase() %>"
+         data-title-en="<%= (s.titleEnglish || '').toLowerCase() %>"
+         data-cat-label="<%= (CAT_LABELS[s.category] || s.category || 'أخرى').toLowerCase() %>">
+        <div class="ic"><i data-lucide="mic"></i></div>
+        <div class="t"><%= s.titleArabic %></div>
+        <div class="meta">
+          <span class="najmi-cat-badge"><%= CAT_LABELS[s.category] || s.category || 'أخرى' %></span>
+          <span class="najmi-count"><%= (s.lectureCount || 0) %> <%= locale === 'ar' ? 'درس' : 'lessons' %></span>
+        </div>
+      </a>
+    <% }) %>
+  </div>
+  <div class="najmi-empty" id="najmiEmpty" style="display:none;">
+    <div class="t"><%= locale === 'ar' ? 'لا توجد نتائج' : 'No results' %></div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const bar = document.getElementById('najmiFilterBar');
+    const searchInput = document.getElementById('najmiSeriesSearch');
+    const searchClear = document.getElementById('najmiSearchClear');
+    const searchInfo = document.getElementById('najmiSearchInfo');
+    const grid = document.getElementById('najmiSeriesGrid');
+    const empty = document.getElementById('najmiEmpty');
+    const cards = Array.from(document.querySelectorAll('#najmiSeriesGrid .najmi-series-card'));
+    const total = cards.length;
+    const isArabic = '<%= locale %>' === 'ar';
+    let cat = '<%= _initCat %>';
+
+    function normalizeArabic(t) {
+      return t.replace(/[أإآا]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/ؤ/g,'و').replace(/ئ/g,'ي').trim();
+    }
+
+    function apply() {
+      const q = normalizeArabic(searchInput.value.toLowerCase());
+      searchClear.classList.toggle('visible', q.length > 0);
+      let visible = 0;
+      cards.forEach(card => {
+        const matchesCat = cat === 'all' || card.dataset.cat === cat;
+        const matchesSearch = !q ||
+          normalizeArabic(card.dataset.titleAr || '').includes(q) ||
+          (card.dataset.titleEn || '').includes(q) ||
+          normalizeArabic(card.dataset.catLabel || '').includes(q);
+        const show = matchesCat && matchesSearch;
+        card.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+      searchInfo.textContent = (q || cat !== 'all')
+        ? (isArabic ? `عرض ${visible} من ${total} سلسلة` : `Showing ${visible} of ${total} series`)
+        : '';
+      empty.style.display = visible === 0 ? 'block' : 'none';
+      grid.style.display = visible === 0 ? 'none' : '';
+    }
+
+    bar.addEventListener('click', function (e) {
+      const btn = e.target.closest('.najmi-chip');
+      if (!btn) return;
+      bar.querySelectorAll('.najmi-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      cat = btn.dataset.cat;
+      apply();
+    });
+    searchInput.addEventListener('input', apply);
+    searchClear.addEventListener('click', function () { searchInput.value = ''; apply(); searchInput.focus(); });
+    searchInput.addEventListener('keydown', function (e) { if (e.key === 'Escape') { searchInput.value = ''; apply(); } });
+    // Apply an initial category filter passed from the Content page "view all" links
+    if (cat !== 'all') apply();
+    if (window.lucide) lucide.createIcons();
+  })();
+</script>

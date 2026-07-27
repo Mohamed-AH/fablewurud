@@ -2713,6 +2713,69 @@
   <% } %>
 </div>
 
+<!-- Cross-archive invitation banner → Sheikh Ahmed Al-Najmi's teal realm -->
+<% if (typeof najmiArchive !== 'undefined' && najmiArchive) { %>
+<style>
+  .najmi-invite {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    max-width: 960px; margin: 20px auto 0; padding: 16px 22px; color: #14231D;
+    background: linear-gradient(100deg, #E8F2ED 0%, #F1F7F4 60%, #F6FAF8 100%);
+    border: 1px solid #B9D8CC; border-inline-start: 4px solid #2E6E5B;
+    border-radius: 12px; text-decoration: none; transition: transform .15s, box-shadow .15s;
+  }
+  .najmi-invite:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(20,35,29,0.12); }
+  .najmi-invite-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .najmi-invite-eyebrow {
+    display: inline-flex; align-items: center; gap: 5px; align-self: flex-start;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.04em; color: #256254 !important;
+  }
+  .najmi-invite-eyebrow .lucide { width: 14px; height: 14px; }
+  .najmi-invite-title { font-size: 16px; font-weight: 800; color: #12211B !important; line-height: 1.5; }
+  .najmi-invite-meta { font-size: 12.5px; color: #3B564D !important; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .najmi-invite-cta {
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0;
+    background: #2E6E5B; color: #fff !important; font-weight: 700; font-size: 13.5px;
+    padding: 10px 18px; border-radius: 9px;
+  }
+  .najmi-invite:hover .najmi-invite-arrow { transform: translateX(-3px); }
+  html[dir="ltr"] .najmi-invite:hover .najmi-invite-arrow { transform: translateX(3px); }
+  .najmi-invite-arrow { transition: transform .15s; }
+  @media (prefers-color-scheme: dark) {
+    .najmi-invite { background: linear-gradient(100deg, #1E3229 0%, #1A2C24 60%, #172520 100%); border-color: #2E4A40; color: #E8DDD0; }
+    .najmi-invite-title { color: #EAF3EE !important; }
+    .najmi-invite-meta { color: #A8CFC2 !important; }
+    .najmi-invite-eyebrow { color: #7FBFAC !important; }
+  }
+  @media (max-width: 640px) {
+    .najmi-invite { flex-direction: column; align-items: stretch; gap: 12px; text-align: center; margin-inline: 12px; }
+    .najmi-invite-eyebrow { align-self: center; }
+    .najmi-invite-cta { justify-content: center; }
+  }
+</style>
+<a href="/najmi" class="najmi-invite" aria-label="<%= locale === 'ar' ? 'انتقل إلى أرشيف الشيخ أحمد النجمي' : 'Go to Sheikh Ahmad al-Najmi archive' %>">
+  <div class="najmi-invite-text">
+    <span class="najmi-invite-eyebrow">
+      <i data-lucide="sparkles"></i>
+      <%= locale === 'ar' ? 'جديد' : 'New' %>
+    </span>
+    <span class="najmi-invite-title">
+      <%= locale === 'ar'
+        ? 'أرشيف الشيخ العلامة أحمد بن يحيى النجمي رحمه الله'
+        : 'The archive of his teacher, Sheikh Ahmad ibn Yahya al-Najmi' %>
+    </span>
+    <span class="najmi-invite-meta">
+      <%= najmiArchive.lectureCount.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en') %> <%= locale === 'ar' ? 'درساً' : 'lectures' %>
+      &middot; <%= najmiArchive.seriesCount.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en') %> <%= locale === 'ar' ? 'سلسلة' : 'series' %>
+      &middot; <%= najmiArchive.pubCount.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en') %> <%= locale === 'ar' ? 'كتاباً' : 'books' %>
+    </span>
+  </div>
+  <span class="najmi-invite-cta">
+    <%= locale === 'ar' ? 'انتقل إلى أرشيف الشيخ أحمد' : 'Visit the archive' %>
+    <span class="najmi-invite-arrow"><%= isRTL ? '←' : '→' %></span>
+  </span>
+</a>
+<% } %>
+
 <!-- Enhanced Search Results Section (Push-Down) -->
 <div class="enhanced-search-results" id="enhancedSearchResults">
   <div class="search-results-header">

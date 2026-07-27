@@ -223,6 +223,23 @@
       </div>
     <% } %>
 
+    <% var _realm = (typeof adminRealm !== 'undefined') ? adminRealm : 'hasan'; %>
+
+    <div style="padding:10px 16px;border-radius:8px;margin-bottom:16px;font-weight:600;font-size:13px;<%= _realm === 'najmi' ? 'background:#14231D;color:#A8CFC2;' : 'background:#2C1508;color:#DEC99A;' %>">
+      <%= _realm === 'najmi'
+        ? (adminLocale === 'ar' ? '🟢 تُحرِّر إعدادات صفحة الشيخ أحمد النجمي (/najmi). بدِّل العالِم من الأعلى.' : '🟢 Editing the Sheikh Ahmad al-Najmi homepage (/najmi). Switch scholar from the top bar.')
+        : (adminLocale === 'ar' ? '🟡 تُحرِّر إعدادات صفحة الشيخ حسن الرئيسية. بدِّل العالِم من الأعلى.' : '🟡 Editing the Sheikh Hasan homepage. Switch scholar from the top bar.') %>
+    </div>
+
+    <% if (_realm === 'najmi') { %>
+    <div class="layout-preview">
+      <h4><%= adminLocale === 'ar' ? 'ترتيب صفحة المحتوى (الشيخ النجمي)' : 'Najmi Content Page Layout' %></h4>
+      <div class="layout-item active">1. <%= adminLocale === 'ar' ? 'القسم الرئيسي (Hero)' : 'Hero' %></div>
+      <div class="layout-item active">2. <%= adminLocale === 'ar' ? 'نبذة عن الشيخ' : 'About the Sheikh' %></div>
+      <div class="layout-item active">3. <%= adminLocale === 'ar' ? 'السلاسل مُرتَّبة حسب التصنيف' : 'Series grouped by category' %></div>
+      <div class="layout-item <%= najmiConfig.showLibrary ? 'active' : 'inactive' %>">4. <%= adminLocale === 'ar' ? 'من المكتبة (PDF)' : 'From the Library (PDF)' %></div>
+    </div>
+    <% } else { %>
     <div class="layout-preview">
       <h4><%= adminLocale === 'ar' ? 'ترتيب الصفحة الرئيسية' : 'Homepage Layout Order' %></h4>
       <div class="layout-item active">1. <%= adminLocale === 'ar' ? 'القسم الرئيسي (Hero)' : 'Hero Section' %></div>
@@ -232,10 +249,45 @@
       <div class="layout-item <%= settings.showStandaloneTab !== false ? 'active' : 'inactive' %>" id="preview-standalone">4b. <%= adminLocale === 'ar' ? 'تبويب المحاضرات المنفردة' : 'Standalone Tab' %></div>
       <div class="layout-item <%= settings.showKhutbasTab !== false ? 'active' : 'inactive' %>" id="preview-khutbas">4c. <%= adminLocale === 'ar' ? 'تبويب الخطب' : 'Khutbas Tab' %></div>
     </div>
+    <% } %>
 
     <div class="config-card">
       <form method="POST" action="/admin/homepage-config">
 
+        <% if (_realm === 'najmi') { %>
+        <!-- ===== Najmi realm config (Content page) ===== -->
+        <div class="config-section">
+          <h3><%= adminLocale === 'ar' ? 'إعدادات صفحة المحتوى' : 'Content Page Settings' %></h3>
+          <p style="font-size:13px;color:#777;margin:-4px 0 14px;">
+            <%= adminLocale === 'ar'
+              ? 'صفحة المحتوى ثابتة البنية: هيرو ثم نبذة عن الشيخ ثم السلاسل مُرتَّبة حسب التصنيف.'
+              : 'The Content page has a fixed structure: Hero, then About, then series grouped by category.' %>
+          </p>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-title"><%= adminLocale === 'ar' ? 'عدد السلاسل لكل تصنيف' : 'Series per Category' %></div>
+              <div class="toggle-desc"><%= adminLocale === 'ar' ? 'كم سلسلة تُعرض في كل تصنيف قبل رابط «عرض الكل» (2–12)' : 'How many series to show per category before the "view all" link (2–12)' %></div>
+            </div>
+            <input type="number" name="featuredSeriesCount" value="<%= najmiConfig.featuredSeriesCount %>" min="2" max="12" style="width:80px;padding:6px 10px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-title"><%= adminLocale === 'ar' ? 'قسم «من المكتبة»' : 'Library Teaser' %></div>
+              <div class="toggle-desc"><%= adminLocale === 'ar' ? 'عرض بطاقات كتب في أسفل صفحة المحتوى' : 'Show a few book cards at the bottom of the Content page' %></div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="showLibrary" <%= najmiConfig.showLibrary ? 'checked' : '' %>>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-save"><%= adminLocale === 'ar' ? 'حفظ إعدادات النجمي' : 'Save Najmi Settings' %></button>
+
+        <% } else { %>
+        <!-- ===== Hasan realm config ===== -->
         <div class="config-section">
           <h3><%= adminLocale === 'ar' ? 'أقسام الصفحة' : 'Page Sections' %></h3>
 
@@ -323,6 +375,7 @@
         </div>
 
         <button type="submit" class="btn-save"><%= adminLocale === 'ar' ? 'حفظ الإعدادات' : 'Save Settings' %></button>
+        <% } %>
       </form>
     </div>
   </main>

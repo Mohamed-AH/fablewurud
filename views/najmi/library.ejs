@@ -1,0 +1,195 @@
+<style>
+  .najmi-lib-page { min-height: 100vh; background: #EEF5F1; padding-bottom: 90px; }
+  html[data-theme="dark"] .najmi-lib-page { background: #14231D; }
+  @media (max-width: 768px) { .najmi-lib-page { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0)); } }
+
+  /* Header */
+  .najmi-lib-header {
+    background: linear-gradient(to left, #14231D 0%, #1C3329 30%, #2E6E5B 70%, #3D8570 100%);
+    padding: 40px 32px; text-align: center; border-bottom: 3px solid #3D8570;
+  }
+  html[dir="ltr"] .najmi-lib-header {
+    background: linear-gradient(to right, #14231D 0%, #1C3329 30%, #2E6E5B 70%, #3D8570 100%);
+  }
+  .najmi-lib-header h1 { color: #fff; font-size: 32px; font-weight: 800; margin: 0; font-family: var(--font-cairo,'Cairo',sans-serif); text-shadow: 1px 1px 3px rgba(0,0,0,0.25); }
+  .najmi-lib-header p { color: rgba(255,255,255,0.9); font-size: 15px; margin-top: 6px; }
+  @media (max-width: 768px) {
+    .najmi-lib-header { padding: 16px 16px 18px; }
+    .najmi-lib-header h1 { font-size: 19px; }
+    .najmi-lib-header p { font-size: 11px; margin-top: 4px; }
+  }
+
+  /* Filter + search bar */
+  .najmi-lib-filter { background: #E3EFE9; padding: 18px 32px; border-bottom: 1px solid #C9E2D8; }
+  html[data-theme="dark"] .najmi-lib-filter { background: #1A2A24; border-bottom-color: #2E4A40; }
+  .najmi-lib-filter-inner { max-width: 1000px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+  html[dir="ltr"] .najmi-lib-filter-inner { flex-direction: row-reverse; }
+  .najmi-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .najmi-chip {
+    background: #fff; border: 1px solid #C9E2D8; border-radius: 20px; padding: 7px 15px;
+    font-size: 13px; font-weight: 600; color: #3D8570; cursor: pointer; transition: all .2s;
+    font-family: var(--font-cairo,'Cairo',sans-serif);
+  }
+  .najmi-chip:hover { background: #D4E8E0; border-color: #2E6E5B; }
+  .najmi-chip.active { background: #2E6E5B; color: #fff; border-color: #2E6E5B; }
+  html[data-theme="dark"] .najmi-chip { background: #16221D; color: #A8CFC2; border-color: #2E4A40; }
+
+  .najmi-search { background: #fff; border: 1px solid #C9E2D8; border-radius: 10px; display: flex; align-items: center; padding: 0 14px; gap: 10px; min-width: 280px; }
+  html[data-theme="dark"] .najmi-search { background: #16221D; border-color: #2E4A40; }
+  .najmi-search svg { flex-shrink: 0; color: #6f9184; }
+  .najmi-search input { flex: 1; background: transparent; border: none; padding: 10px 0; font-family: inherit; font-size: 14px; color: #14231D; }
+  html[data-theme="dark"] .najmi-search input { color: #E8DDD0; }
+  .najmi-search input::placeholder { color: #8aa79c; }
+  .najmi-search input:focus { outline: none; }
+  .najmi-search:focus-within { border-color: #2E6E5B; }
+  @media (max-width: 768px) {
+    .najmi-lib-filter { padding: 10px 14px; }
+    .najmi-lib-filter-inner { flex-direction: column; gap: 10px; }
+    .najmi-chips { display: none; }
+    .najmi-search { width: 100%; min-width: unset; }
+  }
+
+  /* Row list */
+  .najmi-lib-count { max-width: 1000px; margin: 0 auto; padding: 14px 32px 0; font-size: 13px; color: #5f7168; }
+  html[dir="ltr"] .najmi-lib-count { text-align: left; }
+  html[dir="rtl"] .najmi-lib-count { text-align: right; }
+  .najmi-lib-list { max-width: 1000px; margin: 0 auto; padding: 12px 32px 24px; display: flex; flex-direction: column; gap: 8px; }
+  @media (max-width: 768px) { .najmi-lib-list { padding: 10px 12px 20px; } }
+
+  .najmi-row {
+    display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #D4E8E0;
+    border-radius: 10px; padding: 12px 14px; transition: border-color .2s, box-shadow .2s, transform .1s;
+  }
+  .najmi-row:hover { border-color: #2E6E5B; box-shadow: 0 3px 12px rgba(20,35,29,0.08); }
+  html[data-theme="dark"] .najmi-row { background: #1C2A24; border-color: #2E4A40; }
+
+  .najmi-row-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .najmi-row-icon {
+    flex-shrink: 0; width: 40px; height: 48px; border-radius: 5px; color: #fff;
+    background: linear-gradient(150deg, #3D8570 0%, #14231D 100%);
+    display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800;
+    letter-spacing: .04em; box-shadow: 0 2px 5px rgba(20,35,29,0.2);
+  }
+  .najmi-row-body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .najmi-row-title {
+    font-size: 14.5px; font-weight: 700; color: #14231D; line-height: 1.5;
+    direction: rtl; text-align: right; overflow-wrap: anywhere;
+  }
+  html[data-theme="dark"] .najmi-row-title { color: #E8DDD0; }
+  .najmi-row-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; direction: rtl; }
+  html[dir="ltr"] .najmi-row-meta { direction: ltr; }
+  .najmi-row-cat { font-size: 10px; font-weight: 700; background: #D4E8E0; color: #14231D; padding: 2px 8px; border-radius: 5px; }
+  html[data-theme="dark"] .najmi-row-cat { background: #22392F; color: #A8CFC2; }
+  .najmi-row-pages { font-size: 12px; color: #5f7168; font-variant-numeric: tabular-nums; }
+
+  .najmi-row-dl {
+    flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px; text-decoration: none;
+    background: #2E6E5B; color: #fff; font-weight: 700; font-size: 12.5px; padding: 8px 14px; border-radius: 8px;
+    transition: background .2s;
+  }
+  .najmi-row-dl:hover { background: #14231D; }
+  .najmi-row-dl .lucide { width: 15px; height: 15px; }
+  @media (max-width: 560px) {
+    .najmi-row { padding: 10px 12px; gap: 10px; }
+    .najmi-row-icon { width: 32px; height: 40px; }
+    .najmi-row-title { font-size: 13px; }
+    .najmi-row-dl { padding: 8px; font-size: 0; gap: 0; }  /* icon-only on small screens */
+    .najmi-row-dl .lucide { width: 17px; height: 17px; }
+  }
+
+  .najmi-empty { text-align: center; padding: 60px 20px; color: #6f9184; }
+  .najmi-empty .ic { opacity: .5; margin-bottom: 10px; }
+  .najmi-empty .t { font-size: 17px; font-weight: 600; color: #3D8570; }
+</style>
+
+<div class="najmi-lib-page">
+  <div class="najmi-lib-header">
+    <h1><%= locale === 'ar' ? 'مكتبة الشيخ أحمد النجمي' : 'Sheikh al-Najmi — Library' %></h1>
+    <p><%= total %> <%= locale === 'ar' ? 'كتاباً ورسالة وتعليقاً في أربعة أبواب' : 'books, letters and commentaries in four categories' %></p>
+  </div>
+
+  <div class="najmi-lib-filter">
+    <div class="najmi-lib-filter-inner">
+      <div class="najmi-chips" id="najmiChips">
+        <button class="najmi-chip active" data-cat="all"><%= locale === 'ar' ? 'الكل' : 'All' %> (<%= total %>)</button>
+        <% categories.forEach(c => { %>
+          <button class="najmi-chip" data-cat="<%= c.name %>"><%= c.name %> (<%= c.count %>)</button>
+        <% }) %>
+      </div>
+      <div class="najmi-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="najmiLibSearch" placeholder="<%= locale === 'ar' ? 'ابحث في المكتبة...' : 'Search the library...' %>" />
+      </div>
+    </div>
+  </div>
+
+  <div class="najmi-lib-count"><span id="najmiLibShown"><%= total %></span> <%= locale === 'ar' ? 'من' : 'of' %> <%= total %></div>
+
+  <div class="najmi-lib-list" id="najmiLibList">
+    <% publications.forEach(p => { %>
+      <div class="najmi-row" data-cat="<%= p.category %>" data-title="<%= p.title.replace(/"/g,'&quot;') %>">
+        <a class="najmi-row-open" href="<%= p.fileUrl %>" target="_blank" rel="noopener">
+          <span class="najmi-row-icon">PDF</span>
+          <span class="najmi-row-body">
+            <span class="najmi-row-title"><%= p.title %></span>
+            <span class="najmi-row-meta">
+              <span class="najmi-row-cat"><%= p.category %></span>
+              <% if (p.pageCount) { %><span class="najmi-row-pages"><%= p.pageCount %> <%= locale === 'ar' ? 'صفحة' : 'pages' %></span><% } %>
+              <% if (p.volumeCount && p.volumeCount > 1) { %><span class="najmi-row-pages"><%= p.volumeCount %> <%= locale === 'ar' ? 'مجلدات' : 'vols' %></span><% } %>
+            </span>
+          </span>
+        </a>
+        <a class="najmi-row-dl" href="/najmi/library/<%= p.shortId %>/download" target="_blank" rel="noopener"
+           aria-label="<%= locale === 'ar' ? 'تحميل' : 'Download' %>">
+          <i data-lucide="download"></i><span><%= locale === 'ar' ? 'تحميل' : 'Download' %></span>
+        </a>
+      </div>
+    <% }) %>
+    <div class="najmi-empty" id="najmiLibEmpty" style="display:none;">
+      <div class="ic"><i data-lucide="book-x"></i></div>
+      <div class="t"><%= locale === 'ar' ? 'لا توجد نتائج' : 'No results' %></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const chips = document.getElementById('najmiChips');
+    const searchInput = document.getElementById('najmiLibSearch');
+    const rows = Array.from(document.querySelectorAll('#najmiLibList .najmi-row'));
+    const empty = document.getElementById('najmiLibEmpty');
+    const shown = document.getElementById('najmiLibShown');
+    let cat = 'all';
+    let term = '';
+
+    function apply() {
+      let visible = 0;
+      rows.forEach(row => {
+        const matchesCat = cat === 'all' || row.dataset.cat === cat;
+        const matchesTerm = term === '' || (row.dataset.title || '').toLowerCase().includes(term);
+        const show = matchesCat && matchesTerm;
+        row.style.display = show ? 'flex' : 'none';
+        if (show) visible++;
+      });
+      shown.textContent = visible;
+      empty.style.display = visible ? 'none' : 'block';
+      if (window.lucide) lucide.createIcons();
+    }
+
+    chips.addEventListener('click', e => {
+      const btn = e.target.closest('.najmi-chip');
+      if (!btn) return;
+      chips.querySelectorAll('.najmi-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      cat = btn.dataset.cat;
+      apply();
+    });
+    searchInput.addEventListener('input', function () {
+      term = this.value.toLowerCase().trim();
+      apply();
+    });
+    if (window.lucide) lucide.createIcons();
+  })();
+</script>

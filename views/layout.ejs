@@ -182,8 +182,10 @@
     [dir="rtl"] .maintenance-telegram{flex-direction:row-reverse}
     @media(max-width:480px){.maintenance-title{font-size:24px}.maintenance-message{font-size:16px}.maintenance-telegram{padding:12px 20px;font-size:14px}}
   </style>
+  <!-- Teal realm overrides (Sheikh Ahmed Al-Najmi) — scoped to [data-realm="najmi"] -->
+  <link rel="stylesheet" href="/css/najmi.css<%= typeof assetVersion !== 'undefined' ? '?v=' + assetVersion : '' %>">
 </head>
-<body>
+<body data-realm="<%= typeof realm !== 'undefined' ? realm : 'hasan' %>">
   <!-- Maintenance Mode Overlay (exempt admin and auth routes) -->
   <% if (typeof maintenanceMode !== 'undefined' && maintenanceMode.enabled && !(currentPath && (currentPath.startsWith('/admin') || currentPath.startsWith('/auth')))) { %>
   <div class="maintenance-overlay" dir="<%= isRTL ? 'rtl' : 'ltr' %>">

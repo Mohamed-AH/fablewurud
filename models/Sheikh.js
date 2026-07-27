@@ -25,6 +25,19 @@ const sheikhSchema = new mongoose.Schema({
     default: 'حفظه الله',
     trim: true
   },
+  // Honorific title PREFIX shown before the name (e.g. "الشيخ العلامة").
+  // Used only when nameArabic does not already begin with a title word, so a name
+  // that embeds its title (e.g. "الشيخ حسن …") is never double-titled. See utils/sheikhName.js.
+  titlePrefix: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  titlePrefixEnglish: {
+    type: String,
+    default: '',
+    trim: true
+  },
   bioArabic: {
     type: String,
     trim: true

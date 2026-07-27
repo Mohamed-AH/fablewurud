@@ -3,6 +3,22 @@ const router = express.Router();
 const { Lecture, Sheikh, Series, Section, Schedule, SiteSettings, Article } = require('../models');
 const cache = require('../utils/cache');
 const { captureException } = require('../utils/errorReporter');
+const { excludeNajmiBySheikh, excludeNajmiSheikhId } = require('../utils/realmFilter');
+
+// Counts for the cross-archive invitation banner on Sheikh Hasan's homepage.
+// Returns null when the Najmi realm isn't available, so the banner is hidden.
+async function fetchNajmiArchiveCounts() {
+  const { getNajmiSheikh } = require('../utils/najmiSheikh');
+  const { Publication } = require('../models');
+  const najmi = await getNajmiSheikh();
+  if (!najmi) return null;
+  const [lectureCount, seriesCount, pubCount] = await Promise.all([
+    Lecture.countDocuments({ sheikhId: najmi._id, published: true }),
+    Series.countDocuments({ sheikhId: najmi._id, isVisible: { $ne: false } }),
+    Publication.countDocuments({ sheikhId: najmi._id, isPublished: { $ne: false } })
+  ]);
+  return { lectureCount, seriesCount, pubCount };
+}
 
 // Cache TTLs (in seconds)
 const CACHE_TTL = {
@@ -120,7 +136,8 @@ async function fetchRecentArticles(limit = 10) {
 // Optimized: Uses aggregation pipeline instead of N+1 queries (55+ -> 1 query)
 async function fetchSectionsData() {
   const sections = await Section.aggregate([
-    { $match: { isVisible: true } },
+    // Exclude Najmi realm sections (they render on /najmi, not the Hasan homepage)
+    { $match: { isVisible: true, realm: { $ne: 'najmi' } } },
     { $sort: { displayOrder: 1 } },
     // Lookup series for each section
     {
@@ -185,16 +202,17 @@ async function fetchSectionsData() {
 router.get('/', async (req, res) => {
   try {
     // PERFORMANCE: Execute all independent queries in parallel
-    const [weeklySchedule, totalLectureCount, totalArticleCount, homepageSections, settings, recentArticles] = await Promise.all([
+    const [weeklySchedule, totalLectureCount, totalArticleCount, homepageSections, settings, recentArticles, najmiArchive] = await Promise.all([
       cache.getOrSet('homepage:schedule', fetchScheduleData, CACHE_TTL.SCHEDULE),
-      cache.getOrSet('homepage:lectureCount', () => Lecture.countDocuments({ published: true }), CACHE_TTL.HOMEPAGE),
+      cache.getOrSet('homepage:lectureCount', async () => Lecture.countDocuments({ published: true, ...(await excludeNajmiBySheikh()) }), CACHE_TTL.HOMEPAGE),
       cache.getOrSet('homepage:articleCount', () => Article.countDocuments({ isPublished: true }), CACHE_TTL.ARTICLES),
       cache.getOrSet('homepage:sections', fetchSectionsData, CACHE_TTL.HOMEPAGE),
       SiteSettings.getSettings().catch(err => {
         console.error('Failed to get site settings:', err.message);
         return null;
       }),
-      cache.getOrSet('homepage:articles', () => fetchRecentArticles(10), CACHE_TTL.ARTICLES)
+      cache.getOrSet('homepage:articles', () => fetchRecentArticles(10), CACHE_TTL.ARTICLES),
+      cache.getOrSet('homepage:najmiArchive', fetchNajmiArchiveCounts, CACHE_TTL.HOMEPAGE)
     ]);
 
     // Process site settings (handle null from catch)
@@ -247,7 +265,8 @@ router.get('/', async (req, res) => {
       showPublicStats,
       lazyLoadSeries: true,     // Flag for template to show loading state
       activeTab,                // Pass active tab for server-side rendering
-      recentArticles: recentArticles || []  // Recent articles for sidebar
+      recentArticles: recentArticles || [],  // Recent articles for sidebar
+      najmiArchive              // Counts for the cross-archive invitation banner
     });
   } catch (error) {
     console.error('Homepage error:', error);
@@ -270,7 +289,8 @@ router.get('/browse', async (req, res) => {
     const skip = (page - 1) * limit;
 
     // Build query
-    const query = { published: true };
+    const notNajmi = await excludeNajmiBySheikh();
+    const query = { published: true, ...notNajmi };
 
     // Category filter
     if (category) {
@@ -513,7 +533,9 @@ router.get('/lectures/:idOrSlug', async (req, res) => {
 // @access  Public
 router.get('/sheikhs', async (req, res) => {
   try {
-    const sheikhs = await Sheikh.find()
+    // Exclude the Najmi sheikh — he has his own realm at /najmi
+    const notNajmi = await excludeNajmiSheikhId();
+    const sheikhs = await Sheikh.find({ ...notNajmi })
       .sort({ nameArabic: 1 })
       .lean();
 
@@ -662,7 +684,8 @@ router.get('/sheikhs/:idOrSlug', async (req, res) => {
 router.get('/series', async (req, res) => {
   try {
     // Only show visible series
-    const series = await Series.find({ isVisible: { $ne: false } })
+    const notNajmi = await excludeNajmiBySheikh();
+    const series = await Series.find({ isVisible: { $ne: false }, ...notNajmi })
       .sort({ titleArabic: 1 })
       .populate('sheikhId', 'nameArabic nameEnglish honorific')
       .lean();
@@ -947,18 +970,23 @@ function buildSitemapUrl(type, doc) {
 async function generateSitemap() {
   const baseUrl = 'https://rasmihassan.com';
 
+  // Exclude the Najmi realm — its pages live under /najmi/* (added separately below);
+  // listing them under /series/* here would be wrong.
+  const notNajmi = await excludeNajmiBySheikh();
+  const notNajmiSheikh = await excludeNajmiSheikhId();
+
   // Get all published lectures (include new fields for URL generation)
-  const lectures = await Lecture.find({ published: true })
+  const lectures = await Lecture.find({ published: true, ...notNajmi })
     .select('_id slug shortId slug_en slug_ar updatedAt')
     .lean();
 
   // Get all visible series (exclude hidden ones)
-  const series = await Series.find({ isVisible: { $ne: false } })
+  const series = await Series.find({ isVisible: { $ne: false }, ...notNajmi })
     .select('_id slug shortId slug_en slug_ar updatedAt')
     .lean();
 
   // Get all sheikhs
-  const sheikhs = await Sheikh.find()
+  const sheikhs = await Sheikh.find({ ...notNajmiSheikh })
     .select('_id slug shortId slug_en slug_ar updatedAt')
     .lean();
 
@@ -1048,6 +1076,48 @@ async function generateSitemap() {
     <priority>0.8</priority>
   </url>
 `;
+  }
+
+  // Najmi realm (dedicated /najmi/* pages) — Content, Library, Series list + each series
+  try {
+    const { getNajmiSheikh } = require('../utils/najmiSheikh');
+    const najmi = await getNajmiSheikh();
+    if (najmi) {
+      xml += `  <url>
+    <loc>${baseUrl}/najmi</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/najmi/series</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/najmi/library</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+`;
+      const najmiSeries = await Series.find({ sheikhId: najmi._id, isVisible: { $ne: false } })
+        .select('slug shortId slug_en slug_ar updatedAt').lean();
+      for (const s of najmiSeries) {
+        const lastmod = s.updatedAt ? new Date(s.updatedAt).toISOString().split('T')[0] : '';
+        const en = s.slug_en || '';
+        const ar = s.slug_ar ? encodeURIComponent(s.slug_ar) : '';
+        const url = `/najmi/series/${s.shortId}/${en}/${ar}`.replace(/\/+$/, '');
+        xml += `  <url>
+    <loc>${baseUrl}${url}</loc>
+    ${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+`;
+      }
+    }
+  } catch (e) {
+    console.error('Sitemap Najmi section error:', e.message);
+    captureException(e);
   }
 
   xml += `</urlset>`;

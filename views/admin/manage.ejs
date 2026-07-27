@@ -18,6 +18,13 @@
   <main class="admin-container">
     <div class="message" id="message"></div>
 
+    <% var _mRealm = (typeof adminRealm !== 'undefined') ? adminRealm : 'hasan'; %>
+    <div style="padding:9px 16px;border-radius:8px;margin-bottom:14px;font-weight:600;font-size:13px;<%= _mRealm === 'najmi' ? 'background:#14231D;color:#A8CFC2;' : 'background:#2C1508;color:#DEC99A;' %>">
+      <%= _mRealm === 'najmi'
+        ? (adminLocale === 'ar' ? '🟢 تعرض الآن محتوى الشيخ أحمد النجمي فقط — بدِّل العالِم من الأعلى.' : '🟢 Showing Sheikh Ahmad al-Najmi content only — switch scholar from the top bar.')
+        : (adminLocale === 'ar' ? '🟡 تعرض الآن محتوى الشيخ حسن — بدِّل العالِم من الأعلى.' : '🟡 Showing Sheikh Hasan content — switch scholar from the top bar.') %>
+    </div>
+
     <!-- Quick Actions -->
     <section class="admin-section">
       <h2><%= t('admin_manage_quick_actions') %></h2>

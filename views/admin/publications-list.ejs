@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= adminLocale === 'ar' ? 'مكتبة الشيخ النجمي' : 'Najmi Publications' %> - <%= t('admin_title') %></title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <% if (adminIsRTL) { %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <% } %>
+  <style>
+    .pub-realm-banner { background:#14231D; color:#A8CFC2; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+    .pub-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:12px; margin-bottom:20px; }
+    .stat-mini { background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px; text-align:center; }
+    .stat-mini .number { font-size:24px; font-weight:bold; color:#2E6E5B; }
+    .stat-mini .label { font-size:12px; color:#666; }
+    .header-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+    .add-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 16px; background:#2E6E5B; color:#fff; border-radius:6px; text-decoration:none; font-weight:500; }
+    .add-btn:hover { background:#245A4A; }
+    .filters-bar { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+    .filters-bar input[type=text] { flex:1; min-width:220px; padding:9px 12px; border:1px solid #ccc; border-radius:6px; }
+    .filters-bar select { padding:9px 12px; border:1px solid #ccc; border-radius:6px; }
+    .filters-bar button { padding:9px 16px; background:#2E6E5B; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+    .pub-table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+    .pub-table th { background:#14231D; color:#fff; padding:10px 12px; text-align:<%= adminIsRTL ? 'right':'left' %>; font-size:13px; }
+    .pub-table td { padding:10px 12px; border-bottom:1px solid #eee; font-size:13px; vertical-align:middle; }
+    .pub-table tr:hover td { background:#F3F8F6; }
+    .pub-title { font-weight:600; color:#14231D; }
+    .pub-cat { font-size:11px; background:#D4E8E0; color:#14231D; padding:2px 8px; border-radius:5px; white-space:nowrap; }
+    .badge-pub { font-size:11px; padding:3px 9px; border-radius:10px; font-weight:600; cursor:pointer; border:none; }
+    .badge-pub.on { background:#d4edda; color:#155724; }
+    .badge-pub.off { background:#fff3cd; color:#856404; }
+    .row-actions { display:flex; gap:6px; }
+    .row-actions a, .row-actions button { font-size:12px; padding:5px 10px; border-radius:5px; text-decoration:none; border:1px solid #ccc; background:#fff; cursor:pointer; color:#333; }
+    .row-actions .del { color:#a12; border-color:#e5b; }
+    .alert { padding:12px 16px; border-radius:6px; margin-bottom:16px; }
+    .alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+    .alert-error { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+    .pagination { display:flex; gap:6px; justify-content:center; margin-top:20px; flex-wrap:wrap; }
+    .pagination a, .pagination span { padding:6px 11px; border:1px solid #ddd; border-radius:6px; text-decoration:none; color:#333; font-size:13px; }
+    .pagination .active { background:#2E6E5B; color:#fff; border-color:#2E6E5B; }
+    @media (max-width:768px){ .pub-table .hide-mobile { display:none; } }
+  </style>
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <main class="admin-container">
+    <div class="pub-realm-banner">
+      🟢 <%= adminLocale === 'ar' ? 'أنت تدير مكتبة العلامة أحمد بن يحيى النجمي (رحمه الله)' : 'Managing the library of Sheikh Ahmad al-Najmi' %>
+    </div>
+
+    <div class="header-row">
+      <h2><%= adminLocale === 'ar' ? 'المكتبة (PDF)' : 'Publications (PDF)' %></h2>
+      <a href="/admin/publications/new" class="add-btn"><span>+</span> <%= adminLocale === 'ar' ? 'إضافة كتاب' : 'Add publication' %></a>
+    </div>
+
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="alert alert-success"><%= adminLocale === 'ar' ? 'تم بنجاح' : 'Done' %>: <%= success %></div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <div class="pub-stats">
+      <div class="stat-mini"><div class="number"><%= stats.total %></div><div class="label"><%= adminLocale === 'ar' ? 'الإجمالي' : 'Total' %></div></div>
+      <div class="stat-mini"><div class="number"><%= stats.published %></div><div class="label"><%= adminLocale === 'ar' ? 'منشور' : 'Published' %></div></div>
+      <div class="stat-mini"><div class="number"><%= stats.draft %></div><div class="label"><%= adminLocale === 'ar' ? 'مسودة' : 'Draft' %></div></div>
+      <% categories.forEach(c => { %>
+        <div class="stat-mini"><div class="number"><%= stats.byCat[c] || 0 %></div><div class="label"><%= c %></div></div>
+      <% }) %>
+    </div>
+
+    <form method="GET" action="/admin/publications" class="filters-bar">
+      <input type="text" name="search" placeholder="<%= adminLocale === 'ar' ? 'ابحث بالعنوان...' : 'Search title...' %>" value="<%= filters.search %>">
+      <select name="category">
+        <option value="all"><%= adminLocale === 'ar' ? 'كل الأبواب' : 'All categories' %></option>
+        <% categories.forEach(c => { %><option value="<%= c %>" <%= filters.category === c ? 'selected' : '' %>><%= c %></option><% }) %>
+      </select>
+      <select name="status">
+        <option value="all"><%= adminLocale === 'ar' ? 'كل الحالات' : 'All statuses' %></option>
+        <option value="published" <%= filters.status === 'published' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'منشور' : 'Published' %></option>
+        <option value="draft" <%= filters.status === 'draft' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'مسودة' : 'Draft' %></option>
+      </select>
+      <select name="sort">
+        <option value="newest" <%= filters.sort === 'newest' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'الأحدث' : 'Newest' %></option>
+        <option value="title" <%= filters.sort === 'title' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'العنوان' : 'Title' %></option>
+        <option value="pages" <%= filters.sort === 'pages' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'الصفحات' : 'Pages' %></option>
+        <option value="downloads" <%= filters.sort === 'downloads' ? 'selected' : '' %>><%= adminLocale === 'ar' ? 'التحميلات' : 'Downloads' %></option>
+      </select>
+      <button type="submit"><%= adminLocale === 'ar' ? 'تصفية' : 'Filter' %></button>
+    </form>
+
+    <table class="pub-table">
+      <thead>
+        <tr>
+          <th><%= adminLocale === 'ar' ? 'العنوان' : 'Title' %></th>
+          <th class="hide-mobile"><%= adminLocale === 'ar' ? 'الباب' : 'Category' %></th>
+          <th class="hide-mobile"><%= adminLocale === 'ar' ? 'صفحات' : 'Pages' %></th>
+          <th class="hide-mobile"><%= adminLocale === 'ar' ? 'تحميلات' : 'Downloads' %></th>
+          <th><%= adminLocale === 'ar' ? 'الحالة' : 'Status' %></th>
+          <th><%= adminLocale === 'ar' ? 'إجراءات' : 'Actions' %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (publications.length === 0) { %>
+          <tr><td colspan="6" style="text-align:center; padding:30px; color:#999;"><%= adminLocale === 'ar' ? 'لا توجد نتائج' : 'No results' %></td></tr>
+        <% } %>
+        <% publications.forEach(p => { %>
+          <tr>
+            <td>
+              <div class="pub-title"><a href="<%= p.fileUrl %>" target="_blank" rel="noopener" style="color:#14231D;text-decoration:none;"><%= p.title %></a></div>
+            </td>
+            <td class="hide-mobile"><span class="pub-cat"><%= p.category %></span></td>
+            <td class="hide-mobile"><%= p.pageCount || '—' %></td>
+            <td class="hide-mobile"><%= p.downloadCount || 0 %></td>
+            <td>
+              <button class="badge-pub <%= p.isPublished ? 'on' : 'off' %>" data-id="<%= p._id %>" onclick="togglePub(this)">
+                <%= p.isPublished ? (adminLocale === 'ar' ? 'منشور' : 'Published') : (adminLocale === 'ar' ? 'مسودة' : 'Draft') %>
+              </button>
+            </td>
+            <td>
+              <div class="row-actions">
+                <a href="/admin/publications/<%= p._id %>/edit"><%= adminLocale === 'ar' ? 'تعديل' : 'Edit' %></a>
+                <form method="POST" action="/admin/publications/<%= p._id %>/delete" style="display:inline"
+                      onsubmit="return confirm('<%= adminLocale === 'ar' ? 'حذف هذا الكتاب نهائياً؟' : 'Delete this publication permanently?' %>');">
+                  <button type="submit" class="del"><%= adminLocale === 'ar' ? 'حذف' : 'Delete' %></button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <% if (pagination.totalPages > 1) {
+         const qs = (pg) => { const p = new URLSearchParams(filters); p.set('page', pg); return '/admin/publications?' + p.toString(); }; %>
+      <div class="pagination">
+        <% if (pagination.hasPrev) { %><a href="<%= qs(pagination.currentPage - 1) %>">‹</a><% } %>
+        <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+          <% if (i === pagination.currentPage) { %><span class="active"><%= i %></span>
+          <% } else { %><a href="<%= qs(i) %>"><%= i %></a><% } %>
+        <% } %>
+        <% if (pagination.hasNext) { %><a href="<%= qs(pagination.currentPage + 1) %>">›</a><% } %>
+      </div>
+    <% } %>
+  </main>
+
+  <script>
+    function togglePub(btn) {
+      const id = btn.dataset.id;
+      fetch('/admin/publications/' + id + '/toggle-published', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+        .then(r => r.json())
+        .then(d => {
+          if (!d.success) return;
+          const ar = '<%= adminLocale %>' === 'ar';
+          btn.classList.toggle('on', d.isPublished);
+          btn.classList.toggle('off', !d.isPublished);
+          btn.textContent = d.isPublished ? (ar ? 'منشور' : 'Published') : (ar ? 'مسودة' : 'Draft');
+        })
+        .catch(() => {});
+    }
+  </script>
+</body>
+</html>

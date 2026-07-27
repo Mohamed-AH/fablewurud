@@ -15,7 +15,7 @@ const path = require('path');
 require('dotenv').config({ path: '.env.test' });
 
 // Fallback version if not set in .env.test
-process.env.MONGOMS_VERSION = process.env.MONGOMS_VERSION || '7.0.11';
+process.env.MONGOMS_VERSION = process.env.MONGOMS_VERSION || '7.0.14';
 
 const { MongoMemoryServer } = require('mongodb-memory-server');
 

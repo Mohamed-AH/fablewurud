@@ -1,0 +1,93 @@
+<style>
+  .najmi-bio-page { background: #EEF5F1; min-height: 60vh; }
+  html[data-theme="dark"] .najmi-bio-page { background: #14231D; }
+  .najmi-bio-hero {
+    background: linear-gradient(135deg, #14231D 0%, #2E6E5B 100%); color: #fff;
+    padding: 44px 20px 34px; text-align: center; border-bottom: 3px solid #3D8570;
+  }
+  .najmi-bio-hero .hon { color: #A8CFC2; font-size: 14px; margin-bottom: 6px; }
+  .najmi-bio-hero h1 { font-family: var(--font-cairo,'Cairo',sans-serif); font-size: 30px; font-weight: 800; line-height: 1.3; text-shadow: 1px 2px 6px rgba(0,0,0,0.25); }
+  .najmi-bio-stats { display: flex; gap: 26px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+  .najmi-bio-stat .n { font-size: 24px; font-weight: 800; color: #A8CFC2; }
+  .najmi-bio-stat .l { font-size: 11px; color: rgba(255,255,255,0.75); }
+
+  .najmi-bio-body { max-width: 760px; margin: 0 auto; padding: 32px 22px 48px; }
+  .najmi-bio-body p { font-size: 16px; line-height: 2; color: #24332C; margin-bottom: 16px; }
+  html[data-theme="dark"] .najmi-bio-body p { color: #D6E4DD; }
+  .najmi-bio-body p strong { color: #2E6E5B; font-weight: 700; }
+  html[data-theme="dark"] .najmi-bio-body p strong { color: #A8CFC2; }
+  .najmi-bio-body h2 {
+    font-family: var(--font-cairo,'Cairo',sans-serif); font-size: 19px; font-weight: 800; color: #14231D;
+    margin: 26px 0 10px; padding-inline-start: 12px; border-inline-start: 4px solid #2E6E5B;
+  }
+  html[data-theme="dark"] .najmi-bio-body h2 { color: #A8CFC2; }
+  .najmi-bio-source {
+    margin-top: 28px; padding: 14px 18px; background: #fff; border: 1px solid #D4E8E0; border-radius: 10px;
+    font-size: 13px; color: #5f7168; line-height: 1.8;
+  }
+  html[data-theme="dark"] .najmi-bio-source { background: #1C2A24; border-color: #2E4A40; color: #9db3a9; }
+  .najmi-bio-source a { color: #2E6E5B; font-weight: 700; text-decoration: none; }
+  .najmi-return-inline { text-align: center; padding-bottom: 40px; }
+  .najmi-return-inline a { color: #C49A3C; font-weight: 700; font-size: 14px; text-decoration: none; }
+</style>
+
+<div class="najmi-bio-page">
+  <section class="najmi-bio-hero">
+    <div class="hon"><%= locale === 'ar' ? 'رحمه الله' : 'raḥimahu-llāh' %></div>
+    <h1><%= locale === 'ar' ? 'الشيخ العلامة أحمد بن يحيى النجمي' : 'Sheikh al-‘Allāmah Ahmad ibn Yahya al-Najmi' %></h1>
+    <div class="najmi-bio-stats">
+      <div class="najmi-bio-stat"><div class="n"><%= stats.lectureCount.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en') %></div><div class="l"><%= locale === 'ar' ? 'درساً' : 'lectures' %></div></div>
+      <div class="najmi-bio-stat"><div class="n"><%= stats.seriesCount.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en') %></div><div class="l"><%= locale === 'ar' ? 'سلسلة' : 'series' %></div></div>
+      <div class="najmi-bio-stat"><div class="n"><%= stats.pubCount.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en') %></div><div class="l"><%= locale === 'ar' ? 'كتاباً' : 'books' %></div></div>
+    </div>
+  </section>
+
+  <article class="najmi-bio-body">
+    <% if (locale === 'ar') { %>
+      <p>هو العلّامة المحدِّث الفقيه، مفتي منطقة جازان في عصره، وحامل راية السنة والحديث فيها: <strong>الشيخ أحمد بن يحيى بن محمد بن شبير النجمي الأسدي</strong> — رحمه الله.</p>
+
+      <h2>مولده ونشأته</h2>
+      <p>وُلد رحمه الله في <strong>الثاني والعشرين من محرّم سنة ١٣٤٦هـ</strong> بقرية <strong>النجامية</strong> القريبة من <strong>صامطة</strong> بمنطقة جازان، وكان وحيدًا لأبوين صالحين.</p>
+
+      <h2>طلبه للعلم وشيوخه</h2>
+      <p>تلقّى العلم على يد شيخه الإمام المجدِّد <strong>الشيخ عبد الله القرعاوي</strong> رحمه الله في <strong>المدرسة السلفية بصامطة</strong>، فبدأ في حلقة الصغار وعمره ثلاث عشرة سنة ثم انتقل إلى حلقة الكبار، فأخذ عنه الأصول الثلاثة والتجويد والتفسير وعلوم القرآن والحديث والفقه وأصولهما والعقيدة والفرائض. ودرس كذلك على مشايخ أجلّاء منهم الشيخ عثمان بن عثمان حملي، والقاضي إبراهيم بن محمد العمودي قاضي صامطة، والشيخ علي بن عثمان زياد الصومالي، والشيخ حافظ بن أحمد حكمي رحمهم الله جميعًا.</p>
+
+      <h2>أعماله ودعوته</h2>
+      <p>عُيّن مدرّسًا في مدرسة النجامية سنة <strong>١٣٦٧هـ</strong> احتسابًا، ثم إمامًا وواعظًا وخطيبًا، وأصبح بيته ومسجده في النجامية جامعةً علمية تُقام فيها الدروس اليومية والأسبوعية، يفد إليها طلاب العلم من كل مكان. ومن جهوده العلمية تأسيسه — مع تلميذه النجيب الشيخ <strong>زيد بن محمد المدخلي</strong> — لدورة الإمام القرعاوي العلمية سنة <strong>١٤١٦هـ</strong> بجامع الشيخ زيد، وقد وَلِيَ الإفتاء في منطقة جازان حتى صار مرجعها في السنة والفتوى.</p>
+
+      <h2>مؤلفاته</h2>
+      <p>خلّف رحمه الله تراثًا علميًّا نافعًا في العقيدة والحديث والفقه والردود، منه: <em>تأسيس الأحكام شرح عمدة الأحكام</em>، و<em>فتح الرب الودود في الفتاوى والرسائل والردود</em>، و<em>المورد العذب الزلال</em>، و<em>أوضح الإشارة</em>، و<em>إرشاد الساري</em>، و<em>تنبيه الأنام على ما في سبل السلام</em>، و<em>الفتاوى الجلية عن المناهج الدعوية</em>، وتعليقاتٌ كثيرة على كتب أهل العلم.</p>
+
+      <h2>وفاته</h2>
+      <p>تُوفّي رحمه الله يوم الأربعاء <strong>العشرين من رجب سنة ١٤٢٩هـ</strong> بمدينة الملك فهد الطبية بالرياض بعد معاناةٍ مع المرض، ونُقل جثمانه إلى منطقة جازان، ودُفن بمسقط رأسه بقرية النجامية، وشيّعه خلقٌ كثير من طلابه ومحبّيه. رحمه الله رحمة واسعة وأسكنه فسيح جناته.</p>
+    <% } else { %>
+      <p>He is the erudite scholar of hadith and jurisprudence, Mufti of the Jazan region in his time and its standard-bearer of the Sunnah: <strong>Sheikh Ahmad ibn Yahya ibn Muhammad ibn Shubayr al-Najmi al-Asadi</strong> — may Allah have mercy on him.</p>
+
+      <h2>Birth &amp; Upbringing</h2>
+      <p>He was born on <strong>22 Muharram 1346 AH</strong> in the village of <strong>al-Najamiyyah</strong>, near <strong>Samtah</strong> in the Jazan region, the only child of righteous parents.</p>
+
+      <h2>His Teachers</h2>
+      <p>He studied under the reviving imam <strong>Sheikh Abdullah al-Qar'awi</strong> at the <strong>Salafi School in Samtah</strong>, beginning in the young students' circle at the age of thirteen and later joining the senior circle. From him he took the Three Principles, tajwid, tafsir and the Qur'anic sciences, hadith, fiqh and their foundations, creed and inheritance law. He also studied under Sheikh Uthman ibn Uthman Hamli, the judge of Samtah Ibrahim ibn Muhammad al-Amudi, Sheikh Ali ibn Uthman Ziyad al-Sumali, and Sheikh Hafiz ibn Ahmad Hakami.</p>
+
+      <h2>His Work &amp; Da'wah</h2>
+      <p>He was appointed a teacher at the al-Najamiyyah school in <strong>1367 AH</strong>, then an imam, preacher and khatib. His home and mosque became a scholarly academy holding daily and weekly lessons. Among his efforts was founding — with his student <strong>Sheikh Zayd ibn Muhammad al-Madkhali</strong> — the al-Qar'awi scholarly course in <strong>1416 AH</strong>. He served as the region's authority in fatwa and the Sunnah.</p>
+
+      <h2>His Works</h2>
+      <p>He left a beneficial legacy in creed, hadith, fiqh and refutations, including <em>Ta'sis al-Ahkam</em>, <em>Fath al-Rabb al-Wadud</em>, <em>al-Mawrid al-'Adhb al-Zulal</em>, <em>Awdah al-Isharah</em>, <em>Irshad al-Sari</em>, <em>Tanbih al-Anam</em>, and <em>al-Fatawa al-Jaliyyah</em>.</p>
+
+      <h2>His Passing</h2>
+      <p>He passed away on <strong>Wednesday, 20 Rajab 1429 AH</strong> at King Fahd Medical City in Riyadh after an illness, and was buried in his birthplace, al-Najamiyyah. May Allah have abundant mercy upon him.</p>
+    <% } %>
+
+    <div class="najmi-bio-source">
+      <%= locale === 'ar'
+        ? 'المصدر: «المجموع الندي في سيرة العلامة أحمد النجمي» و«جهود العلامة النجمي في خدمة السنة». وهما متوفران كاملين في '
+        : 'Source: al-Majmu\' al-Nadi and Juhud al-\'Allamah al-Najmi. Both are available in full in the ' %>
+      <a href="/najmi/library"><%= locale === 'ar' ? 'المكتبة' : 'Library' %></a>.
+    </div>
+
+    <div class="najmi-return-inline">
+      <a href="/"><%= locale === 'ar' ? 'العودة إلى أرشيف الشيخ حسن الدغريري ←' : 'Back to Sheikh Hasan\'s archive →' %></a>
+    </div>
+  </article>
+</div>

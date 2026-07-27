@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="<%= adminLocale %>" dir="<%= adminDir %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= isEdit ? (adminLocale === 'ar' ? 'تعديل كتاب' : 'Edit publication') : (adminLocale === 'ar' ? 'إضافة كتاب' : 'Add publication') %> - <%= t('admin_title') %></title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <% if (adminIsRTL) { %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <% } %>
+  <style>
+    .pub-form { background:#fff; border:1px solid #ddd; border-radius:10px; padding:24px; max-width:720px; }
+    .pub-form .field { margin-bottom:18px; }
+    .pub-form label { display:block; font-weight:600; margin-bottom:6px; color:#14231D; font-size:14px; }
+    .pub-form input[type=text], .pub-form input[type=number], .pub-form select, .pub-form textarea {
+      width:100%; padding:10px 12px; border:1px solid #ccc; border-radius:6px; font-family:inherit; font-size:14px; box-sizing:border-box;
+    }
+    .pub-form textarea { min-height:80px; resize:vertical; }
+    .pub-form .row2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .pub-form .check { display:flex; align-items:center; gap:8px; }
+    .pub-form .check input { width:auto; }
+    .pub-actions { display:flex; gap:10px; margin-top:8px; }
+    .btn-primary { background:#2E6E5B; color:#fff; border:none; padding:11px 22px; border-radius:6px; font-weight:600; cursor:pointer; font-size:14px; }
+    .btn-primary:hover { background:#245A4A; }
+    .btn-cancel { background:#eee; color:#333; padding:11px 22px; border-radius:6px; text-decoration:none; font-size:14px; }
+    .current-file { background:#F3F8F6; border:1px solid #D4E8E0; border-radius:6px; padding:10px 12px; font-size:13px; margin-bottom:18px; }
+    .current-file a { color:#2E6E5B; font-weight:600; }
+    .alert-error { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; padding:12px 16px; border-radius:6px; margin-bottom:16px; }
+    .hint { font-size:12px; color:#888; margin-top:4px; }
+    .realm-tag { display:inline-block; background:#14231D; color:#A8CFC2; font-size:11px; padding:2px 9px; border-radius:10px; margin-inline-start:8px; }
+  </style>
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <main class="admin-container">
+    <h2>
+      <%= isEdit ? (adminLocale === 'ar' ? 'تعديل كتاب' : 'Edit publication') : (adminLocale === 'ar' ? 'إضافة كتاب جديد' : 'Add new publication') %>
+      <span class="realm-tag"><%= adminLocale === 'ar' ? 'الشيخ النجمي' : 'Sheikh al-Najmi' %></span>
+    </h2>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert-error"><%= error %></div>
+    <% } %>
+
+    <form class="pub-form" method="POST" enctype="multipart/form-data"
+          action="<%= isEdit ? '/admin/publications/' + publication._id + '/edit' : '/admin/publications/new' %>">
+
+      <div class="field">
+        <label for="pubTitle"><%= adminLocale === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)' %> *</label>
+        <input type="text" id="pubTitle" name="title" required dir="rtl" value="<%= publication.title || '' %>">
+      </div>
+
+      <div class="field">
+        <label for="pubTitleEn"><%= adminLocale === 'ar' ? 'العنوان (إنجليزي)' : 'Title (English)' %></label>
+        <input type="text" id="pubTitleEn" name="titleEnglish" value="<%= publication.titleEnglish || '' %>">
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="pubCategory"><%= adminLocale === 'ar' ? 'الباب' : 'Category' %></label>
+          <select id="pubCategory" name="category">
+            <% categories.forEach(c => { %>
+              <option value="<%= c %>" <%= publication.category === c ? 'selected' : '' %>><%= c %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field">
+          <label for="pubPageCount"><%= adminLocale === 'ar' ? 'عدد الصفحات' : 'Page count' %></label>
+          <input type="number" id="pubPageCount" name="pageCount" min="0" value="<%= publication.pageCount || '' %>">
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="pubVolumeCount"><%= adminLocale === 'ar' ? 'عدد المجلدات' : 'Volume count' %></label>
+          <input type="number" id="pubVolumeCount" name="volumeCount" min="1" value="<%= publication.volumeCount || 1 %>">
+        </div>
+        <div class="field" style="align-self:end;">
+          <label class="check" for="pubIsPublished">
+            <input type="checkbox" id="pubIsPublished" name="isPublished" <%= (isEdit ? publication.isPublished : true) ? 'checked' : '' %>>
+            <span><%= adminLocale === 'ar' ? 'منشور' : 'Published' %></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="pubDescription"><%= adminLocale === 'ar' ? 'وصف (اختياري)' : 'Description (optional)' %></label>
+        <textarea id="pubDescription" name="description" dir="rtl"><%= publication.description || '' %></textarea>
+      </div>
+
+      <% if (isEdit) { %>
+        <div class="current-file">
+          <%= adminLocale === 'ar' ? 'الملف الحالي:' : 'Current file:' %>
+          <a href="<%= publication.fileUrl %>" target="_blank" rel="noopener"><%= publication.fileName || publication.fileUrl %></a>
+          <div class="hint"><%= adminLocale === 'ar' ? 'لتغيير الملف نفسه، احذف الكتاب وأضفه من جديد.' : 'To replace the file itself, delete and re-add the publication.' %></div>
+        </div>
+      <% } else { %>
+        <div class="field">
+          <label for="pubPdfFile"><%= adminLocale === 'ar' ? 'ملف PDF' : 'PDF file' %> *</label>
+          <input type="file" id="pubPdfFile" name="pdfFile" accept="application/pdf,.pdf" required>
+          <div class="hint"><%= adminLocale === 'ar' ? 'سيُرفع إلى التخزين السحابي (R2) ويُفتح داخل المتصفح.' : 'Uploaded to R2 cloud storage; opens inline in the browser.' %></div>
+        </div>
+      <% } %>
+
+      <div class="pub-actions">
+        <button type="submit" class="btn-primary"><%= isEdit ? (adminLocale === 'ar' ? 'حفظ التغييرات' : 'Save changes') : (adminLocale === 'ar' ? 'إضافة الكتاب' : 'Add publication') %></button>
+        <a href="/admin/publications" class="btn-cancel"><%= adminLocale === 'ar' ? 'إلغاء' : 'Cancel' %></a>
+      </div>
+    </form>
+  </main>
+</body>
+</html>

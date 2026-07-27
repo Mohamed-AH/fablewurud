@@ -137,3 +137,112 @@ guarantee (hotspot C).
   nothing needs to be dropped. When wurud is retired, this fork's audited baseline
   is authoritative; any *future* wurud change should be evaluated the same way
   (diff against the last-ported point).
+
+---
+
+# ROUND 2 (2026-07-26): Porting the Najmi archive feature
+
+Last port stopped at wurud `a996f58`. Since then wurud advanced **21 commits**
+(`a996f58..0de1cdc`, 2026-07-23 → 07-26) — and they are **the entire Sheikh Ahmed
+Al-Najmi archive**, i.e. the feature we just wrote the N0–N7 plan for. Upstream
+built it on the **pre-audit** codebase. So this round is: **port their working
+implementation onto our audited base**, reconciling conflicts and design drift —
+not build from the N0–N7 plan. (~3,514 insertions across 42 files.)
+
+## ⚠️ Design drift vs the design approved in THIS repo (owner must decide)
+
+Upstream's build diverges from the mock/spec approved here (`docs/mocks/najmi-archive-mocks.html`):
+
+1. **Merged "Content" page.** Upstream merged Home + About + Series into `/najmi`
+   (Phase 7A/B); **`/najmi/bio` now 301-redirects to `/najmi`**. Our approved spec
+   had **separate** Home, Series, and a Biography page — and "السيرة" is item 5 in
+   the approved Najmi mobile bottom nav. → Decide: adopt the merged page, or keep
+   separate pages + a real bio route.
+2. **PDF library = searchable row-list** (`article-style book cards`, commits
+   c282f2b/4354fd3). Our approved spec said **cover-grid with generated cover art**.
+   → Decide: adopt row-list, or restore the cover-grid.
+3. **Banner wording** reworded "شيخه" → "الشيخ" (f45ac4e) — minor.
+
+**Recommendation:** port upstream as the working baseline first (it is the newest,
+owner-driven implementation), then apply designs 1–2 as a small follow-up if you
+still want the cover-grid / separate bio from the mock.
+
+## Realm mechanism — theirs vs the N0 plan
+
+Upstream chose a **simpler, less generic** mechanism than our N0 plan:
+- `middleware/realm.js` sets `res.locals.realm = 'najmi' | 'hasan'` from the path.
+- The Najmi sheikh is identified via a **hardcoded** helper (`utils/najmiSheikh.js`)
+  + `utils/realmFilter.js` for content filtering; `models/Sheikh.js` gains
+  `titlePrefix`/`titlePrefixEnglish` (display), not the generic `key`/`theme`/
+  `isPrimary` fields I planned.
+
+Fine for exactly two scholars. Note the hardcoding limits future scholars; keep it
+as-is for now (don't re-architect during the port), but flag for later.
+
+## Change inventory
+
+**Clean adds — new files, no conflict (take & adapt to audit patterns):**
+`models/Publication.js`, `models/index.js`(+1), `middleware/realm.js`,
+`routes/najmi/index.js`, `public/css/najmi.css`, `utils/{najmiSheikh,realmFilter,sheikhName}.js`,
+`views/najmi/{index,series,library,bio}.ejs`,
+`views/admin/{publication-form,publications-list}.ejs`,
+`scripts/{import-najmi-lectures,import-publications,upload-pdfs-to-r2,set-najmi-title}.js`,
+`docs/najmi-bio.md`.
+
+**Take (views/models we haven't touched — upstream = baseline + realm additions):**
+`models/{Sheikh,SiteSettings,Section}.js`, `public/css/admin.css`,
+`views/layout.ejs`, `views/partials/{header,bottomNav}.ejs`,
+`views/public/{index,series-detail}.ejs`, `views/admin/{dashboard,homepage-config,
+manage,series-form,upload,partials/header}.ejs`, `tests/envSetup.js`.
+
+**Manual merge — files WE changed AND upstream changed (7):**
+| File | Upstream (Najmi) | Ours (audit/R2) | Approach |
+|---|---|---|---|
+| `routes/admin/index.js` | +350: publications CRUD, realm switcher, Najmi homepage-config | admin split (articles extracted → `articles.js`), captureException everywhere | **Put publications in a NEW `routes/admin/publications.js`** (our split pattern); merge realm switcher/config into index; keep route-table diff discipline |
+| `routes/index.js` | +110: realm isolation on homepage/listings | captureException, dead-code removal | merge realm filters onto audited handlers |
+| `routes/api/homepage.js` | +33: realm filtering | captureException | merge |
+| `server.js` | +8: mount `/najmi` router + realm middleware | many audit changes | add mount + `app.use(realmMiddleware)` |
+| `utils/r2Storage.js` | +6 | our ported version | small merge |
+| `tests/globalSetup.js` | Mongo version bump | our M10 CI fail-not-skip | keep both |
+| `CLAUDE.md` | their +238 Najmi tracking | our audit + N0–N7 plan | **do NOT take theirs**; our tracking already covers it — update phase status instead |
+
+## Improvements to apply while porting (carry audit patterns in)
+
+- **Observability:** `captureException(error, req)` into every new catch — najmi
+  routes, admin publications handlers, the PDF download route.
+- **Admin split:** publications → `routes/admin/publications.js` mounted like
+  `articles.js`; verify the admin route-table diff (as in H7).
+- **Security:** `escapeRegex` on the new publication/series search; `sanitizeArticleHtml`
+  on any publication description that renders HTML; validate the PDF download `:shortId`.
+- **Data integrity:** if publication delete adjusts any count, wrap in `withTransaction`.
+- **PDF serving:** the `/najmi/library/:shortId/download` route should redirect to the
+  R2 URL with `Content-Disposition: attachment` (Phase-1 direct download) and reuse our
+  R2 conventions; add an "open in new tab" inline view.
+- **CSP:** PDFs load from R2 — `*.r2.dev` is already allowed; if a **custom R2 domain**
+  is used for the Najmi bucket, add that exact host to `mediaSrc`/`connectSrc`/`imgSrc`.
+- **Tests:** reconcile `globalSetup` (keep CI-fail + Mongo bump); run unit suite
+  `--runInBand`; add a smoke test for a Najmi route + Publication model.
+- Upstream already fixed one N+1 (publications list, 1c6ee73) — good; verify it holds.
+
+## Porting sequence (each step verifiable; no design decisions until Step 8)
+
+1. **Models + utils + middleware** — Publication, Sheikh/SiteSettings/Section fields,
+   realm.js, najmiSheikh/realmFilter/sheikhName, models/index. Load-test.
+2. **Najmi realm** — `routes/najmi/index.js` + `views/najmi/*` + `public/css/najmi.css`.
+   Add captureException.
+3. **Wire-up** — `server.js`: mount `/najmi` + realm middleware.
+4. **Homepage/realm isolation** — merge `routes/index.js`, `routes/api/homepage.js`,
+   `views/public/index.ejs`, `views/partials/{header,bottomNav}.ejs`, `views/layout.ejs`
+   (cross-archive banner + realm theming).
+5. **Admin** — publications CRUD → `routes/admin/publications.js`; realm switcher +
+   Najmi homepage-config into `routes/admin/index.js`; admin views. Route-table diff.
+6. **Scripts + tests** — import/upload scripts (reconcile with our R2 utils);
+   `globalSetup`/`envSetup` merge.
+7. **Verify** — `node -c`, module load, admin route-table diff, unit suite (runInBand),
+   R2/CSP check. Update CLAUDE.md N-phase checkboxes to reflect ported state.
+8. **Design decisions** — apply the mock's cover-grid / separate-bio only if owner wants.
+
+## Owner inputs
+- **Decide the two design divergences** (merged Content page? row-list vs cover-grid?).
+- Is the Najmi R2 bucket **public** (r2.dev) or a **custom domain**? (CSP + direct-URL).
+- Confirm the import manifest and that the 7 GB is uploaded to R2.
