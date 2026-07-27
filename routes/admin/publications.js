@@ -11,9 +11,13 @@ const { captureException } = require('../../utils/errorReporter');
 // PUBLICATIONS (Sheikh Najmi PDF library) — admin CRUD
 // ===========================================================================
 const multer = require('multer');
+// Reuse the resilient, guaranteed-writable staging dir from config/storage
+// (falls back off an unwritable UPLOAD_DIR like /mnt/audio, and re-ensures the
+// directory exists right before each write — prevents ENOENT on upload).
+const { ensureUploadDir } = require('../../config/storage');
 const pdfUpload = multer({
   storage: multer.diskStorage({
-    destination: (req, file, cb) => cb(null, process.env.UPLOAD_DIR || './uploads'),
+    destination: ensureUploadDir,
     filename: (req, file, cb) => {
       const ext = require('path').extname(file.originalname) || '.pdf';
       cb(null, `pub-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);

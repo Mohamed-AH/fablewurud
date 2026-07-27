@@ -11,7 +11,10 @@ const originalEnv = process.env;
 // Mock fs module
 jest.mock('fs', () => ({
   existsSync: jest.fn(),
-  mkdirSync: jest.fn()
+  mkdirSync: jest.fn(),                       // resolveUploadDir mkdir (sync)
+  accessSync: jest.fn(),                      // writability probe (no throw = writable)
+  mkdir: jest.fn((dir, opts, cb) => cb(null)),// ensureUploadDir (async, per-write)
+  constants: { W_OK: 2 }
 }));
 
 // Mock multer
@@ -42,43 +45,53 @@ describe('Storage Configuration', () => {
   });
 
   describe('Upload Directory', () => {
-    it('should use default upload directory when UPLOAD_DIR not set', () => {
+    it('should fall back to an app-local uploads dir when UPLOAD_DIR not set', () => {
       delete process.env.UPLOAD_DIR;
-      fs.existsSync.mockReturnValue(true);
+      fs.accessSync.mockImplementation(() => {}); // writable
 
       const storage = require('../../config/storage');
-      expect(storage.uploadDir).toBe('./uploads');
+      // First writable candidate is <app>/uploads (absolute)
+      expect(storage.uploadDir).toMatch(/uploads$/);
     });
 
-    it('should use UPLOAD_DIR from environment', () => {
+    it('should use UPLOAD_DIR from environment when it is writable', () => {
       process.env.UPLOAD_DIR = '/custom/uploads';
-      fs.existsSync.mockReturnValue(true);
+      fs.accessSync.mockImplementation(() => {}); // writable
 
       jest.resetModules();
       const storage = require('../../config/storage');
       expect(storage.uploadDir).toBe('/custom/uploads');
     });
 
-    it('should create upload directory if it does not exist', () => {
-      delete process.env.UPLOAD_DIR;
+    it('should fall back off an unwritable UPLOAD_DIR (no ENOENT)', () => {
+      process.env.UPLOAD_DIR = '/mnt/audio';
+      jest.resetModules();
+      const freshFs = require('fs'); // fresh mock storage will also use
+      // First candidate (/mnt/audio) is not writable; later candidates are
+      let calls = 0;
+      freshFs.accessSync.mockImplementation(() => {
+        calls += 1;
+        if (calls === 1) throw new Error('EACCES');
+      });
 
-      // Get fresh fs mock after module reset and set return value
-      const freshFs = require('fs');
-      freshFs.existsSync.mockReturnValue(false);
-
-      require('../../config/storage');
-
-      expect(freshFs.mkdirSync).toHaveBeenCalledWith('./uploads', { recursive: true });
+      const storage = require('../../config/storage');
+      expect(storage.uploadDir).not.toBe('/mnt/audio');
+      expect(storage.uploadDir).toMatch(/uploads$/);
     });
 
-    it('should not create directory if it exists', () => {
+    it('should ensure the staging dir exists on every write (ensureUploadDir)', () => {
       delete process.env.UPLOAD_DIR;
-      fs.existsSync.mockReturnValue(true);
-
       jest.resetModules();
-      require('../../config/storage');
+      const freshFs = require('fs');
+      freshFs.accessSync.mockImplementation(() => {});
 
-      expect(fs.mkdirSync).not.toHaveBeenCalled();
+      const storage = require('../../config/storage');
+      const cb = jest.fn();
+      storage.ensureUploadDir({}, {}, cb);
+
+      // multer destination re-creates the dir, then calls back with (null, dir)
+      expect(freshFs.mkdir).toHaveBeenCalled();
+      expect(cb).toHaveBeenCalledWith(null, storage.uploadDir);
     });
   });
 
@@ -183,16 +196,17 @@ describe('Storage Configuration', () => {
 
     it('should set correct destination', () => {
       delete process.env.UPLOAD_DIR;
-      fs.existsSync.mockReturnValue(true);
+      fs.accessSync.mockImplementation(() => {});
 
-      require('../../config/storage');
+      const storage = require('../../config/storage');
       const multer = require('multer');
       const storageConfig = multer.diskStorage.mock.calls[0][0];
 
       const callback = jest.fn();
       storageConfig.destination({}, {}, callback);
 
-      expect(callback).toHaveBeenCalledWith(null, './uploads');
+      // destination ensures the dir exists, then calls back with the resolved dir
+      expect(callback).toHaveBeenCalledWith(null, storage.uploadDir);
     });
   });
 
