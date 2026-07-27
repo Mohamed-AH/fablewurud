@@ -73,7 +73,15 @@ Adding the archive of **العلامة أحمد بن يحيى النجمي رح�
 - Whether the new R2 bucket is **public** (r2.dev or custom domain) — determines direct vs presigned URLs. If custom domain, provide it for CSP.
 - Biography text (Arabic) + optional photo for the hero.
 
-### Status: PLAN APPROVED — awaiting go-ahead to start **Phase N0**. No feature code written yet.
+### Status: ✅ PORTED from upstream `wurud` (2026-07-26)
+Owner chose to adopt upstream's implementation (merged Content page + row-list PDF library). All 42 upstream Najmi files ported onto the audited base across 3 commits: public realm (`ea2e25a`) + admin publications (`e5da76e`). Reconciled with the audit refactor:
+- **Realm mechanism (theirs):** path-based `middleware/realm.js` (`res.locals.realm`) + hardcoded Najmi sheikh (`utils/najmiSheikh.js`) + `utils/realmFilter.js`; `Sheikh.titlePrefix`. (Not the generic `key`/`theme` design from the original N-plan — simpler, fine for 2 scholars.)
+- **PDF categories (actual):** `الكتب · التعليقات · الرسائل · من السيرة الذاتية` (upstream's, not the earlier placeholder 4).
+- **Content isolation:** `routes/index.js` + `routes/api/homepage.js` exclude Najmi from Hasan's homepage/series/browse/sheikhs/stats/sitemap via `excludeNajmiBySheikh`/`excludeNajmiSheikhId`.
+- **Audit patterns carried in:** publications → own `routes/admin/publications.js` (split pattern, `captureException`); admin route-table 88→96; `r2Storage` inline disposition for PDF open-in-tab; kept our M10 CI-fail + bumped Mongo 7.0.14.
+- **Data:** already live in production (rasmihassan.com) on the Najmi R2 bucket (`*.r2.dev`, already in CSP). Import scripts present (`scripts/import-najmi-lectures.js`, `import-publications.js`, `upload-pdfs-to-r2.js`).
+
+**Remaining / verify:** run full unit+integration suite in CI (Mongo) — mock-based suites green here (101); E2E the `/najmi` realm + admin publications in a dev env; N7 integrated PDF.js reader is still a future enhancement (current = R2 direct download + open-in-tab).
 
 ---
 
