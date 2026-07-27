@@ -1,0 +1,210 @@
+<style>
+  .najmi-content { background: #EEF5F1; }
+  html[data-theme="dark"] .najmi-content { background: #14231D; }
+
+  /* Hero */
+  .najmi-hero {
+    background: linear-gradient(135deg, #14231D 0%, #2E6E5B 100%);
+    color: #fff; padding: 44px 20px 36px; text-align: center; border-bottom: 3px solid #3D8570;
+  }
+  .najmi-hero .hon { color: #A8CFC2; font-size: 15px; margin-bottom: 6px; }
+  .najmi-hero h1 {
+    font-family: var(--font-cairo,'Cairo',sans-serif); font-size: 32px; font-weight: 800;
+    line-height: 1.28; margin-bottom: 14px; text-shadow: 1px 2px 6px rgba(0,0,0,0.25);
+  }
+  .najmi-hero-stats { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; }
+  .najmi-hero-stat .n { font-size: 26px; font-weight: 800; color: #A8CFC2; }
+  .najmi-hero-stat .l { font-size: 12px; color: rgba(255,255,255,0.75); }
+
+  .najmi-section { max-width: 960px; margin: 0 auto; padding: 30px 20px 8px; }
+  .najmi-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .najmi-section-head h2 {
+    font-family: var(--font-cairo,'Cairo',sans-serif); font-size: 20px; font-weight: 800; color: #14231D;
+    display: flex; align-items: center; gap: 9px; margin: 0;
+  }
+  html[data-theme="dark"] .najmi-section-head h2 { color: #A8CFC2; }
+  .najmi-cat-count { font-size: 12px; font-weight: 700; background: #D4E8E0; color: #14231D; padding: 2px 9px; border-radius: 11px; }
+  html[data-theme="dark"] .najmi-cat-count { background: #22392F; color: #A8CFC2; }
+  .najmi-section-head .see-all { color: #2E6E5B; font-weight: 700; font-size: 13px; text-decoration: none; white-space: nowrap; }
+  .najmi-section-head .see-all:hover { text-decoration: underline; }
+
+  /* About */
+  .najmi-about { max-width: 820px; margin: 0 auto; padding: 30px 22px 8px; }
+  .najmi-about h2.about-title {
+    font-family: var(--font-cairo,'Cairo',sans-serif); font-size: 21px; font-weight: 800; color: #14231D;
+    margin: 0 0 14px; display: flex; align-items: center; gap: 9px;
+  }
+  html[data-theme="dark"] .najmi-about h2.about-title { color: #A8CFC2; }
+  .najmi-about p { font-size: 15.5px; line-height: 1.95; color: #24332C; margin-bottom: 14px; }
+  html[data-theme="dark"] .najmi-about p { color: #D6E4DD; }
+  .najmi-about p strong { color: #2E6E5B; font-weight: 700; }
+  html[data-theme="dark"] .najmi-about p strong { color: #A8CFC2; }
+  .najmi-about h3 {
+    font-family: var(--font-cairo,'Cairo',sans-serif); font-size: 17px; font-weight: 800; color: #14231D;
+    margin: 22px 0 8px; padding-inline-start: 12px; border-inline-start: 4px solid #2E6E5B;
+  }
+  html[data-theme="dark"] .najmi-about h3 { color: #A8CFC2; }
+  .najmi-about-note {
+    margin-top: 22px; padding: 13px 18px; background: #fff; border: 1px solid #D4E8E0; border-radius: 10px;
+    font-size: 13.5px; color: #3B564D; line-height: 1.8;
+  }
+  html[data-theme="dark"] .najmi-about-note { background: #1C2A24; border-color: #2E4A40; color: #9db3a9; }
+  .najmi-about-note a { color: #2E6E5B; font-weight: 700; text-decoration: none; }
+
+  /* Series cards */
+  .najmi-series-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .najmi-series-card {
+    background: #fff; border: 1px solid #D4E8E0; border-radius: 12px; padding: 15px; text-decoration: none;
+    display: block; transition: transform .15s, box-shadow .15s;
+  }
+  .najmi-series-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(20,35,29,0.10); }
+  .najmi-series-card .ic { color: #2E6E5B; margin-bottom: 6px; }
+  .najmi-series-card .t { font-size: 14.5px; font-weight: 700; color: #14231D; line-height: 1.45; margin-bottom: 8px; }
+  .najmi-series-card .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .najmi-badge { font-size: 10px; font-weight: 700; background: #D4E8E0; color: #14231D; padding: 2px 8px; border-radius: 5px; }
+  .najmi-count { font-size: 12px; color: #5f7168; }
+  html[data-theme="dark"] .najmi-series-card { background: #1C2A24; border-color: #2E4A40; }
+  html[data-theme="dark"] .najmi-series-card .t { color: #E8DDD0; }
+
+  /* Books teaser (article-style) */
+  .najmi-book-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .najmi-book-card {
+    background: #fff; border: 1px solid #D4E8E0; border-radius: 13px; padding: 16px;
+    text-decoration: none; display: flex; flex-direction: column; transition: all .2s ease;
+  }
+  .najmi-book-card:hover { border-color: #2E6E5B; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(20,35,29,0.08); }
+  html[data-theme="dark"] .najmi-book-card { background: #1C2A24; border-color: #2E4A40; }
+  .nb-meta { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; margin-bottom: 11px; }
+  .nb-cat { background: #D4E8E0; color: #14231D; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 7px; white-space: nowrap; }
+  html[data-theme="dark"] .nb-cat { background: #22392F; color: #A8CFC2; }
+  .nb-pages { color: #8aa79c; font-size: 10px; padding-top: 2px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .nb-title {
+    color: #14231D; font-size: 14px; font-weight: 700; line-height: 1.55; margin: 0 0 9px; flex: 1;
+    text-wrap: pretty; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    direction: rtl; text-align: right;
+  }
+  html[data-theme="dark"] .nb-title { color: #E8DDD0; }
+  html[dir="ltr"] .najmi-book-card { text-align: left; }
+  .nb-footer { border-top: 1px solid #E4EFEA; padding-top: 11px; display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-top: auto; }
+  html[data-theme="dark"] .nb-footer { border-top-color: #2E4A40; }
+  .nb-read { color: #2E6E5B; font-size: 12px; font-weight: 700; }
+  .nb-footer svg { stroke: #2E6E5B; }
+  html[dir="ltr"] .nb-footer svg { transform: scaleX(-1); }
+
+  .najmi-return { text-align: center; padding: 26px 20px 40px; }
+  .najmi-return a { color: #C49A3C; font-weight: 700; font-size: 14px; text-decoration: none; }
+
+  @media (max-width: 900px) { .najmi-series-grid { grid-template-columns: repeat(2,1fr); } .najmi-book-grid { grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 560px) {
+    .najmi-hero h1 { font-size: 25px; }
+    .najmi-series-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="najmi-content">
+  <!-- Hero -->
+  <section class="najmi-hero">
+    <div class="hon"><%= locale === 'ar' ? 'رحمه الله' : 'raḥimahu-llāh' %></div>
+    <h1><%= locale === 'ar' ? 'الشيخ العلامة أحمد بن يحيى النجمي' : 'Sheikh al-‘Allāmah Ahmad ibn Yahya al-Najmi' %></h1>
+    <div class="najmi-hero-stats">
+      <div class="najmi-hero-stat"><div class="n"><%= stats.lectureCount.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en') %></div><div class="l"><%= locale === 'ar' ? 'درساً' : 'lectures' %></div></div>
+      <div class="najmi-hero-stat"><div class="n"><%= stats.seriesCount.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en') %></div><div class="l"><%= locale === 'ar' ? 'سلسلة' : 'series' %></div></div>
+      <div class="najmi-hero-stat"><div class="n"><%= stats.pubCount.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en') %></div><div class="l"><%= locale === 'ar' ? 'كتاباً' : 'books' %></div></div>
+    </div>
+  </section>
+
+  <!-- About the Sheikh (at the top) -->
+  <article class="najmi-about">
+    <h2 class="about-title"><i data-lucide="user"></i> <%= locale === 'ar' ? 'نبذة عن الشيخ' : 'About the Sheikh' %></h2>
+    <% if (locale === 'ar') { %>
+      <p>هو العلّامة المحدِّث الفقيه، مفتي منطقة جازان في عصره، وحامل راية السنة والحديث فيها: <strong>الشيخ أحمد بن يحيى بن محمد بن شبير النجمي الأسدي</strong> — رحمه الله.</p>
+      <h3>مولده ونشأته</h3>
+      <p>وُلد رحمه الله في <strong>الثاني والعشرين من محرّم سنة ١٣٤٦هـ</strong> بقرية <strong>النجامية</strong> القريبة من <strong>صامطة</strong> بمنطقة جازان، وكان وحيدًا لأبوين صالحين.</p>
+      <h3>طلبه للعلم وشيوخه</h3>
+      <p>تلقّى العلم على يد شيخه الإمام المجدِّد <strong>الشيخ عبد الله القرعاوي</strong> رحمه الله في <strong>المدرسة السلفية بصامطة</strong>، فبدأ في حلقة الصغار وعمره ثلاث عشرة سنة ثم انتقل إلى حلقة الكبار، فأخذ عنه الأصول الثلاثة والتجويد والتفسير وعلوم القرآن والحديث والفقه وأصولهما والعقيدة والفرائض. ودرس كذلك على مشايخ أجلّاء منهم الشيخ عثمان بن عثمان حملي، والقاضي إبراهيم بن محمد العمودي قاضي صامطة، والشيخ علي بن عثمان زياد الصومالي، والشيخ حافظ بن أحمد حكمي رحمهم الله جميعًا.</p>
+      <h3>أعماله ودعوته</h3>
+      <p>عُيّن مدرّسًا في مدرسة النجامية سنة <strong>١٣٦٧هـ</strong> احتسابًا، ثم إمامًا وواعظًا وخطيبًا، وأصبح بيته ومسجده في النجامية جامعةً علمية تُقام فيها الدروس اليومية والأسبوعية، يفد إليها طلاب العلم من كل مكان. ومن جهوده العلمية تأسيسه — مع تلميذه النجيب الشيخ <strong>زيد بن محمد المدخلي</strong> — لدورة الإمام القرعاوي العلمية سنة <strong>١٤١٦هـ</strong> بجامع الشيخ زيد، وقد وَلِيَ الإفتاء في منطقة جازان حتى صار مرجعها في السنة والفتوى.</p>
+      <h3>مؤلفاته</h3>
+      <p>خلّف رحمه الله تراثًا علميًّا نافعًا في العقيدة والحديث والفقه والردود، منه: <em>تأسيس الأحكام شرح عمدة الأحكام</em>، و<em>فتح الرب الودود في الفتاوى والرسائل والردود</em>، و<em>المورد العذب الزلال</em>، و<em>أوضح الإشارة</em>، و<em>إرشاد الساري</em>، و<em>تنبيه الأنام على ما في سبل السلام</em>، و<em>الفتاوى الجلية عن المناهج الدعوية</em>، وتعليقاتٌ كثيرة على كتب أهل العلم.</p>
+      <h3>وفاته</h3>
+      <p>تُوفّي رحمه الله يوم الأربعاء <strong>العشرين من رجب سنة ١٤٢٩هـ</strong> بمدينة الملك فهد الطبية بالرياض بعد معاناةٍ مع المرض، ونُقل جثمانه إلى منطقة جازان، ودُفن بمسقط رأسه بقرية النجامية، وشيّعه خلقٌ كثير من طلابه ومحبّيه. رحمه الله رحمة واسعة وأسكنه فسيح جناته.</p>
+    <% } else { %>
+      <p>He is the erudite scholar of hadith and jurisprudence, Mufti of the Jazan region in his time and its standard-bearer of the Sunnah: <strong>Sheikh Ahmad ibn Yahya ibn Muhammad ibn Shubayr al-Najmi al-Asadi</strong> — may Allah have mercy on him.</p>
+      <h3>Birth &amp; Upbringing</h3>
+      <p>He was born on <strong>22 Muharram 1346 AH</strong> in the village of <strong>al-Najamiyyah</strong>, near <strong>Samtah</strong> in the Jazan region, the only child of righteous parents.</p>
+      <h3>His Teachers</h3>
+      <p>He studied under the reviving imam <strong>Sheikh Abdullah al-Qar'awi</strong> at the <strong>Salafi School in Samtah</strong>, beginning in the young students' circle at the age of thirteen and later joining the senior circle. From him he took the Three Principles, tajwid, tafsir and the Qur'anic sciences, hadith, fiqh and their foundations, creed and inheritance law. He also studied under Sheikh Uthman ibn Uthman Hamli, the judge of Samtah Ibrahim ibn Muhammad al-Amudi, Sheikh Ali ibn Uthman Ziyad al-Sumali, and Sheikh Hafiz ibn Ahmad Hakami.</p>
+      <h3>His Work &amp; Da'wah</h3>
+      <p>He was appointed a teacher at the al-Najamiyyah school in <strong>1367 AH</strong>, then an imam, preacher and khatib. His home and mosque became a scholarly academy holding daily and weekly lessons. Among his efforts was founding — with his student <strong>Sheikh Zayd ibn Muhammad al-Madkhali</strong> — the al-Qar'awi scholarly course in <strong>1416 AH</strong>. He served as the region's authority in fatwa and the Sunnah.</p>
+      <h3>His Works</h3>
+      <p>He left a beneficial legacy in creed, hadith, fiqh and refutations, including <em>Ta'sis al-Ahkam</em>, <em>Fath al-Rabb al-Wadud</em>, <em>al-Mawrid al-'Adhb al-Zulal</em>, <em>Awdah al-Isharah</em>, <em>Irshad al-Sari</em>, <em>Tanbih al-Anam</em>, and <em>al-Fatawa al-Jaliyyah</em>.</p>
+      <h3>His Passing</h3>
+      <p>He passed away on <strong>Wednesday, 20 Rajab 1429 AH</strong> at King Fahd Medical City in Riyadh after an illness, and was buried in his birthplace, al-Najamiyyah. May Allah have abundant mercy upon him.</p>
+    <% } %>
+
+    <div class="najmi-about-note">
+      <%= locale === 'ar'
+        ? 'سِيَرٌ أكثر تفصيلاً للشيخ متوفّرة في '
+        : 'More detailed biographies of the Sheikh are available in the ' %>
+      <a href="/najmi/library"><%= locale === 'ar' ? 'قسم الكتب' : 'Books section' %></a>.
+    </div>
+  </article>
+
+  <!-- Series by category -->
+  <% categories.forEach(function(cat) { %>
+  <section class="najmi-section">
+    <div class="najmi-section-head">
+      <h2>
+        <i data-lucide="mic"></i>
+        <%= locale === 'ar' ? cat.label.ar : cat.label.en %>
+        <span class="najmi-cat-count"><%= cat.total.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en') %></span>
+      </h2>
+      <% if (cat.total > cat.series.length) { %>
+        <a href="/najmi/series?cat=<%= cat.key %>" class="see-all"><%= locale === 'ar' ? 'عرض الكل ←' : 'View all →' %></a>
+      <% } %>
+    </div>
+    <div class="najmi-series-grid">
+      <% cat.series.forEach(function(s) { %>
+        <a href="<%= s.url %>" class="najmi-series-card">
+          <div class="ic"><i data-lucide="mic"></i></div>
+          <div class="t"><%= s.titleArabic %></div>
+          <div class="meta">
+            <span class="najmi-count"><%= (s.lectureCount || 0).toLocaleString(locale === 'ar' ? 'ar-EG' : 'en') %> <%= locale === 'ar' ? 'درس' : 'lessons' %></span>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+  </section>
+  <% }) %>
+
+  <!-- Books teaser -->
+  <% if (showLibrary && booksTeaser && booksTeaser.length) { %>
+  <section class="najmi-section">
+    <div class="najmi-section-head">
+      <h2><i data-lucide="book-open"></i> <%= locale === 'ar' ? 'من المكتبة' : 'From the Library' %></h2>
+      <a href="/najmi/library" class="see-all"><%= locale === 'ar' ? 'عرض المكتبة ←' : 'Browse library →' %></a>
+    </div>
+    <div class="najmi-book-grid">
+      <% booksTeaser.forEach(function(p) { %>
+        <a href="/najmi/library/<%= p.shortId %>/download" target="_blank" rel="noopener" class="najmi-book-card">
+          <div class="nb-meta">
+            <% if (p.pageCount) { %><span class="nb-pages"><%= p.pageCount.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en') %> <%= locale === 'ar' ? 'صفحة' : 'pp' %></span><% } else { %><span></span><% } %>
+            <span class="nb-cat"><%= p.category %></span>
+          </div>
+          <h3 class="nb-title"><%= p.title %></h3>
+          <div class="nb-footer">
+            <span class="nb-read"><%= locale === 'ar' ? 'قراءة الكتاب' : 'Read book' %></span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,18 9,12 15,6"/></svg>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+  </section>
+  <% } %>
+
+  <div class="najmi-return">
+    <a href="/"><%= locale === 'ar' ? 'العودة إلى أرشيف الشيخ حسن الدغريري ←' : 'Back to Sheikh Hasan\'s archive →' %></a>
+  </div>
+</div>
+
+<script> if (window.lucide) lucide.createIcons(); </script>

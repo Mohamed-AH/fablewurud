@@ -218,6 +218,12 @@ app.use(attachSiteSettings);
 // Asset version middleware (makes version available to all templates)
 app.use(assetVersionMiddleware);
 
+// Realm middleware (sets res.locals.realm = 'najmi' | 'hasan' for two-realm theming)
+app.use(require('./middleware/realm'));
+
+// Expose the sheikh-name formatter to all templates (handles mixed title storage)
+app.locals.sheikhName = require('./utils/sheikhName').formatSheikhName;
+
 // No-cache headers for HTML pages (ensures users always get latest version)
 // Applied to all routes except static files (handled separately above)
 app.use((req, res, next) => {
@@ -283,6 +289,7 @@ const searchApiRoutes = require('./routes/search');
 const articlesRoutes = require('./routes/articles');
 const contactApiRoutes = require('./routes/api/contact');
 const articleEditorRoutes = require('./routes/article-editor');
+const najmiRoutes = require('./routes/najmi');
 
 app.use('/', publicRoutes);
 app.use('/auth', authRoutes);
@@ -297,6 +304,7 @@ app.use('/search', searchApiRoutes);
 app.use('/articles', articlesRoutes);
 app.use('/api/contact', contactApiRoutes);
 app.use('/article-editor', articleEditorRoutes);
+app.use('/najmi', najmiRoutes);
 
 // The Sentry error handler must be registered before any other error middleware and after all controllers
 Sentry.setupExpressErrorHandler(app);

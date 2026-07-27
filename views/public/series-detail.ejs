@@ -1140,7 +1140,7 @@
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
           <a href="/sheikhs/<%= series.sheikhId.shortId ? series.sheikhId.shortId + '/' + (series.sheikhId.slug_en || '') + '/' + encodeURIComponent(series.sheikhId.slug_ar || '') : (series.sheikhId.slug ? encodeURIComponent(series.sheikhId.slug) : series.sheikhId._id) %>">
-            <%= locale === 'ar' ? series.sheikhId.nameArabic : (series.sheikhId.nameEnglish || series.sheikhId.nameArabic) %>
+            <%= typeof sheikhName === 'function' ? sheikhName(series.sheikhId, locale) : (locale === 'ar' ? series.sheikhId.nameArabic : (series.sheikhId.nameEnglish || series.sheikhId.nameArabic)) %>
             <% if (locale === 'ar' && series.sheikhId.honorific) { %>
               <span class="honorific"><%= series.sheikhId.honorific %></span>
             <% } %>

@@ -157,6 +157,29 @@ body {
   opacity: 1;
 }
 
+/* Realm toggle (Hasan | Najmi) */
+.realm-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--admin-radius-sm);
+  padding: 4px;
+}
+.realm-toggle a {
+  padding: 6px 12px;
+  border-radius: 4px;
+  color: white;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.65;
+  transition: var(--admin-transition);
+}
+.realm-toggle a:hover { opacity: 1; }
+.realm-toggle a.active.gold { background: #C49A3C; color: #2C1508; opacity: 1; }
+.realm-toggle a.active.teal { background: #2E6E5B; color: #fff; opacity: 1; }
+
 /* Logout Button */
 .logout-btn {
   background: rgba(255, 255, 255, 0.2);

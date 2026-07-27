@@ -18,7 +18,7 @@ process.env.NODE_ENV = 'test';
 // Configure MongoMemoryServer version BEFORE any test imports it
 // This prevents download failures when default versions are unavailable
 // for the CI platform (e.g., ubuntu2204)
-process.env.MONGOMS_VERSION = process.env.MONGOMS_VERSION || '7.0.11';
+process.env.MONGOMS_VERSION = process.env.MONGOMS_VERSION || '7.0.14';
 
 // Read MongoDB URI from globalSetup config file
 // This ensures all test workers use the same MongoMemoryServer instance

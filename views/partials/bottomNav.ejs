@@ -1,4 +1,21 @@
 <!-- Bottom Navigation Bar (Mobile Only) -->
+<% const _navRealm = (typeof realm !== 'undefined' ? realm : 'hasan'); %>
+<% if (_navRealm === 'najmi') { %>
+<nav class="bottom-nav" id="bottomNav">
+  <a href="/" class="bottom-nav-item">
+    <span class="bottom-nav-icon"><i data-lucide="home"></i></span>
+    <span class="bottom-nav-label"><%= locale === 'ar' ? 'الرئيسية' : 'Home' %></span>
+  </a>
+  <a href="/najmi" class="bottom-nav-item<%= typeof currentPath !== 'undefined' && currentPath === '/najmi' ? ' active' : '' %>">
+    <span class="bottom-nav-icon"><i data-lucide="layout-list"></i></span>
+    <span class="bottom-nav-label"><%= locale === 'ar' ? 'المحتوى' : 'Content' %></span>
+  </a>
+  <a href="/najmi/library" class="bottom-nav-item<%= typeof currentPath !== 'undefined' && currentPath.startsWith('/najmi/library') ? ' active' : '' %>">
+    <span class="bottom-nav-icon"><i data-lucide="book-open"></i></span>
+    <span class="bottom-nav-label"><%= locale === 'ar' ? 'الكتب' : 'Books' %></span>
+  </a>
+</nav>
+<% } else { %>
 <nav class="bottom-nav" id="bottomNav">
   <a href="/" class="bottom-nav-item<%= typeof currentPath !== 'undefined' && currentPath === '/' ? ' active' : '' %>">
     <span class="bottom-nav-icon"><i data-lucide="home"></i></span>
@@ -21,6 +38,7 @@
     <span class="bottom-nav-label"><%= locale === 'ar' ? 'الجدول' : 'Schedule' %></span>
   </a>
 </nav>
+<% } %>
 
 <style>
   /* Bottom Navigation - Mobile Only */

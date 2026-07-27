@@ -46,6 +46,14 @@ const sectionSchema = new mongoose.Schema({
     default: 0,
     index: true
   },
+  // Which realm this section belongs to. Existing sections have no value → treated
+  // as 'hasan'. Query Hasan with { realm: { $ne: 'najmi' } }, Najmi with { realm: 'najmi' }.
+  realm: {
+    type: String,
+    enum: ['hasan', 'najmi'],
+    default: 'hasan',
+    index: true
+  },
   isVisible: {
     type: Boolean,
     default: true,
