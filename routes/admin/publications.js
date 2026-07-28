@@ -128,17 +128,27 @@ router.post('/publications/new', isAdmin, (req, res) => {
     const fs = require('fs');
     try {
       if (err) return res.redirect('/admin/publications/new?error=' + encodeURIComponent(err.message));
+      const path = require('path');
       const { Publication } = require('../../models');
       const { getNajmiSheikh } = require('../../utils/najmiSheikh');
-      const { uploadToR2 } = require('../../utils/r2Storage');
+      const { uploadToR2, objectExistsR2 } = require('../../utils/r2Storage');
       const { title, titleEnglish, category, pageCount, volumeCount, description } = req.body;
 
       const sheikh = await getNajmiSheikh();
       if (!sheikh) return res.redirect('/admin/publications/new?error=' + encodeURIComponent('Najmi sheikh not found'));
       if (!title || !req.file) return res.redirect('/admin/publications/new?error=' + encodeURIComponent('Title and PDF file are required'));
 
-      // Upload to R2 under pdf/ with an inline disposition (open-in-tab friendly)
-      const objectName = 'pdf/' + req.file.originalname.replace(/\s+/g, '-');
+      // Build the R2 object key from the (sanitized) original name. The Najmi
+      // bucket has Object Lock enabled, so overwriting an existing key fails with
+      // "The object is locked by the bucket policy". Keep the clean key when it's
+      // free; on any collision (e.g. a name that matches one of the imported PDFs,
+      // or a re-upload) append a timestamp so we always PUT a fresh, unlocked key.
+      const safeBase = path.basename(req.file.originalname).replace(/\s+/g, '-');
+      let objectName = 'pdf/' + safeBase;
+      if (await objectExistsR2(objectName)) {
+        const ext = path.extname(safeBase);
+        objectName = `pdf/${path.basename(safeBase, ext)}-${Date.now()}${ext}`;
+      }
       const result = await uploadToR2(req.file.path, objectName, { contentType: 'application/pdf', disposition: 'inline' });
       fs.unlink(req.file.path, () => {});
 
@@ -160,8 +170,10 @@ router.post('/publications/new', isAdmin, (req, res) => {
       res.redirect('/admin/publications?success=created');
     } catch (e) {
       console.error('Create publication error:', e);
+      captureException(e, req);
       if (req.file) fs.unlink(req.file.path, () => {});
-      res.redirect('/admin/publications/new?error=' + encodeURIComponent('Create failed'));
+      // Surface the real reason (admin-only page) so R2/config issues are diagnosable.
+      res.redirect('/admin/publications/new?error=' + encodeURIComponent('Create failed: ' + (e.message || 'unknown error')));
     }
   });
 });
