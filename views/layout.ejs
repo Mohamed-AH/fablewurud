@@ -3,7 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %> - <%= locale === 'ar' ? 'موقع الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %></title>
+  <%
+    // Realm-aware SEO identity (Sheikh Hasan = default; Sheikh Ahmed = /najmi realm)
+    var _realm = (typeof realm !== 'undefined') ? realm : 'hasan';
+    var _isNajmi = _realm === 'najmi';
+    var _brand = _isNajmi
+      ? (locale === 'ar' ? 'أرشيف العلامة أحمد بن يحيى النجمي' : 'Sheikh Ahmad ibn Yahya al-Najmi Archive')
+      : (locale === 'ar' ? 'موقع الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri');
+    var _person = _isNajmi
+      ? (locale === 'ar' ? 'الشيخ العلامة أحمد بن يحيى النجمي' : 'Sheikh al-‘Allāmah Ahmad ibn Yahya al-Najmi')
+      : (locale === 'ar' ? 'الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri');
+    var _personId = _isNajmi ? 'https://rasmihassan.com/#person-najmi' : 'https://rasmihassan.com/#person-hasan';
+    // Realm-specific social share image. Owner uploads these two files to /public:
+    //   public/og-hasan.png  and  public/og-najmi.png  (1200×630 PNG).
+    var _ogImage = (typeof ogImage !== 'undefined' && ogImage) ? ogImage
+      : (_isNajmi ? 'https://rasmihassan.com/og-najmi.png' : 'https://rasmihassan.com/og-hasan.png');
+  %>
+  <title><%= title %> - <%= _brand %></title>
 
   <!-- SEO Meta Tags -->
   <meta name="description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : (locale === 'ar' ? 'الموقع الرسمي للشيخ حسن بن محمد الدغريري - تلميذ الشيخ أحمد النجمي والشيخ زيد المدخلي. دروس ومحاضرات في العقيدة والفقه والتفسير من جامع الورود بجدة. أكثر من 30 عاماً من الأرشفة والتعليم.' : 'Official site of Sheikh Hasan bin Mohammed Dhaghriri - student of Sheikh Ahmad al-Najmi and Sheikh Zaid al-Madkhali. Islamic lectures on Aqeedah, Fiqh, and Tafsir from Masjid al-Wurud in Jeddah.') %>">
@@ -20,10 +36,18 @@
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="<%= typeof ogType !== 'undefined' ? ogType : 'website' %>">
   <meta property="og:url" content="https://rasmihassan.com<%= typeof canonicalPath !== 'undefined' ? canonicalPath : (typeof currentPath !== 'undefined' ? currentPath : '') %>">
-  <meta property="og:title" content="<%= title %> - <%= locale === 'ar' ? 'موقع الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>">
+  <meta property="og:title" content="<%= title %> - <%= _brand %>">
   <meta property="og:description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : (locale === 'ar' ? 'الموقع الرسمي للشيخ حسن بن محمد الدغريري - دروس ومحاضرات في العقيدة والفقه من جامع الورود بجدة' : 'Official site of Sheikh Hasan Dhaghriri - Islamic lectures from Jeddah') %>">
   <meta property="og:locale" content="<%= locale === 'ar' ? 'ar_SA' : 'en_US' %>">
-  <meta property="og:site_name" content="<%= locale === 'ar' ? 'موقع الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>">
+  <meta property="og:site_name" content="<%= _brand %>">
+  <% if (_ogImage) { %>
+  <meta property="og:image" content="<%= _ogImage %>">
+  <meta property="og:image:secure_url" content="<%= _ogImage %>">
+  <meta property="og:image:type" content="<%= /\.jpe?g$/i.test(_ogImage) ? 'image/jpeg' : 'image/png' %>">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="<%= _brand %>">
+  <% } %>
   <% if (typeof publishedTime !== 'undefined' && publishedTime) { %>
   <meta property="article:published_time" content="<%= publishedTime %>">
   <% } %>
@@ -31,15 +55,46 @@
   <meta property="article:modified_time" content="<%= modifiedTime %>">
   <% } %>
   <% if (typeof ogType !== 'undefined' && ogType === 'article') { %>
-  <meta property="article:author" content="<%= locale === 'ar' ? 'الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>">
+  <meta property="article:author" content="<%= _person %>">
   <% } %>
 
   <!-- Twitter -->
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="<%= title %> - <%= locale === 'ar' ? 'موقع الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>">
+  <meta name="twitter:card" content="<%= _ogImage ? 'summary_large_image' : 'summary' %>">
+  <meta name="twitter:title" content="<%= title %> - <%= _brand %>">
   <meta name="twitter:description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : (locale === 'ar' ? 'الموقع الرسمي للشيخ حسن بن محمد الدغريري - دروس ومحاضرات إسلامية' : 'Official site of Sheikh Hasan Dhaghriri - Islamic lectures') %>">
+  <% if (_ogImage) { %><meta name="twitter:image" content="<%= _ogImage %>"><% } %>
 
-  <!-- JSON-LD Structured Data -->
+  <!-- JSON-LD Structured Data (realm-aware: distinct Person @id per scholar) -->
+  <% if (_isNajmi) { %>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": "https://rasmihassan.com/najmi/#collection",
+        "url": "https://rasmihassan.com/najmi",
+        "name": "<%= _brand %>",
+        "description": "<%= locale === 'ar' ? 'أرشيف دروس ومحاضرات وكتب العلامة أحمد بن يحيى النجمي رحمه الله' : 'Archive of the lectures and books of Sheikh Ahmad ibn Yahya al-Najmi' %>",
+        "inLanguage": ["ar", "en"],
+        "isPartOf": { "@id": "https://rasmihassan.com/#website" },
+        "about": { "@id": "https://rasmihassan.com/#person-najmi" }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://rasmihassan.com/#person-najmi",
+        "name": "<%= locale === 'ar' ? 'الشيخ أحمد بن يحيى النجمي' : 'Sheikh Ahmad ibn Yahya al-Najmi' %>",
+        "alternateName": ["أحمد النجمي", "أحمد بن يحيى النجمي", "العلامة النجمي", "Ahmad al-Najmi"],
+        "description": "<%= locale === 'ar' ? 'العلّامة المحدِّث الفقيه، مفتي منطقة جازان، تلميذ الشيخ عبد الله القرعاوي، وشيخ الشيخ حسن الدغريري (رحمه الله)' : 'Erudite scholar of hadith and jurisprudence, Mufti of the Jazan region, teacher of Sheikh Hasan al-Daghreeri' %>",
+        "jobTitle": "<%= locale === 'ar' ? 'مفتي منطقة جازان' : 'Mufti of the Jazan region' %>",
+        "deathDate": "2008",
+        "sameAs": ["https://alnajmi.net/portal/"],
+        "knowsAbout": ["العقيدة", "الحديث", "الفقه", "التفسير", "Aqeedah", "Hadith", "Fiqh", "Tafsir"]
+      }
+    ]
+  }
+  </script>
+  <% } else { %>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -52,12 +107,12 @@
         "description": "<%= locale === 'ar' ? 'الموقع الرسمي للشيخ حسن بن محمد الدغريري' : 'Official website of Sheikh Hasan Dhaghriri' %>",
         "inLanguage": ["ar", "en"],
         "publisher": {
-          "@id": "https://rasmihassan.com/#person"
+          "@id": "https://rasmihassan.com/#person-hasan"
         }
       },
       {
         "@type": "Person",
-        "@id": "https://rasmihassan.com/#person",
+        "@id": "https://rasmihassan.com/#person-hasan",
         "name": "<%= locale === 'ar' ? 'الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>",
         "alternateName": ["حسن الدغريري", "حسن بن محمد الدغريري", "الشيخ حسن الدغيري", "Hasan Dhaghriri"],
         "description": "<%= locale === 'ar' ? 'عالم وداعية سلفي، تلميذ الشيخ أحمد النجمي والشيخ زيد المدخلي، يلقي دروسه في جامع الورود بجدة' : 'Islamic scholar and preacher, student of Sheikh Ahmad al-Najmi and Sheikh Zaid al-Madkhali' %>",
@@ -67,7 +122,7 @@
         ],
         "jobTitle": "<%= locale === 'ar' ? 'عالم وداعية' : 'Islamic Scholar' %>",
         "worksFor": {
-          "@type": "Mosque",
+          "@type": "Organization",
           "name": "<%= locale === 'ar' ? 'جامع الورود' : 'Masjid Al-Wurud' %>",
           "address": {
             "@type": "PostalAddress",
@@ -80,6 +135,10 @@
     ]
   }
   </script>
+  <% } %>
+  <% if (typeof jsonld !== 'undefined' && jsonld) { %>
+  <script type="application/ld+json"><%- jsonld %></script>
+  <% } %>
   <% if (typeof article !== 'undefined' && article && typeof ogType !== 'undefined' && ogType === 'article') { %>
   <script type="application/ld+json">
   {
@@ -91,7 +150,7 @@
     <% if (article.updatedAt) { %>"dateModified": "<%= new Date(article.updatedAt).toISOString() %>",<% } %>
     "author": {
       "@type": "Person",
-      "@id": "https://rasmihassan.com/#person",
+      "@id": "https://rasmihassan.com/#person-hasan",
       "name": "<%= locale === 'ar' ? 'الشيخ حسن بن محمد منصور الدغريري' : 'Sheikh Hasan bin Mohammed Mansour Dhaghriri' %>"
     },
     "publisher": {

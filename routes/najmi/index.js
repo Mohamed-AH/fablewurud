@@ -15,6 +15,12 @@ const router = express.Router();
 
 const { Lecture, Series, Publication, SiteSettings } = require('../../models');
 const { getNajmiSheikh } = require('../../utils/najmiSheikh');
+const cache = require('../../utils/cache');
+const { captureException } = require('../../utils/errorReporter');
+
+const NAJMI_TTL = 600; // 10 min; invalidated on admin changes via invalidateHomepageCache()
+const NAJMI_KEYWORDS_AR = 'الشيخ أحمد النجمي, العلامة أحمد بن يحيى النجمي, مفتي جازان, شرح صحيح مسلم, تأسيس الأحكام, فتح الرب الودود, دروس النجمي, كتب النجمي, المنهج السلفي';
+const NAJMI_KEYWORDS_EN = 'Sheikh Ahmad al-Najmi, Ahmad ibn Yahya al-Najmi, Mufti of Jazan, Salafi scholars, Islamic lectures, Najmi books';
 
 // Guard: every Najmi route needs the sheikh to exist
 async function requireNajmiSheikh(req, res, next) {
@@ -27,6 +33,7 @@ async function requireNajmiSheikh(req, res, next) {
     next();
   } catch (err) {
     console.error('Najmi sheikh lookup error:', err);
+    captureException(err, req);
     res.status(500).send('Error loading Najmi archive');
   }
 }
@@ -78,36 +85,42 @@ router.get('/', requireNajmiSheikh, async (req, res) => {
   try {
     const sheikh = req.najmiSheikh;
 
-    // Config: featuredSeriesCount is reused as "series shown per category"
-    const settings = await SiteSettings.getSettings().catch(() => null);
-    const cfgRaw = (settings && settings.homepage && settings.homepage.najmi) || {};
-    const perCategory = Math.min(12, Math.max(2, cfgRaw.featuredSeriesCount || 4));
-    const showLibrary = cfgRaw.showLibrary !== false;
+    // Cache the (locale-independent) page data; invalidated on admin content changes.
+    const data = await cache.getOrSet('najmi:home', async () => {
+      // Config: featuredSeriesCount is reused as "series shown per category"
+      const settings = await SiteSettings.getSettings().catch(() => null);
+      const cfgRaw = (settings && settings.homepage && settings.homepage.najmi) || {};
+      const perCategory = Math.min(12, Math.max(2, cfgRaw.featuredSeriesCount || 4));
+      const showLibrary = cfgRaw.showLibrary !== false;
 
-    const [seriesCount, lectureCount, pubCount, categories, booksTeaser] = await Promise.all([
-      Series.countDocuments({ sheikhId: sheikh._id, isVisible: { $ne: false } }),
-      Lecture.countDocuments({ sheikhId: sheikh._id, published: true }),
-      Publication.countDocuments({ sheikhId: sheikh._id, isPublished: { $ne: false } }),
-      loadSeriesByCategory(sheikh._id, perCategory),
-      showLibrary
-        ? Publication.find({ sheikhId: sheikh._id, isPublished: { $ne: false } })
-            .sort({ createdAt: -1 }).limit(4)
-            .select('title category pageCount shortId slug_ar fileUrl').lean()
-        : Promise.resolve([])
-    ]);
+      const [seriesCount, lectureCount, pubCount, categories, booksTeaser] = await Promise.all([
+        Series.countDocuments({ sheikhId: sheikh._id, isVisible: { $ne: false } }),
+        Lecture.countDocuments({ sheikhId: sheikh._id, published: true }),
+        Publication.countDocuments({ sheikhId: sheikh._id, isPublished: { $ne: false } }),
+        loadSeriesByCategory(sheikh._id, perCategory),
+        showLibrary
+          ? Publication.find({ sheikhId: sheikh._id, isPublished: { $ne: false } })
+              .sort({ createdAt: -1 }).limit(4)
+              .select('title category pageCount shortId slug_ar fileUrl').lean()
+          : Promise.resolve([])
+      ]);
+      return { seriesCount, lectureCount, pubCount, categories, booksTeaser, showLibrary };
+    }, NAJMI_TTL);
 
     res.render('najmi/index', {
       title: 'الشيخ العلامة أحمد بن يحيى النجمي',
       metaDescription: 'سيرة العلامة أحمد بن يحيى النجمي رحمه الله ودروسه ومحاضراته — أكثر من 1500 درس في 54 سلسلة و116 كتاباً.',
+      metaKeywords: res.locals.locale === 'en' ? NAJMI_KEYWORDS_EN : NAJMI_KEYWORDS_AR,
       najmiSheikh: sheikh,
-      stats: { seriesCount, lectureCount, pubCount },
-      categories,
-      booksTeaser,
-      showLibrary,
+      stats: { seriesCount: data.seriesCount, lectureCount: data.lectureCount, pubCount: data.pubCount },
+      categories: data.categories,
+      booksTeaser: data.booksTeaser,
+      showLibrary: data.showLibrary,
       canonicalPath: '/najmi'
     });
   } catch (err) {
     console.error('Najmi content page error:', err);
+    captureException(err, req);
     res.status(500).send('Error loading Najmi content');
   }
 });
@@ -118,10 +131,13 @@ router.get('/', requireNajmiSheikh, async (req, res) => {
 router.get('/series', requireNajmiSheikh, async (req, res) => {
   try {
     const sheikh = req.najmiSheikh;
-    const series = await Series.find({ sheikhId: sheikh._id, isVisible: { $ne: false } })
-      .sort({ titleArabic: 1 })
-      .select('titleArabic titleEnglish category lectureCount shortId slug_en slug_ar')
-      .lean();
+    const series = await cache.getOrSet('najmi:series', async () => {
+      const list = await Series.find({ sheikhId: sheikh._id, isVisible: { $ne: false } })
+        .sort({ titleArabic: 1 })
+        .select('titleArabic titleEnglish category lectureCount shortId slug_en slug_ar')
+        .lean();
+      return list.map(s => ({ ...s, url: najmiSeriesUrl(s) }));
+    }, NAJMI_TTL);
 
     // Optional pre-filter from the Content page category "view all" links
     const validCats = ['Aqeedah', 'Hadith', 'Fiqh', 'Tafsir', 'Seerah', 'Akhlaq', 'Other'];
@@ -130,13 +146,15 @@ router.get('/series', requireNajmiSheikh, async (req, res) => {
     res.render('najmi/series', {
       title: 'سلاسل الشيخ أحمد النجمي',
       metaDescription: 'جميع سلاسل دروس العلامة أحمد بن يحيى النجمي رحمه الله في العقيدة والحديث والفقه والتفسير.',
+      metaKeywords: res.locals.locale === 'en' ? NAJMI_KEYWORDS_EN : NAJMI_KEYWORDS_AR,
       najmiSheikh: sheikh,
-      series: series.map(s => ({ ...s, url: najmiSeriesUrl(s) })),
+      series,
       initialCat,
       canonicalPath: '/najmi/series'
     });
   } catch (err) {
     console.error('Najmi series list error:', err);
+    captureException(err, req);
     res.status(500).send('Error loading series');
   }
 });
@@ -225,6 +243,7 @@ router.get('/series/:shortId(\\d+)/:slug_en?/:slug_ar?', requireNajmiSheikh, asy
     });
   } catch (err) {
     console.error('Najmi series detail error:', err);
+    captureException(err, req);
     res.status(500).send('Error loading series');
   }
 });
@@ -235,20 +254,23 @@ router.get('/series/:shortId(\\d+)/:slug_en?/:slug_ar?', requireNajmiSheikh, asy
 router.get('/library', requireNajmiSheikh, async (req, res) => {
   try {
     const sheikh = req.najmiSheikh;
-    const publications = await Publication.find({ sheikhId: sheikh._id, isPublished: { $ne: false } })
-      .sort({ category: 1, title: 1 })
-      .select('title titleEnglish category pageCount volumeCount fileUrl fileSize shortId slug_ar coverColor')
-      .lean();
-
-    // Category order + counts (fixed 4 categories)
-    const CATEGORY_ORDER = ['الكتب', 'التعليقات', 'الرسائل', 'من السيرة الذاتية'];
-    const counts = {};
-    for (const p of publications) counts[p.category] = (counts[p.category] || 0) + 1;
-    const categories = CATEGORY_ORDER.filter(c => counts[c]).map(c => ({ name: c, count: counts[c] }));
+    const { publications, categories } = await cache.getOrSet('najmi:library', async () => {
+      const pubs = await Publication.find({ sheikhId: sheikh._id, isPublished: { $ne: false } })
+        .sort({ category: 1, title: 1 })
+        .select('title titleEnglish category pageCount volumeCount fileUrl fileSize shortId slug_ar coverColor')
+        .lean();
+      // Category order + counts (fixed 4 categories)
+      const CATEGORY_ORDER = ['الكتب', 'التعليقات', 'الرسائل', 'من السيرة الذاتية'];
+      const counts = {};
+      for (const p of pubs) counts[p.category] = (counts[p.category] || 0) + 1;
+      const cats = CATEGORY_ORDER.filter(c => counts[c]).map(c => ({ name: c, count: counts[c] }));
+      return { publications: pubs, categories: cats };
+    }, NAJMI_TTL);
 
     res.render('najmi/library', {
       title: 'مكتبة الشيخ أحمد النجمي',
       metaDescription: 'مكتبة كتب ورسائل وتعليقات العلامة أحمد بن يحيى النجمي رحمه الله — 116 كتاباً في أربعة أبواب.',
+      metaKeywords: res.locals.locale === 'en' ? NAJMI_KEYWORDS_EN : NAJMI_KEYWORDS_AR,
       najmiSheikh: sheikh,
       publications,
       categories,
@@ -257,6 +279,7 @@ router.get('/library', requireNajmiSheikh, async (req, res) => {
     });
   } catch (err) {
     console.error('Najmi library error:', err);
+    captureException(err, req);
     res.status(500).send('Error loading library');
   }
 });
@@ -274,6 +297,7 @@ router.get('/library/:shortId(\\d+)/download', requireNajmiSheikh, async (req, r
     res.redirect(pub.fileUrl);
   } catch (err) {
     console.error('Najmi download error:', err);
+    captureException(err, req);
     res.status(500).send('Error');
   }
 });

@@ -6,14 +6,30 @@
 const express = require('express');
 const router = express.Router();
 const { isAdmin } = require('../../middleware/auth');
+const cache = require('../../utils/cache');
 const { captureException } = require('../../utils/errorReporter');
+
+// Invalidate the caches whose content depends on publications (Najmi realm
+// pages, the homepage, search and the sitemap). Mirrors the helper in
+// routes/admin/index.js, which isn't exported — publications.js is a separate
+// module, so calling the parent's function directly would be a ReferenceError.
+function invalidateHomepageCache() {
+  cache.invalidatePattern('homepage:*');
+  cache.invalidatePattern('najmi:*');
+  cache.invalidatePattern('search:*');
+  cache.del('sitemap:xml');
+}
 
 // PUBLICATIONS (Sheikh Najmi PDF library) — admin CRUD
 // ===========================================================================
 const multer = require('multer');
+// Reuse the resilient, guaranteed-writable staging dir from config/storage
+// (falls back off an unwritable UPLOAD_DIR like /mnt/audio, and re-ensures the
+// directory exists right before each write — prevents ENOENT on upload).
+const { ensureUploadDir } = require('../../config/storage');
 const pdfUpload = multer({
   storage: multer.diskStorage({
-    destination: (req, file, cb) => cb(null, process.env.UPLOAD_DIR || './uploads'),
+    destination: ensureUploadDir,
     filename: (req, file, cb) => {
       const ext = require('path').extname(file.originalname) || '.pdf';
       cb(null, `pub-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);

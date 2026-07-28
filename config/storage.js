@@ -1,30 +1,55 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
-// Ensure upload directory exists
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
+/**
+ * Resolve a WRITABLE upload staging directory.
+ *
+ * Uploaded files are only staged on local disk briefly before being pushed to
+ * OCI / Cloudflare R2 and deleted, so any writable directory works. Preferring
+ * UPLOAD_DIR but falling back keeps uploads working when the configured path
+ * isn't writable — e.g. a non-root process against a root-owned mount like
+ * /mnt/audio (the ENOENT/EACCES upload failures). Order:
+ *   1. UPLOAD_DIR (if set and writable)
+ *   2. <app>/uploads   (the Dockerfile chowns this to the runtime user)
+ *   3. <os.tmpdir>/wurud-uploads  (guaranteed writable)
+ */
+function resolveUploadDir() {
+  const candidates = [
+    process.env.UPLOAD_DIR,
+    path.join(__dirname, '..', 'uploads'),
+    path.join(os.tmpdir(), 'wurud-uploads')
+  ].filter(Boolean);
 
-// Create the upload directory if possible. This is only a LOCAL staging area for
-// uploads before they go to OCI Object Storage — so a failure here (e.g. a
-// read-only mount, or a non-root user that can't create the path) must NOT crash
-// the whole server at boot. Warn and continue; per-upload writes will surface a
-// clear error later if the directory truly isn't usable.
-try {
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-    console.log(`📁 Created upload directory: ${uploadDir}`);
+  for (const dir of candidates) {
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      fs.accessSync(dir, fs.constants.W_OK);
+      return dir;
+    } catch (_) { /* not usable — try the next candidate */ }
   }
-} catch (err) {
-  console.warn(`⚠️ Could not create upload directory "${uploadDir}" (${err.code || err.message}). ` +
-    'Local uploads will fail until it is writable; audio storage still uses OCI.');
+  return os.tmpdir(); // last resort
+}
+
+const uploadDir = resolveUploadDir();
+if (process.env.UPLOAD_DIR && uploadDir !== process.env.UPLOAD_DIR) {
+  console.warn(`⚠️ UPLOAD_DIR "${process.env.UPLOAD_DIR}" is not writable; staging uploads in "${uploadDir}" instead.`);
+} else {
+  console.warn(`📁 Upload staging directory: ${uploadDir}`);
+}
+
+/**
+ * multer destination that (re)ensures the staging dir exists right before a write,
+ * so a transient/missing directory can never cause an ENOENT mid-upload.
+ */
+function ensureUploadDir(req, file, cb) {
+  fs.mkdir(uploadDir, { recursive: true }, (err) => cb(err, uploadDir));
 }
 
 // Configure storage
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
+  destination: ensureUploadDir,
   filename: function (req, file, cb) {
     // Generate unique filename with timestamp
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -87,5 +112,6 @@ const uploadMultiple = multer({
 module.exports = {
   upload,
   uploadMultiple,
-  uploadDir
+  uploadDir,
+  ensureUploadDir
 };
