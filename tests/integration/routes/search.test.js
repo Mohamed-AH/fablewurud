@@ -19,6 +19,7 @@ function buildChainableMock(resolveValue) {
   const chain = {
     sort: jest.fn().mockReturnThis(),
     limit: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
     lean: jest.fn().mockResolvedValue(resolveValue)
   };
   return chain;
@@ -31,6 +32,11 @@ jest.mock('../../../models', () => {
       find: jest.fn(),
       aggregate: jest.fn()
     },
+    // Lecture lives on the MAIN connection; search now hydrates lecture metadata
+    // from it after the transcript search (separate clusters).
+    Lecture: {
+      find: jest.fn()
+    },
     SearchLog: {
       create: jest.fn(),
       findByIdAndUpdate: jest.fn()
@@ -38,7 +44,7 @@ jest.mock('../../../models', () => {
   };
 });
 
-const { Transcript, SearchLog } = require('../../../models');
+const { Transcript, Lecture, SearchLog } = require('../../../models');
 
 // Get cache for testing
 const cache = require('../../../utils/cache');
@@ -92,6 +98,9 @@ beforeEach(() => {
 
   // Default mock for Transcript.find (used in enrichWithContext)
   Transcript.find.mockReturnValue(buildChainableMock([]));
+
+  // Default mock for Lecture.find (used in hydrateLectures) — no matches by default
+  Lecture.find.mockReturnValue(buildChainableMock([]));
 });
 
 afterEach(async () => {
@@ -171,6 +180,32 @@ describe('GET /search/api', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.results).toBeDefined();
     expect(Array.isArray(res.body.results)).toBe(true);
+  });
+
+  it('should hydrate lecture metadata from the main DB (transcripts + lectures are on separate clusters)', async () => {
+    // Atlas search returns transcript hits WITHOUT lecture fields (no cross-cluster $lookup)
+    Transcript.aggregate.mockResolvedValue([
+      { _id: mockObjectId(), lectureId: mockLectureId, startTimeSec: 100, text: 'hit', additionalHits: [] }
+    ]);
+    // The main-DB Lecture.find().select().lean() supplies title/audio/link
+    Lecture.find.mockReturnValue(buildChainableMock([
+      { _id: mockLectureId, titleArabic: 'درس تجريبي', shortId: 4242, slug_en: 'test-lesson', audioUrl: 'https://cdn/x.mp3', audioFileName: 'x.mp3' }
+    ]));
+
+    const res = await request(app)
+      .get('/search/api')
+      .query({ q: 'test' })
+      .expect(200);
+
+    expect(res.body.results).toHaveLength(1);
+    const r = res.body.results[0];
+    expect(r.lectureTitle).toBe('درس تجريبي');
+    expect(r.lectureShortId).toBe(4242);
+    expect(r.lectureSlugEn).toBe('test-lesson');
+    expect(r.audioUrl).toBe('https://cdn/x.mp3');
+    expect(r.audioFileName).toBe('x.mp3');
+    // Confirms it queried the main DB by the transcript's lectureId
+    expect(Lecture.find).toHaveBeenCalledWith({ _id: { $in: [mockLectureId.toString()] } });
   });
 
   it('should sanitize search query to prevent XSS', async () => {

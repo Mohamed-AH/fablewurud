@@ -101,17 +101,18 @@ const QUERY = process.argv[2] || 'الصلاة';
   if (rows.length === 0) {
     console.log('Search index works but this query matched nothing. Try another query.');
   } else if (hydrated === 0) {
-    console.log('❌ ROOT CAUSE: the $lookup hydrates NO lecture data.');
-    console.log('   The search DB is missing a matching `lectures` collection (or the');
-    console.log('   lecture _ids don\'t match). Results come back but have no title/audio/link,');
-    console.log('   so the homepage shows unusable cards → "search not working".');
-    console.log('   FIX: copy the lectures collection into the search DB (see chat).');
+    console.log('❌ CONFIRMS the split: this search DB has NO usable `lectures` collection,');
+    console.log('   so an in-DB $lookup can\'t hydrate. This is expected now that lecture/audio');
+    console.log('   metadata was moved to a separate (main) cluster.');
+    console.log('   FIX (already applied in code): routes/search.js no longer $lookup\'s here —');
+    console.log('   it hydrates title/audio/link from the MAIN DB via hydrateLectures(). Deploy');
+    console.log('   the updated code; no need to copy lectures back into the search DB.');
   } else if (hydrated < rows.length) {
-    console.log('⚠️  PARTIAL: some results hydrate, some don\'t — the lectures copy in the');
-    console.log('   search DB is stale/incomplete. Re-sync it from the main DB.');
+    console.log('⚠️  PARTIAL in-DB hydration — irrelevant once the app hydrates from the main');
+    console.log('   DB (routes/search.js hydrateLectures). Deploy the updated code.');
   } else {
-    console.log('✅ Backend + hydration are healthy. The break is on the FRONTEND/render side');
-    console.log('   (or a domain/link issue) — inspect the /search/api response in the browser.');
+    console.log('ℹ️  This search DB still co-locates a lectures copy, so the old path would work,');
+    console.log('   but the app now hydrates from the MAIN DB regardless (routes/search.js).');
   }
 
   await conn.close();
