@@ -98,6 +98,13 @@ Reviewed the 8 newest upstream commits (checked each for mistakes/errors/bugs be
 - **Consistency:** added `captureException` to all `routes/najmi/index.js` catch blocks (audit C2 pattern).
 - **Skipped:** upstream `README.md`/`CLAUDE.md` (`612f3ef`) — we maintain our own.
 
+### 🩹 Admin upload fixes + upstream re-sync #2 (2026-07-28)
+Owner smoke-tested prod-candidate; fixed three issues + pulled the newest upstream:
+- **R2 PDF upload — "object is locked by the bucket policy"** (`facc47b`): the Najmi bucket has **Object Lock**, so re-PUTting an existing key (raw `pdf/<originalname>`) is an overwrite of an immutable object → rejected. Fixed in `routes/admin/publications.js`: keep the clean key when free, else append a timestamp (checked via `objectExistsR2`) so we always PUT a fresh, unlocked key; `path.basename()` strips path segments. Real error now surfaced on the admin page + `captureException`. (Auth was fine — the PUT reached R2 and was rejected by *policy*, not creds.)
+- **CSP `blob:` for audio preview**: the edit-lecture page previews the chosen file via a `blob:` URL; `mediaSrc` didn't allow it. Added `blob:` to `mediaSrc` in `server.js` (same-origin only, safe; `imgSrc` already had it).
+- **/admin/upload series scoped to selected sheikh**: the series dropdown listed **both** scholars' series. Reworked `views/admin/upload.ejs` to lazy-load series via the existing `/api/series?sheikhId=` filter on sheikh `change` (resets to placeholder when no sheikh picked). (edit-lecture has no sheikh selector — lecture's sheikh is fixed there — so it's out of scope.)
+- **Upstream re-sync #2** — reviewed wurud `adee4c5..0c54c28` (`cd6f865` + merge). Ported `cd6f865`: route-level JSON-LD on Najmi pages — `BreadcrumbList` on Content/series/library/series-detail, `Book` ItemList on `/najmi/library`, `AudioObject` ItemList (capped 50) on series-detail, inlined via the `<%- jsonld %>` hook. Helpers escape `<`→`<` so a title can't break out of `</script>` (verified with a hostile title; both page scripts parse). Merge added only the og PNGs (already present). Skipped upstream CLAUDE.md.
+
 ---
 
 ## 🔧 ACTIVE: Code Audit Remediation (started 2026-07-12)

@@ -45,6 +45,81 @@ function najmiSeriesUrl(series) {
   return `/najmi/series/${series.shortId}/${en}/${ar}`.replace(/\/+$/,'');
 }
 
+// ---------------------------------------------------------------------------
+// JSON-LD helpers (BreadcrumbList + Book/AudioObject), passed to the layout as
+// the `jsonld` local and inlined via <%- jsonld %>.
+// ---------------------------------------------------------------------------
+const SEO_BASE = 'https://rasmihassan.com';
+const PERSON_NAJMI = { '@id': `${SEO_BASE}/#person-najmi` };
+const L = (locale, ar, en) => (locale === 'en' ? en : ar);
+
+// Serialize an @graph, escaping "<" so a title can never break out of </script>
+function jsonldGraph(nodes) {
+  const graph = nodes.filter(Boolean);
+  if (!graph.length) return '';
+  return JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c');
+}
+
+function breadcrumb(items) {
+  return {
+    '@type': 'BreadcrumbList',
+    'itemListElement': items.map((it, i) => ({
+      '@type': 'ListItem', 'position': i + 1, 'name': it.name, 'item': SEO_BASE + it.url
+    }))
+  };
+}
+
+// Seconds → ISO-8601 duration (PT#H#M#S)
+function isoDuration(sec) {
+  sec = Math.floor(sec || 0);
+  if (sec <= 0) return null;
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return 'PT' + (h ? h + 'H' : '') + (m ? m + 'M' : '') + (s ? s + 'S' : '');
+}
+
+// ItemList of Book entries (library page)
+function bookList(pubs) {
+  if (!pubs || !pubs.length) return null;
+  return {
+    '@type': 'ItemList',
+    'itemListElement': pubs.map((p, i) => ({
+      '@type': 'ListItem', 'position': i + 1,
+      'item': {
+        '@type': 'Book',
+        'name': p.title,
+        'url': `${SEO_BASE}/najmi/library/${p.shortId}/download`,
+        'author': PERSON_NAJMI,
+        'inLanguage': 'ar',
+        'bookFormat': 'https://schema.org/EBook',
+        ...(p.pageCount ? { 'numberOfPages': p.pageCount } : {})
+      }
+    }))
+  };
+}
+
+// ItemList of AudioObject entries (series-detail; capped to bound page weight)
+function audioList(lectures) {
+  const items = (lectures || []).slice(0, 50).filter(l => l.audioUrl);
+  if (!items.length) return null;
+  return {
+    '@type': 'ItemList',
+    'itemListElement': items.map((l, i) => {
+      const dur = isoDuration(l.duration);
+      return {
+        '@type': 'ListItem', 'position': i + 1,
+        'item': {
+          '@type': 'AudioObject',
+          'name': l.titleArabic || l.titleEnglish || 'محاضرة',
+          'contentUrl': l.audioUrl,
+          'author': PERSON_NAJMI,
+          'inLanguage': 'ar',
+          ...(dur ? { 'duration': dur } : {})
+        }
+      };
+    })
+  };
+}
+
 // Category enum → Arabic/English label + fixed display order
 const NAJMI_CATEGORY_ORDER = ['Aqeedah', 'Hadith', 'Fiqh', 'Tafsir', 'Seerah', 'Akhlaq', 'Other'];
 const NAJMI_CATEGORY_LABELS = {
@@ -107,16 +182,21 @@ router.get('/', requireNajmiSheikh, async (req, res) => {
       return { seriesCount, lectureCount, pubCount, categories, booksTeaser, showLibrary };
     }, NAJMI_TTL);
 
+    const loc = res.locals.locale;
     res.render('najmi/index', {
       title: 'الشيخ العلامة أحمد بن يحيى النجمي',
       metaDescription: 'سيرة العلامة أحمد بن يحيى النجمي رحمه الله ودروسه ومحاضراته — أكثر من 1500 درس في 54 سلسلة و116 كتاباً.',
-      metaKeywords: res.locals.locale === 'en' ? NAJMI_KEYWORDS_EN : NAJMI_KEYWORDS_AR,
+      metaKeywords: loc === 'en' ? NAJMI_KEYWORDS_EN : NAJMI_KEYWORDS_AR,
       najmiSheikh: sheikh,
       stats: { seriesCount: data.seriesCount, lectureCount: data.lectureCount, pubCount: data.pubCount },
       categories: data.categories,
       booksTeaser: data.booksTeaser,
       showLibrary: data.showLibrary,
-      canonicalPath: '/najmi'
+      canonicalPath: '/najmi',
+      jsonld: jsonldGraph([ breadcrumb([
+        { name: L(loc, 'الرئيسية', 'Home'), url: '/' },
+        { name: L(loc, 'المحتوى', 'Content'), url: '/najmi' }
+      ]) ])
     });
   } catch (err) {
     console.error('Najmi content page error:', err);
@@ -143,14 +223,20 @@ router.get('/series', requireNajmiSheikh, async (req, res) => {
     const validCats = ['Aqeedah', 'Hadith', 'Fiqh', 'Tafsir', 'Seerah', 'Akhlaq', 'Other'];
     const initialCat = validCats.includes(req.query.cat) ? req.query.cat : 'all';
 
+    const loc = res.locals.locale;
     res.render('najmi/series', {
       title: 'سلاسل الشيخ أحمد النجمي',
       metaDescription: 'جميع سلاسل دروس العلامة أحمد بن يحيى النجمي رحمه الله في العقيدة والحديث والفقه والتفسير.',
-      metaKeywords: res.locals.locale === 'en' ? NAJMI_KEYWORDS_EN : NAJMI_KEYWORDS_AR,
+      metaKeywords: loc === 'en' ? NAJMI_KEYWORDS_EN : NAJMI_KEYWORDS_AR,
       najmiSheikh: sheikh,
       series,
       initialCat,
-      canonicalPath: '/najmi/series'
+      canonicalPath: '/najmi/series',
+      jsonld: jsonldGraph([ breadcrumb([
+        { name: L(loc, 'الرئيسية', 'Home'), url: '/' },
+        { name: L(loc, 'المحتوى', 'Content'), url: '/najmi' },
+        { name: L(loc, 'السلاسل', 'Series'), url: '/najmi/series' }
+      ]) ])
     });
   } catch (err) {
     console.error('Najmi series list error:', err);
@@ -230,6 +316,7 @@ router.get('/series/:shortId(\\d+)/:slug_en?/:slug_ar?', requireNajmiSheikh, asy
         .select('titleArabic titleEnglish shortId slug_en slug_ar').lean();
     }
 
+    const loc = res.locals.locale;
     res.render('public/series-detail', {
       title: series.titleArabic,
       series,
@@ -239,7 +326,16 @@ router.get('/series/:shortId(\\d+)/:slug_en?/:slug_ar?', requireNajmiSheikh, asy
       parentSeries,
       canonicalPath: najmiSeriesUrl(series),
       seriesStatsSettings,
-      seriesBackUrl: '/najmi/series'
+      seriesBackUrl: '/najmi/series',
+      jsonld: jsonldGraph([
+        breadcrumb([
+          { name: L(loc, 'الرئيسية', 'Home'), url: '/' },
+          { name: L(loc, 'المحتوى', 'Content'), url: '/najmi' },
+          { name: L(loc, 'السلاسل', 'Series'), url: '/najmi/series' },
+          { name: series.titleArabic, url: najmiSeriesUrl(series) }
+        ]),
+        audioList(lectures)
+      ])
     });
   } catch (err) {
     console.error('Najmi series detail error:', err);
@@ -267,14 +363,23 @@ router.get('/library', requireNajmiSheikh, async (req, res) => {
       return { publications: pubs, categories: cats };
     }, NAJMI_TTL);
 
+    const loc = res.locals.locale;
     res.render('najmi/library', {
       title: 'مكتبة الشيخ أحمد النجمي',
       metaDescription: 'مكتبة كتب ورسائل وتعليقات العلامة أحمد بن يحيى النجمي رحمه الله — 116 كتاباً في أربعة أبواب.',
-      metaKeywords: res.locals.locale === 'en' ? NAJMI_KEYWORDS_EN : NAJMI_KEYWORDS_AR,
+      metaKeywords: loc === 'en' ? NAJMI_KEYWORDS_EN : NAJMI_KEYWORDS_AR,
       najmiSheikh: sheikh,
       publications,
       categories,
       total: publications.length,
+      jsonld: jsonldGraph([
+        breadcrumb([
+          { name: L(loc, 'الرئيسية', 'Home'), url: '/' },
+          { name: L(loc, 'المحتوى', 'Content'), url: '/najmi' },
+          { name: L(loc, 'الكتب', 'Books'), url: '/najmi/library' }
+        ]),
+        bookList(publications)
+      ]),
       canonicalPath: '/najmi/library'
     });
   } catch (err) {

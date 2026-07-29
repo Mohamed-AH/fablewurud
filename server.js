@@ -95,7 +95,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.quilljs.com", "https://cdn.jsdelivr.net"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
-      mediaSrc: ["'self'", "https://objectstorage.me-jeddah-1.oraclecloud.com", "https://*.r2.dev"],
+      mediaSrc: ["'self'", "blob:", "https://objectstorage.me-jeddah-1.oraclecloud.com", "https://*.r2.dev"],
       connectSrc: ["'self'", "https://objectstorage.me-jeddah-1.oraclecloud.com", "https://*.r2.dev", "https://unpkg.com", "https://cdn.quilljs.com", "https://cdn.jsdelivr.net"],
       frameSrc: ["https://accounts.google.com"],
       objectSrc: ["'none'"],
