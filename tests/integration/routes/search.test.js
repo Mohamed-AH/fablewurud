@@ -208,6 +208,32 @@ describe('GET /search/api', () => {
     expect(Lecture.find).toHaveBeenCalledWith({ _id: { $in: [mockLectureId.toString()] } });
   });
 
+  it('should fall back to hydrating by shortId when lectureId no longer matches (post-migration)', async () => {
+    // Transcript references an old lectureId that no longer exists in the main DB,
+    // but carries the stable numeric shortId.
+    Transcript.aggregate.mockResolvedValue([
+      { _id: mockObjectId(), lectureId: mockLectureId, shortId: 7777, startTimeSec: 50, text: 'hit', additionalHits: [] }
+    ]);
+    // 1st Lecture.find (by _id) → no match; 2nd (by shortId) → the lecture
+    Lecture.find
+      .mockReturnValueOnce(buildChainableMock([]))
+      .mockReturnValueOnce(buildChainableMock([
+        { _id: mockObjectId(), titleArabic: 'درس بالمعرّف الرقمي', shortId: 7777, slug_en: 'by-shortid', audioUrl: 'https://cdn/y.mp3', audioFileName: 'y.mp3' }
+      ]));
+
+    const res = await request(app)
+      .get('/search/api')
+      .query({ q: 'test' })
+      .expect(200);
+
+    const r = res.body.results[0];
+    expect(r.lectureTitle).toBe('درس بالمعرّف الرقمي');
+    expect(r.lectureShortId).toBe(7777);
+    expect(r.audioUrl).toBe('https://cdn/y.mp3');
+    // Second query was by shortId
+    expect(Lecture.find).toHaveBeenNthCalledWith(2, { shortId: { $in: [7777] } });
+  });
+
   it('should sanitize search query to prevent XSS', async () => {
     const xssPayload = '<script>alert("XSS")</script>';
 

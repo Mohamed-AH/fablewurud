@@ -412,16 +412,32 @@ async function hydrateLectures(results) {
   const Lecture = models.Lecture;
   if (!Lecture) return results; // main DB model unavailable — return un-hydrated
 
-  const ids = [...new Set(results.map(r => r.lectureId && r.lectureId.toString()).filter(Boolean))];
-  if (!ids.length) return results;
+  const SELECT = '_id shortId titleArabic slug_en audioUrl audioFileName';
+  const keyId = r => r.lectureId && r.lectureId.toString();
 
-  const lectures = await Lecture.find({ _id: { $in: ids } })
-    .select('_id titleArabic shortId slug_en audioUrl audioFileName')
-    .lean();
-  const byId = new Map(lectures.map(l => [l._id.toString(), l]));
+  // Primary join: lectureId → lecture._id (correct on a normal deploy).
+  const ids = [...new Set(results.map(keyId).filter(Boolean))];
+  const byId = new Map();
+  if (ids.length) {
+    const docs = await Lecture.find({ _id: { $in: ids } }).select(SELECT).lean();
+    docs.forEach(l => byId.set(l._id.toString(), l));
+  }
+
+  // Fallback join: transcript.shortId → lecture.shortId. The numeric shortId is a
+  // stable business key that survives a migration which regenerated lecture _ids
+  // (audio metadata was moved to a separate cluster). Only used for results the
+  // _id lookup didn't resolve, so it can't override a correct _id match.
+  const shortIds = [...new Set(
+    results.filter(r => !byId.has(keyId(r))).map(r => r.shortId).filter(v => v != null)
+  )];
+  const byShortId = new Map();
+  if (shortIds.length) {
+    const docs = await Lecture.find({ shortId: { $in: shortIds } }).select(SELECT).lean();
+    docs.forEach(l => byShortId.set(l.shortId, l)); // shortId is unique per lecture
+  }
 
   return results.map(r => {
-    const l = byId.get(r.lectureId && r.lectureId.toString());
+    const l = byId.get(keyId(r)) || byShortId.get(r.shortId);
     if (!l) return r; // orphan transcript (lecture deleted/missing) — leave as-is
     return {
       ...r,
