@@ -126,6 +126,9 @@ router.get('/api', async (req, res) => {
 
     const searchLatency = Date.now() - searchStart;
 
+    // Hydrate lecture metadata from the MAIN DB (separate cluster from transcripts)
+    results = await hydrateLectures(results);
+
     // Enrich results with context
     results = await enrichWithContext(results);
 
@@ -263,20 +266,10 @@ async function performAtlasSearch(query) {
     {
       $limit: 100  // Get more results before grouping
     },
-    {
-      $lookup: {
-        from: 'lectures',
-        localField: 'lectureId',
-        foreignField: '_id',
-        as: 'lecture'
-      }
-    },
-    {
-      $unwind: {
-        path: '$lecture',
-        preserveNullAndEmptyArrays: true
-      }
-    },
+    // NOTE: lecture metadata lives in a SEPARATE cluster (the main DB), so it
+    // cannot be $lookup'd from here — the aggregation runs on the search
+    // connection. Title/audio/link are hydrated from the main DB afterward via
+    // hydrateLectures(). (Previously transcripts + lectures shared one cluster.)
     {
       $addFields: {
         score: { $meta: 'searchScore' }
@@ -323,11 +316,8 @@ async function performAtlasSearch(query) {
         speaker: '$topHit.speaker',
         startTimeSec: '$topHit.startTimeSec',
         startTimeMs: '$topHit.startTimeMs',
-        lectureTitle: '$topHit.lecture.titleArabic',
-        lectureShortId: '$topHit.lecture.shortId',
-        lectureSlugEn: '$topHit.lecture.slug_en',
-        audioUrl: '$topHit.lecture.audioUrl',
-        audioFileName: '$topHit.lecture.audioFileName',
+        // lectureTitle / lectureShortId / lectureSlugEn / audioUrl / audioFileName
+        // are hydrated from the main DB after this aggregation (separate cluster).
         score: '$topHit.score',
         // Filter out the top hit from additional hits and limit to 5
         additionalHits: {
@@ -362,28 +352,25 @@ async function performLocalSearch(query) {
   )
     .sort({ score: { $meta: 'textScore' } })
     .limit(100)  // Get more results before grouping
-    .populate('lectureId', 'titleArabic shortId slug_en audioUrl audioFileName')
+    // No populate: lectures live in a separate cluster and are hydrated from the
+    // main DB after grouping (see hydrateLectures()). lectureId stays a raw ObjectId.
     .lean();
 
   // Group results by lectureId
   const grouped = new Map();
 
   for (const r of results) {
-    const lectureIdStr = r.lectureId?._id?.toString() || 'unknown';
+    const lectureIdStr = r.lectureId?.toString() || 'unknown';
 
     const hit = {
       _id: r._id,
-      lectureId: r.lectureId?._id,
+      lectureId: r.lectureId,
       shortId: r.shortId,
       text: r.text,
       speaker: r.speaker,
       startTimeSec: r.startTimeSec,
       startTimeMs: r.startTimeMs,
-      lectureTitle: r.lectureId?.titleArabic,
-      lectureShortId: r.lectureId?.shortId,
-      lectureSlugEn: r.lectureId?.slug_en,
-      audioUrl: r.lectureId?.audioUrl,
-      audioFileName: r.lectureId?.audioFileName,
+      // lecture fields hydrated from the main DB afterward (separate cluster)
       score: r.score
     };
 
@@ -409,6 +396,42 @@ async function performLocalSearch(query) {
 
   // Convert to array and limit to 20 lectures
   return Array.from(grouped.values()).slice(0, 20);
+}
+
+/**
+ * Hydrate lecture metadata (title, shortId, slug, audio) from the MAIN DB.
+ *
+ * Transcripts live in the search cluster; lecture/audio metadata was moved to a
+ * separate cluster, so it can't be joined inside the search aggregation. We
+ * batch-fetch the needed lectures from the main connection (models.Lecture) in
+ * a single $in query (no N+1) and merge the display fields the frontend needs
+ * (play button, title, "go to lecture" link).
+ */
+async function hydrateLectures(results) {
+  if (!results.length) return results;
+  const Lecture = models.Lecture;
+  if (!Lecture) return results; // main DB model unavailable — return un-hydrated
+
+  const ids = [...new Set(results.map(r => r.lectureId && r.lectureId.toString()).filter(Boolean))];
+  if (!ids.length) return results;
+
+  const lectures = await Lecture.find({ _id: { $in: ids } })
+    .select('_id titleArabic shortId slug_en audioUrl audioFileName')
+    .lean();
+  const byId = new Map(lectures.map(l => [l._id.toString(), l]));
+
+  return results.map(r => {
+    const l = byId.get(r.lectureId && r.lectureId.toString());
+    if (!l) return r; // orphan transcript (lecture deleted/missing) — leave as-is
+    return {
+      ...r,
+      lectureTitle: l.titleArabic,
+      lectureShortId: l.shortId,
+      lectureSlugEn: l.slug_en,
+      audioUrl: l.audioUrl,
+      audioFileName: l.audioFileName
+    };
+  });
 }
 
 /**
