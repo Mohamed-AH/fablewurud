@@ -1224,7 +1224,7 @@
 
             ${result.lectureShortId ? `
               <a
-                href="https://rasmihassan.com/lectures/${result.lectureShortId}${result.lectureSlugEn ? '/' + result.lectureSlugEn : ''}"
+                href="/lectures/${result.lectureShortId}${result.lectureSlugEn ? '/' + result.lectureSlugEn : ''}"
                 class="goto-lecture-btn"
                 target="_blank"
               >
@@ -1276,7 +1276,13 @@
     }).join('');
 
     searchResultsList.innerHTML = html;
-    refreshIcons();
+    // Reinitialize Lucide icons for the freshly-rendered results. NOTE: the
+    // refreshIcons() helper lives in the other IIFE and is NOT in scope here —
+    // calling it threw a ReferenceError right after rendering, which bubbled to
+    // performSearch()'s catch and replaced the results with the generic error.
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   }
 
   /**
