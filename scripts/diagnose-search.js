@@ -60,6 +60,21 @@ const QUERY = process.argv[2] || 'الصلاة';
     console.log(`   (shortId→lecture._id ${consistent ? 'MATCHES' : 'does NOT match'} transcript.lectureId)`);
   }
 
+  // Profile the main-DB lectures so we can tell "wrong DB" from "different keying".
+  console.log('\n── main-DB lecture profile ──');
+  const lSample = await lectures.find({}, { projection: { _id: 1, shortId: 1, titleArabic: 1, audioFileName: 1 } }).limit(3).toArray();
+  lSample.forEach((l, i) => console.log(`   [${i}] _id=${l._id} shortId=${l.shortId} (type ${typeof l.shortId}) title=${(l.titleArabic || '').slice(0, 30)}`));
+  const withShort = await lectures.countDocuments({ shortId: { $exists: true, $ne: null } });
+  console.log(`   lectures with a shortId: ${withShort}/${lCount}`);
+  const nums = await lectures.find({ shortId: { $type: 'number' } }).sort({ shortId: 1 }).limit(1).toArray();
+  const numsMax = await lectures.find({ shortId: { $type: 'number' } }).sort({ shortId: -1 }).limit(1).toArray();
+  if (nums[0]) console.log(`   numeric shortId range: ${nums[0].shortId} .. ${numsMax[0].shortId}`);
+  // Does the sampled transcript's shortId exist as a STRING (type mismatch)?
+  if (s0.shortId != null) {
+    const asStr = await lectures.findOne({ shortId: String(s0.shortId) }, { projection: { _id: 1 } });
+    if (asStr) console.log(`   ⚠️  lecture with shortId as STRING "${s0.shortId}" exists — type mismatch (number vs string)`);
+  }
+
   console.log('\n──────── VERDICT ────────');
   if (idHits === sample.length) {
     console.log('✅ Join by _id works — hydration should already populate titles/links.');
