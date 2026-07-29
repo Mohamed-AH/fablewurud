@@ -282,7 +282,34 @@
 
     let selectedFile = null;
 
-    // Load sheikhs and series
+    const SERIES_NONE_OPTION = '<option value=""><%= t('admin_form_none') %></option>';
+
+    // Populate the series dropdown with ONLY the selected sheikh's series, so the
+    // two scholars' series never mix (which would be confusing / error-prone).
+    // Uses the /api/series?sheikhId= filter the API already supports.
+    async function populateSeries(sheikhId) {
+      seriesSelect.innerHTML = SERIES_NONE_OPTION;
+      if (!sheikhId) return; // no sheikh chosen → no series to offer yet
+      try {
+        const res = await fetch('/api/series?sheikhId=' + encodeURIComponent(sheikhId));
+        const data = await res.json();
+        if (data.success) {
+          data.series.forEach(series => {
+            const option = document.createElement('option');
+            option.value = series._id;
+            option.textContent = series.titleArabic;
+            seriesSelect.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error('Error loading series:', error);
+      }
+    }
+
+    // Re-scope the series list whenever the sheikh changes.
+    sheikhSelect.addEventListener('change', () => populateSeries(sheikhSelect.value));
+
+    // Load sheikhs (series load lazily once a sheikh is picked)
     async function loadData() {
       try {
         const ADMIN_REALM = '<%= typeof adminRealm !== "undefined" ? adminRealm : "hasan" %>';
@@ -297,22 +324,11 @@
             option.textContent = `${sheikh.nameArabic} - ${sheikh.nameEnglish || ''}`.trim() + (isNajmi ? ' — [النجمي]' : '');
             sheikhSelect.appendChild(option);
           });
-          // Default the dropdown to the active realm's sheikh
+          // Default the dropdown to the active realm's sheikh (fires change → loads its series)
           if (ADMIN_REALM === 'najmi' && NAJMI_SHEIKH_ID) {
             sheikhSelect.value = NAJMI_SHEIKH_ID;
             sheikhSelect.dispatchEvent(new Event('change'));
           }
-        }
-
-        const seriesRes = await fetch('/api/series');
-        const seriesData = await seriesRes.json();
-        if (seriesData.success) {
-          seriesData.series.forEach(series => {
-            const option = document.createElement('option');
-            option.value = series._id;
-            option.textContent = series.titleArabic;
-            seriesSelect.appendChild(option);
-          });
         }
       } catch (error) {
         console.error('Error loading data:', error);
