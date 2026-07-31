@@ -24,6 +24,10 @@ const connectDB = async () => {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 10000, // Fail fast: 10 second timeout for initial connection
       socketTimeoutMS: 45000,
+      // Cap the pool: mongoose defaults to 100 sockets/connection, and we run two
+      // connections (main + search). On a small instance (e.g. 512MB) that's a large,
+      // avoidable memory footprint. Override with DB_MAX_POOL if a bigger box is used.
+      maxPoolSize: parseInt(process.env.DB_MAX_POOL, 10) || 8,
       monitorCommands: true, // Emit command events for DB latency metrics (Grafana)
     });
 
