@@ -25,7 +25,10 @@ const https = require('https');
 const { URL } = require('url');
 
 const isProduction = process.env.NODE_ENV === 'production';
-const PUSH_INTERVAL_MS = 15000; // 15 seconds
+// Grafana push cadence. Every push is outbound (Render "Service-Initiated")
+// bandwidth; raise GRAFANA_PUSH_INTERVAL_MS (e.g. 60000) to trim egress on a
+// low-traffic site. Defaults to 15s to preserve existing behaviour.
+const PUSH_INTERVAL_MS = parseInt(process.env.GRAFANA_PUSH_INTERVAL_MS, 10) || 15000;
 const VISITOR_TTL_MS = 5 * 60 * 1000; // 5 minutes for "online" status
 
 // Environment configuration
