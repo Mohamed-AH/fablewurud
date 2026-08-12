@@ -12,7 +12,10 @@ const connectSearchDB = async () => {
   }
 
   try {
-    searchConnection = await mongoose.createConnection(searchUri).asPromise();
+    // Cap the search-DB pool too (mongoose defaults to 100). See config/database.js.
+    searchConnection = await mongoose.createConnection(searchUri, {
+      maxPoolSize: parseInt(process.env.SEARCH_DB_MAX_POOL, 10) || 5,
+    }).asPromise();
 
     console.log(`✅ Search MongoDB Connected: ${searchConnection.host}`);
     console.log(`📊 Search Database: ${searchConnection.name}`);

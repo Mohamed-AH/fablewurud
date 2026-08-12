@@ -60,6 +60,46 @@ const QUERY = process.argv[2] || 'الصلاة';
     console.log(`   (shortId→lecture._id ${consistent ? 'MATCHES' : 'does NOT match'} transcript.lectureId)`);
   }
 
+  // Does the SEARCH cluster still hold a (co-located) lectures collection from
+  // before the split? If so, transcript.lectureId likely matches IT, and its
+  // audioFileName can bridge to the current main-DB lecture (stable content key).
+  console.log('── search-cluster lectures (bridge candidate) ──');
+  const searchCols = (await searchConn.db.listCollections().toArray()).map(c => c.name);
+  if (searchCols.includes('lectures')) {
+    const searchLectures = searchConn.db.collection('lectures');
+    const slCount = await searchLectures.countDocuments();
+    console.log(`   search DB HAS a lectures collection: ${slCount} docs`);
+    let bridged = 0;
+    for (const t of sample) {
+      if (!t.lectureId) continue;
+      const old = await searchLectures.findOne({ _id: t.lectureId }, { projection: { audioFileName: 1 } });
+      if (old && old.audioFileName) {
+        const cur = await lectures.findOne({ audioFileName: old.audioFileName }, { projection: { _id: 1, shortId: 1 } });
+        if (cur) bridged++;
+      }
+    }
+    console.log(`   bridged via lectureId→audioFileName→main lecture: ${bridged}/${sample.length}`);
+    if (bridged) console.log('   ✅ BRIDGE WORKS — re-key transcripts by audioFileName (one-time migration).');
+  } else {
+    console.log('   search DB has NO lectures collection — bridge source unavailable here.');
+  }
+  console.log('');
+
+  // Profile the main-DB lectures so we can tell "wrong DB" from "different keying".
+  console.log('\n── main-DB lecture profile ──');
+  const lSample = await lectures.find({}, { projection: { _id: 1, shortId: 1, titleArabic: 1, audioFileName: 1 } }).limit(3).toArray();
+  lSample.forEach((l, i) => console.log(`   [${i}] _id=${l._id} shortId=${l.shortId} (type ${typeof l.shortId}) title=${(l.titleArabic || '').slice(0, 30)}`));
+  const withShort = await lectures.countDocuments({ shortId: { $exists: true, $ne: null } });
+  console.log(`   lectures with a shortId: ${withShort}/${lCount}`);
+  const nums = await lectures.find({ shortId: { $type: 'number' } }).sort({ shortId: 1 }).limit(1).toArray();
+  const numsMax = await lectures.find({ shortId: { $type: 'number' } }).sort({ shortId: -1 }).limit(1).toArray();
+  if (nums[0]) console.log(`   numeric shortId range: ${nums[0].shortId} .. ${numsMax[0].shortId}`);
+  // Does the sampled transcript's shortId exist as a STRING (type mismatch)?
+  if (s0.shortId != null) {
+    const asStr = await lectures.findOne({ shortId: String(s0.shortId) }, { projection: { _id: 1 } });
+    if (asStr) console.log(`   ⚠️  lecture with shortId as STRING "${s0.shortId}" exists — type mismatch (number vs string)`);
+  }
+
   console.log('\n──────── VERDICT ────────');
   if (idHits === sample.length) {
     console.log('✅ Join by _id works — hydration should already populate titles/links.');

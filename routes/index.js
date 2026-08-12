@@ -1157,11 +1157,21 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 Disallow: /auth/
+Disallow: /article-editor/
+# Block query-parameter crawl traps (filter/sort/search/pagination combinations
+# multiply into thousands of near-duplicate URLs and burn bandwidth). Canonical
+# content pages (/lectures/*, /series/*, /articles/*, /najmi/*) stay crawlable.
+Disallow: /*?*search=
+Disallow: /*?*page=
+Disallow: /*?*sort=
+Disallow: /*?*tab=
+Disallow: /*?*category=
+Disallow: /*?*type=
 
 # Sitemap
-Sitemap: https://rasmihassan.com/sitemap.xml
+Sitemap: https://www.rasmihassan.com/sitemap.xml
 
-# Block AI training bots
+# Block AI training / scraper bots
 User-agent: Amazonbot
 Disallow: /
 
@@ -1181,6 +1191,24 @@ User-agent: GPTBot
 Disallow: /
 
 User-agent: meta-externalagent
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: ImagesiftBot
+Disallow: /
+
+User-agent: DataForSeoBot
 Disallow: /
 `;
 
