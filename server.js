@@ -233,12 +233,30 @@ app.use((req, res, next) => {
   const hasStaticExt = staticExtensions.some(ext => req.path.endsWith(ext));
 
   if (!hasStaticExt) {
-    // Set no-cache headers for HTML entry points
-    res.set({
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    });
+    // Never cache authenticated / dynamic surfaces.
+    // /download and /stream are 302 redirects (which CDNs don't cache by default
+    // anyway). /download can mint a TIME-LIMITED signed URL (R2 presigned ~1h),
+    // so keep both uncached to be safe — /stream itself just points at the
+    // permanent R2 public URL.
+    const noStorePrefixes = ['/admin', '/auth', '/article-editor', '/api', '/search', '/download', '/stream'];
+    const isPrivate = req.method !== 'GET' ||
+      noStorePrefixes.some(p => req.path === p || req.path.startsWith(p + '/'));
+
+    if (isPrivate) {
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+    } else {
+      // Public content: let the CDN cache it (previously a blanket no-store here
+      // stopped Cloudflare from caching any path not covered by an explicit rule
+      // — legacy slug URLs, homepage param variants, etc.). Browsers revalidate
+      // each navigation (max-age=0); the CDN caches for s-maxage and may serve
+      // stale while revalidating. Cloudflare cache rules can still override with a
+      // longer edge TTL for the main content paths.
+      res.set('Cache-Control', 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400');
+    }
   }
   next();
 });
