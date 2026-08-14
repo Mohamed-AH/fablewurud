@@ -382,7 +382,12 @@ router.get('/lectures/:shortId(\\d+)/:slug_en?/:slug_ar?', async (req, res) => {
     // SEO Redirect: if slugs don't match current values, 301 redirect to canonical URL
     const correctSlugEn = lecture.slug_en || '';
     const correctSlugAr = lecture.slug_ar || '';
-    const providedSlugAr = slug_ar ? decodeURIComponent(slug_ar) : '';
+    // NOTE: slug_ar is ALREADY decoded once by Express. Do NOT decodeURIComponent
+    // again — that let double-encoded URLs (%25D8..) decode back to valid Arabic and
+    // serve 200 at a NON-canonical URL, fragmenting the CDN cache into unbounded
+    // encoding variants (a self-inflicted crawl trap). Comparing the once-decoded
+    // value means any non-canonical encoding 301s to the single canonical URL.
+    const providedSlugAr = slug_ar || '';
 
     if (slug_en !== correctSlugEn || providedSlugAr !== correctSlugAr) {
       const canonicalUrl = buildCanonicalUrl('lectures', lecture);
@@ -568,7 +573,12 @@ router.get('/sheikhs/:shortId(\\d+)/:slug_en?/:slug_ar?', async (req, res) => {
     // SEO Redirect: if slugs don't match current values, 301 redirect to canonical URL
     const correctSlugEn = sheikh.slug_en || '';
     const correctSlugAr = sheikh.slug_ar || '';
-    const providedSlugAr = slug_ar ? decodeURIComponent(slug_ar) : '';
+    // NOTE: slug_ar is ALREADY decoded once by Express. Do NOT decodeURIComponent
+    // again — that let double-encoded URLs (%25D8..) decode back to valid Arabic and
+    // serve 200 at a NON-canonical URL, fragmenting the CDN cache into unbounded
+    // encoding variants (a self-inflicted crawl trap). Comparing the once-decoded
+    // value means any non-canonical encoding 301s to the single canonical URL.
+    const providedSlugAr = slug_ar || '';
 
     if (slug_en !== correctSlugEn || providedSlugAr !== correctSlugAr) {
       const canonicalUrl = buildCanonicalUrl('sheikhs', sheikh);
@@ -722,7 +732,12 @@ router.get('/series/:shortId(\\d+)/:slug_en?/:slug_ar?', async (req, res) => {
     // SEO Redirect: if slugs don't match current values, 301 redirect to canonical URL
     const correctSlugEn = series.slug_en || '';
     const correctSlugAr = series.slug_ar || '';
-    const providedSlugAr = slug_ar ? decodeURIComponent(slug_ar) : '';
+    // NOTE: slug_ar is ALREADY decoded once by Express. Do NOT decodeURIComponent
+    // again — that let double-encoded URLs (%25D8..) decode back to valid Arabic and
+    // serve 200 at a NON-canonical URL, fragmenting the CDN cache into unbounded
+    // encoding variants (a self-inflicted crawl trap). Comparing the once-decoded
+    // value means any non-canonical encoding 301s to the single canonical URL.
+    const providedSlugAr = slug_ar || '';
 
     if (slug_en !== correctSlugEn || providedSlugAr !== correctSlugAr) {
       const canonicalUrl = buildCanonicalUrl('series', series);
