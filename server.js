@@ -255,7 +255,10 @@ app.use((req, res, next) => {
       // each navigation (max-age=0); the CDN caches for s-maxage and may serve
       // stale while revalidating. Cloudflare cache rules can still override with a
       // longer edge TTL for the main content paths.
-      res.set('Cache-Control', 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400');
+      // Browsers revalidate each navigation (max-age=0); the CDN holds it 7 days
+      // (s-maxage) and may serve stale while revalidating. Error responses (404/5xx)
+      // override this with no-store in their handlers, so they never cache.
+      res.set('Cache-Control', 'public, max-age=0, s-maxage=604800, stale-while-revalidate=86400');
     }
   }
   next();
