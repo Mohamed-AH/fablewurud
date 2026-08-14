@@ -234,7 +234,9 @@ app.use((req, res, next) => {
 
   if (!hasStaticExt) {
     // Never cache authenticated / dynamic surfaces.
-    const noStorePrefixes = ['/admin', '/auth', '/article-editor', '/api', '/search'];
+    // /download and /stream 302-redirect to storage with time-limited URLs (OCI
+    // PARs) — never cache those redirects.
+    const noStorePrefixes = ['/admin', '/auth', '/article-editor', '/api', '/search', '/download', '/stream'];
     const isPrivate = req.method !== 'GET' ||
       noStorePrefixes.some(p => req.path === p || req.path.startsWith(p + '/'));
 
