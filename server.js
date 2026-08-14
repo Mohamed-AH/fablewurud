@@ -234,8 +234,10 @@ app.use((req, res, next) => {
 
   if (!hasStaticExt) {
     // Never cache authenticated / dynamic surfaces.
-    // /download and /stream 302-redirect to storage with time-limited URLs (OCI
-    // PARs) — never cache those redirects.
+    // /download and /stream are 302 redirects (which CDNs don't cache by default
+    // anyway). /download can mint a TIME-LIMITED signed URL (R2 presigned ~1h),
+    // so keep both uncached to be safe — /stream itself just points at the
+    // permanent R2 public URL.
     const noStorePrefixes = ['/admin', '/auth', '/article-editor', '/api', '/search', '/download', '/stream'];
     const isPrivate = req.method !== 'GET' ||
       noStorePrefixes.some(p => req.path === p || req.path.startsWith(p + '/'));
