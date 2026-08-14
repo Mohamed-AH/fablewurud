@@ -255,7 +255,10 @@ app.use((req, res, next) => {
       // each navigation (max-age=0); the CDN caches for s-maxage and may serve
       // stale while revalidating. Cloudflare cache rules can still override with a
       // longer edge TTL for the main content paths.
-      res.set('Cache-Control', 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400');
+      // Browsers revalidate each navigation (max-age=0); the CDN holds it 7 days
+      // (s-maxage) and may serve stale while revalidating. Error responses (404/5xx)
+      // override this with no-store in their handlers, so they never cache.
+      res.set('Cache-Control', 'public, max-age=0, s-maxage=604800, stale-while-revalidate=86400');
     }
   }
   next();
@@ -329,6 +332,9 @@ Sentry.setupExpressErrorHandler(app);
 
 // 404 handler
 app.use((req, res) => {
+  // Never let an error response be cached (the earlier middleware marks public
+  // paths cacheable; override so a 404 can't be frozen at the CDN for its TTL).
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.status(404).send('Page not found');
 });
 
@@ -344,6 +350,9 @@ app.use(function onError(err, req, res, next) {
   if (res.headersSent) {
     return next(err);
   }
+
+  // Never cache an error response (override the public header from the middleware).
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
 
   const status = err.status || err.statusCode || 500;
   const wantsJson = req.path.startsWith('/api/') ||
