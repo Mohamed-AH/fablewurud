@@ -105,6 +105,53 @@ Prod search returned hits but with no title/audio/"go to lecture" link (unusable
 
 **Second search bug (frontend, commit `ff17e55`):** even after hydration, results rendered then vanished behind the generic "search error". Root cause was NOT the API — `renderSearchResults()` (search IIFE in `public/js/homepage.js`) called `refreshIcons()`, which is defined only in the OTHER IIFE and never exposed globally → `ReferenceError` thrown *after* the results HTML was written to the DOM, bubbling to `performSearch()`'s catch which overwrote the list with the error (screenshot showed count "20 محاضرة" + feedback prompt set, but list = error, because those run before the throw). Fixed by replacing the out-of-scope call with a guarded inline `lucide.createIcons()`. Also made the "go to lecture" link relative (`/lectures/…`) instead of hardcoded non-www `https://rasmihassan.com/…`. **Rebuilt `homepage.min.js`** (served bundle) via terser. Both the hydration fix AND this render fix are needed for search to work end-to-end.
 
+---
+
+## 🟢 ACTIVE: Transcript expansion (340 → 3,200) + search filters (started 2026-07-30)
+Full plan: **`docs/plans/transcript-import-and-search-filters.md`**. Owner is re-transcribing the whole catalogue via a 3rd party (~100 audios/day) and wants search filterable by **sheikh/realm, series, and date**. Tooling built (commit `8b56e13`); import not yet run.
+
+### Locked decisions (owner-approved)
+- **Mapping key = `audioFileName`.** Vendor names each CSV as the audio file with `.csv` (e.g. `18Fiqhmuyassar.m4a` → `18Fiqhmuyassar.csv`); join on the filename **stem** (name w/o extension). Deterministic, re-import-proof. (Confirmed: many lectures have `duration:0`, so duration-matching was never viable.)
+- **CSV columns:** `start,end,text,speaker`; `start/end` are **milliseconds**; `speaker` is a generic diarization label.
+- **`realm`** stored on each transcript, derived from `sheikhId` → sheikh `nameArabic` (`/النجمي/` ⇒ `najmi`, else `hasan`); `sheikhId` stored too. v1 filter = realm; series/date denormalized now, wired to UI later.
+- **Duration backfill = SEPARATE owner-run script** (never inline in the importer).
+
+### Schema + tooling (built)
+- `models/Transcript.js`: additive denormalized fields — `audioFileName`, `realm`, `sheikhId`, `seriesId`, `seriesTitle`, `dateRecorded`, `dateRecordedHijri` (+ indexes).
+- `scripts/audit-transcript-mapping.js` (READ-ONLY): stem-uniqueness across lectures + CSV↔lecture coverage. **Run first.**
+- `scripts/import-transcripts.js`: CSV dir → transcripts, exact stem join, enrich, ms→sec/ms. Dry-run default; `--apply`, `--skip-existing` (resumable for 100/day), `--limit`. Idempotent per lecture (replace). Writes SEARCH DB only. Verified against a real 809-row vendor CSV.
+- `scripts/update-lecture-durations-from-transcripts.js`: fills `lecture.duration` from transcript `max(endTimeMs)`; dry-run default; writes MAIN DB.
+
+### Remaining
+- Owner: run audit → dry-run → `--apply` per daily batch (first batch = 246 CSVs).
+- **Atlas Search index** on `transcripts`: `text` (lucene.arabic) + `realm`/`sheikhId`/`seriesId` as **token** + `dateRecorded` as **date**. Rebuild after bulk load.
+- **Code (after data loads):** add `compound.filter` (realm→series→date) to `performAtlasSearch` in `routes/search.js` + homepage realm toggle / series dropdown / date range.
+- Scale note: 340 lectures ≈ 181k transcript docs → 3,200 ≈ ~1.7M (~10×); confirm search-cluster tier.
+
+---
+
+## 🔧 Production ops: memory + bandwidth on Render/Cloudflare (2026-08, prod = rasmihassan.com on www)
+Prod is `wurud` (Render, `METRIC_TAG=stable`) behind **Cloudflare (free)**; audio/PDF on Cloudflare R2 (`*.r2.dev`, served by 302 redirect). This branch's fixes were deployed to prod.
+
+### OOM crash (JavaScript heap out of memory)
+Free 512MB tier OOM'd (V8 heap capped ~256MB). Fixes: upgraded to **Hobby** tier; **mongoose pool caps** (`config/database.js` `maxPoolSize:8` via `DB_MAX_POOL`; `config/searchDatabase.js` `maxPoolSize:5` via `SEARCH_DB_MAX_POOL`) — commit `59aa700`; owner set **`SENTRY_TRACES_RATE`/`SENTRY_PROFILES_RATE=0.1`** and **`GRAFANA_PUSH_INTERVAL_MS=60000`** (config knob added in `309acb5`).
+
+### Bandwidth (was ~4–5 GB/mo, mostly bots + a self-inflicted crawl trap)
+- **Crawlers:** `robots.txt` route (`routes/index.js`) — blocks query-param crawl traps (`?search=/?page=/?tab=/?category=/?type=/?sort=`) + AI/scraper bots (commit `1234f7e`). Cloudflare **Bot Fight Mode** on; bad scrapers (Bytespider/Perplexity/CCBot) read 0. **Applebot** (2.15k/day, ~38% of traffic) left ALLOWED — absorbed by the 7-day edge cache.
+- **CDN cache-buster #1 — slug double-decode (commit `3edd363`):** lectures/sheikhs/series routes did `decodeURIComponent(slug_ar)`, but Express already decodes params once. The extra decode made double-encoded URLs (`%25D8..`) match and serve **200 at non-canonical URLs**, so the same page cached under unbounded encoding variants (cache % stuck ~7.8%). Fix: compare the once-decoded param directly (`providedSlugAr = slug_ar || ''`) → variants **301 to the single canonical**. Verified live (double-encoded now 301s).
+- **CDN cache-buster #2 — blanket `no-store` (commit `3da0f1d` +follow-ups):** `server.js` sent `Cache-Control: no-store` on ALL HTML, so Cloudflare only cached rule-covered paths. Now: `no-store` only for `/admin`,`/auth`,`/article-editor`,`/api`,`/search`,`/download`,`/stream` (last two 302 to time-limited signed URLs) + non-GET; public GET pages send `public, max-age=0, s-maxage=604800, stale-while-revalidate`. **404 + central error handlers force `no-store`** so errors never cache.
+
+### Cloudflare cache rules (final)
+1. **bypass dynamic** → `/admin`,`/auth`,`/article-editor`,`/api`,`/search`,`/download`,`/stream` = Bypass.
+2. **7days public** → `not(<those prefixes>)` = Eligible for cache; **Edge TTL = "respect origin"** (origin now sends `s-maxage=7d` on 200s, `no-store` on 404/5xx/private → correct caching, errors never cached). *(Was "ignore cache-control + 7d" which froze 404s/5xx for 7 days — the DB-hiccup-at-boot risk. Switched to respect-origin.)*
+3. Cache Static Assets (kept). Old "cache homepage"/"cache content pages" **disabled** (superseded).
+- Confirmed working: content pages + legacy root-slugs `HIT`, `/admin` `DYNAMIC`, encoding variants `301`.
+
+### Known / open
+- **Cached-error cleanup:** after switching rule #2 to respect-origin, do a one-time **Purge Everything** (cached errors from the boot DB-hiccup don't self-heal). Owner had declined purge for the encoding issue (self-heals) — errors are the exception.
+- **Dead legacy root-slug URLs** (`/sayl-yqwl-218`, `/adaa-slah-almwmn-69`, `/jdydalmqalat-306`…, form `<slug>-<number>`) have **no route** → 404. If they're old indexed URLs where `<number>`=shortId, an optional `/<slug>-<shortId>` → 301 `/lectures/<shortId>` route would recover SEO. Owner decision pending.
+- Google OAuth prod: `GOOGLE_CALLBACK_URL`/`SITE_URL` must be **`https://www.rasmihassan.com`** (registered in Google console; apex is not).
+
 ### 🩹 Admin upload fixes + upstream re-sync #2 (2026-07-28)
 Owner smoke-tested prod-candidate; fixed three issues + pulled the newest upstream:
 - **R2 PDF upload — "object is locked by the bucket policy"** (`facc47b`): the Najmi bucket has **Object Lock**, so re-PUTting an existing key (raw `pdf/<originalname>`) is an overwrite of an immutable object → rejected. Fixed in `routes/admin/publications.js`: keep the clean key when free, else append a timestamp (checked via `objectExistsR2`) so we always PUT a fresh, unlocked key; `path.basename()` strips path segments. Real error now surfaced on the admin page + `captureException`. (Auth was fine — the PUT reached R2 and was rejected by *policy*, not creds.)
