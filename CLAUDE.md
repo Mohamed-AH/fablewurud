@@ -162,7 +162,7 @@ Sheikh resumed daily classes; admin adds lectures every day. Five changes (all a
 4. **Location inherit** — `quick-add-lecture` GET computes a `defaultLocation` from the series' `Schedule` entry (fallback `جامع الورود`); POST uses admin override else re-derives. Editable field in the form. NOTE: implemented for the **quick-add** flow (the add-to-existing-series path); the main `/admin/upload` + `/api/lectures` create path was left unchanged.
 5. **Arabic ordinal titles** — `utils/arabicOrdinal.js` (`arabicOrdinalMasculine`, 1–300, else `null`). quick-add title = `${series.titleArabic} - ${ordinal}` (e.g. "… - الخامس عشر"), numeral fallback >300; drops "الدرس". English stays `Lesson N`. A compact copy of the fn is mirrored in `views/admin/quick-add-lecture.ejs` for the live preview — **keep the two in sync**. Only affects NEW lectures.
 
-**Verify in dev/E2E before relying on prod:** node -c clean on all touched files; EJS couldn't be compiled here (no node_modules) — smoke-test `/admin/manage` (pagination + search), `/admin/schedule/add` (realm), and a quick-add (location + ordinal preview + saved title).
+**Status: ✅ CI passed + DEPLOYED to prod (2026-09).** The quick-add integration test (`adminExtended.test.js`) was updated for the new ordinal title (`الثالث` instead of `الدرس 3`) — commit `3d8e788`. Regression check for the manage-pagination render shape (1 lecture → page 1) confirmed green.
 
 ### Known / open
 - **Cached-error cleanup:** after switching rule #2 to respect-origin, do a one-time **Purge Everything** (cached errors from the boot DB-hiccup don't self-heal). Owner had declined purge for the encoding issue (self-heals) — errors are the exception.
