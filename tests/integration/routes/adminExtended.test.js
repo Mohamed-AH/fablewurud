@@ -273,7 +273,9 @@ describe('Admin Routes Extended Tests', () => {
 
       const lecture = await Lecture.findOne({ seriesId: series._id });
       expect(lecture.titleArabic).toContain('سلسلة التوحيد');
-      expect(lecture.titleArabic).toContain('الدرس 3');
+      // Auto-title now uses the Arabic ordinal word (drops the "الدرس" prefix).
+      expect(lecture.titleArabic).toContain('الثالث');
+      expect(lecture.titleArabic).not.toContain('الدرس');
       expect(lecture.lectureNumber).toBe(3);
     });
 
