@@ -205,9 +205,21 @@
         </div>
 
         <div class="form-group">
+          <label for="location"><%= adminLocale === 'ar' ? 'المكان' : 'Location' %></label>
+          <input
+            type="text"
+            id="location"
+            name="location"
+            value="<%= typeof defaultLocation !== 'undefined' ? defaultLocation : '' %>"
+            class="form-control"
+          >
+          <div class="hint"><%= adminLocale === 'ar' ? 'موروث من جدول السلسلة — يمكن تعديله' : 'Inherited from the series schedule — you can override it' %></div>
+        </div>
+
+        <div class="form-group">
           <label><%= adminLocale === 'ar' ? 'معاينة العنوان' : 'Title Preview' %></label>
           <div class="preview-title" id="titlePreview">
-            <strong><%= series.titleArabic %> - <%= adminLocale === 'ar' ? 'الدرس' : 'Lecture' %> <%= nextLectureNumber %></strong>
+            <strong><%= series.titleArabic %> - <%= nextLectureNumber %></strong>
           </div>
         </div>
 
@@ -231,8 +243,6 @@
 
   <script>
     const seriesTitle = '<%- JSON.stringify(series.titleArabic || "").slice(1, -1) %>';
-    const isArabic = '<%= adminLocale %>' === 'ar';
-    const lectureLabel = isArabic ? 'الدرس' : 'Lecture';
 
     function escapeHtml(text) {
       const div = document.createElement('div');
@@ -240,17 +250,45 @@
       return div.innerHTML;
     }
 
+    // Arabic masculine ordinals 1-300 — mirror of utils/arabicOrdinal.js
+    // (keep the two in sync). The stored titleArabic uses this word form.
+    function arabicOrdinalMasculine(n) {
+      if (!Number.isInteger(n) || n < 1 || n > 300) return null;
+      const onesStd = ['', 'الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن', 'التاسع'];
+      const onesCmp = ['', 'الحادي', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن', 'التاسع'];
+      const tens = ['', '', 'العشرون', 'الثلاثون', 'الأربعون', 'الخمسون', 'الستون', 'السبعون', 'الثمانون', 'التسعون'];
+      function under100(x, cmp) {
+        if (x <= 9) return cmp ? onesCmp[x] : onesStd[x];
+        if (x === 10) return 'العاشر';
+        if (x <= 19) return onesCmp[x - 10] + ' عشر';
+        const t = Math.floor(x / 10), u = x % 10;
+        if (u === 0) return tens[t];
+        return onesCmp[u] + ' و' + tens[t];
+      }
+      if (n < 100) return under100(n, false);
+      if (n === 100) return 'المائة';
+      if (n < 200) return under100(n - 100, true) + ' بعد المائة';
+      if (n === 200) return 'المائتان';
+      if (n < 300) return under100(n - 200, true) + ' بعد المائتين';
+      return 'الثلاثمائة';
+    }
+
     function updatePreview() {
-      const lectureNumber = document.getElementById('lectureNumber').value;
+      const raw = document.getElementById('lectureNumber').value;
+      const num = parseInt(raw, 10);
       const titleSuffix = document.getElementById('titleSuffix').value.trim();
 
-      let preview = seriesTitle + ' - ' + lectureLabel + ' ' + lectureNumber;
+      // Mirrors the stored titleArabic: ordinal word (1-300), else plain numeral.
+      const numberPart = arabicOrdinalMasculine(num) || (raw || '');
+      let preview = seriesTitle + ' - ' + numberPart;
       if (titleSuffix) {
         preview += ' - ' + titleSuffix;
       }
 
       document.getElementById('titlePreview').innerHTML = '<strong>' + escapeHtml(preview) + '</strong>';
     }
+
+    document.addEventListener('DOMContentLoaded', updatePreview);
   </script>
 </body>
 </html>
