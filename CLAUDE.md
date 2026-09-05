@@ -154,6 +154,16 @@ Sheikh resumed regular classes → the site is now updated **daily** (owner adds
 - **After any change like this, do a one-time Purge Everything** to drop the pages already cached under the old (long) header — they keep their original TTL until evicted; the new header only applies to responses served *after* deploy.
 - **Optional future upgrade** (if ~5 min isn't fast enough): auto-purge Cloudflare on publish via the CF API (`CF_API_TOKEN` + `CF_ZONE_ID`) from `invalidateHomepageCache()` — purge by exact canonical URL (free tier: no wildcard purge, 30 URLs/call). Not built; tiered TTL covers the daily cadence.
 
+### 🛠️ Admin usability + perf for daily publishing (2026-09, commit `3f86c0d`)
+Sheikh resumed daily classes; admin adds lectures every day. Five changes (all additive; no public-route or existing-data impact):
+1. **/admin/manage perf** — was loading ALL ~1.7k lecture rows (2.58MB HTML, ~1.8s) + all series every request (diagnostic: COLLSCAN + in-memory blocking sort). Now **server-side paginated (50/page) + title/series search box** (`?page=`, `?q=`). Added `Lecture` indexes `{createdAt:-1}` + `{sheikhId:1,createdAt:-1}` (autoIndex on). **Dashboard** stats (`totalPlays`/`totalDownloads` + 6 counts) were 8 sequential scans/view → now `Promise.all` + `cache.getOrSet('admin:dashboard:stats', 60s)`.
+2. **Schedule add/edit realm scope** — `/admin/schedule/add` + `/schedule/:id/edit` series dropdown now filtered by `adminRealm` (edit keeps the item's current series visible even if cross-realm).
+3. **Scheduled-first** — `/admin/manage` series list floats series that appear in the weekly `Schedule` to the top + shows a "مجدول/Scheduled" badge.
+4. **Location inherit** — `quick-add-lecture` GET computes a `defaultLocation` from the series' `Schedule` entry (fallback `جامع الورود`); POST uses admin override else re-derives. Editable field in the form. NOTE: implemented for the **quick-add** flow (the add-to-existing-series path); the main `/admin/upload` + `/api/lectures` create path was left unchanged.
+5. **Arabic ordinal titles** — `utils/arabicOrdinal.js` (`arabicOrdinalMasculine`, 1–300, else `null`). quick-add title = `${series.titleArabic} - ${ordinal}` (e.g. "… - الخامس عشر"), numeral fallback >300; drops "الدرس". English stays `Lesson N`. A compact copy of the fn is mirrored in `views/admin/quick-add-lecture.ejs` for the live preview — **keep the two in sync**. Only affects NEW lectures.
+
+**Verify in dev/E2E before relying on prod:** node -c clean on all touched files; EJS couldn't be compiled here (no node_modules) — smoke-test `/admin/manage` (pagination + search), `/admin/schedule/add` (realm), and a quick-add (location + ordinal preview + saved title).
+
 ### Known / open
 - **Cached-error cleanup:** after switching rule #2 to respect-origin, do a one-time **Purge Everything** (cached errors from the boot DB-hiccup don't self-heal). Owner had declined purge for the encoding issue (self-heals) — errors are the exception.
 - **Dead legacy root-slug URLs** (`/sayl-yqwl-218`, `/adaa-slah-almwmn-69`, `/jdydalmqalat-306`…, form `<slug>-<number>`) have **no route** → 404. If they're old indexed URLs where `<number>`=shortId, an optional `/<slug>-<shortId>` → 301 `/lectures/<shortId>` route would recover SEO. Owner decision pending.
