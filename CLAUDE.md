@@ -145,7 +145,14 @@ Free 512MB tier OOM'd (V8 heap capped ~256MB). Fixes: upgraded to **Hobby** tier
 1. **bypass dynamic** → `/admin`,`/auth`,`/article-editor`,`/api`,`/search`,`/download`,`/stream` = Bypass.
 2. **7days public** → `not(<those prefixes>)` = Eligible for cache; **Edge TTL = "respect origin"** (origin now sends `s-maxage=7d` on 200s, `no-store` on 404/5xx/private → correct caching, errors never cached). *(Was "ignore cache-control + 7d" which froze 404s/5xx for 7 days — the DB-hiccup-at-boot risk. Switched to respect-origin.)*
 3. Cache Static Assets (kept). Old "cache homepage"/"cache content pages" **disabled** (superseded).
-- Confirmed working: content pages + legacy root-slugs `HIT`, `/admin` `DYNAMIC`, encoding variants `301`.
+- Confirmed working: content pages + legacy root-slugs `HIT`, `/admin` `DYNAMIC`, encoding variants `301`. Cache ratio rose 7.8% → ~30% after the encoding fix + respect-origin.
+
+### 🔄 Tiered edge TTL for daily updates (2026-09, commit `558224e`)
+Sheikh resumed regular classes → the site is now updated **daily** (owner adds lectures via admin). The blanket `s-maxage=604800` (7d) meant Cloudflare kept serving week-old listings; new lectures didn't appear until the 7-day edge cache expired or was purged. Split the public cache-control in `server.js` into two tiers (rule #2 = respect-origin, so the app drives TTL — no dashboard change):
+- **FRESH** (`s-maxage=300, swr=600`): `/` (homepage), `/browse`, `/series/*` (list **and** every series detail — a new lecture joins its list), `/sheikhs/*`, `/articles` (list), `/sitemap.xml`. New content surfaces at the edge within ~5 min, no manual purge.
+- **LONG** (`s-maxage=604800, swr=86400`): individual lecture/article **detail** pages + the static `/najmi/*` archive — effectively immutable and the bulk of crawler traffic, so they keep the 7-day TTL that protects origin bandwidth.
+- **After any change like this, do a one-time Purge Everything** to drop the pages already cached under the old (long) header — they keep their original TTL until evicted; the new header only applies to responses served *after* deploy.
+- **Optional future upgrade** (if ~5 min isn't fast enough): auto-purge Cloudflare on publish via the CF API (`CF_API_TOKEN` + `CF_ZONE_ID`) from `invalidateHomepageCache()` — purge by exact canonical URL (free tier: no wildcard purge, 30 URLs/call). Not built; tiered TTL covers the daily cadence.
 
 ### Known / open
 - **Cached-error cleanup:** after switching rule #2 to respect-origin, do a one-time **Purge Everything** (cached errors from the boot DB-hiccup don't self-heal). Owner had declined purge for the encoding issue (self-heals) — errors are the exception.
