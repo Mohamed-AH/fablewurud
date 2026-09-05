@@ -70,7 +70,12 @@
           <tbody>
             <% series.forEach(s => { %>
               <tr>
-                <td><%= s.titleArabic %></td>
+                <td>
+                  <%= s.titleArabic %>
+                  <% if (s.isScheduled) { %>
+                    <span class="badge badge-success" style="font-size:11px;">📅 <%= adminLocale === 'ar' ? 'مجدول' : 'Scheduled' %></span>
+                  <% } %>
+                </td>
                 <td><%= s.titleEnglish || '-' %></td>
                 <td><%= s.sheikhId?.nameArabic || '-' %></td>
                 <td><%= translateCategory(s.category) || '-' %></td>
@@ -98,7 +103,21 @@
 
     <!-- Lectures Section -->
     <section class="admin-section">
-      <h2><%= t('admin_lectures') %> (<%= lectures.length %>)</h2>
+      <div class="section-header">
+        <h2><%= t('admin_lectures') %> (<%= pagination.totalLectures %>)</h2>
+      </div>
+
+      <!-- Search (server-side) -->
+      <form method="get" action="/admin/manage" style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="text" name="q" value="<%= searchQuery %>"
+          placeholder="<%= adminLocale === 'ar' ? 'ابحث بعنوان الدرس أو السلسلة…' : 'Search by lecture or series title…' %>"
+          class="form-control" style="flex:1;min-width:220px;">
+        <button type="submit" class="btn btn-primary">🔍 <%= adminLocale === 'ar' ? 'بحث' : 'Search' %></button>
+        <% if (searchQuery) { %>
+          <a href="/admin/manage" class="btn btn-secondary"><%= adminLocale === 'ar' ? 'إلغاء' : 'Clear' %></a>
+        <% } %>
+      </form>
+
       <% if (lectures.length > 0) { %>
         <table class="admin-table">
           <thead>
@@ -136,9 +155,27 @@
             <% }) %>
           </tbody>
         </table>
+
+        <!-- Pagination -->
+        <% if (pagination.totalPages > 1) { %>
+          <% var _q = searchQuery ? ('&q=' + encodeURIComponent(searchQuery)) : ''; %>
+          <div style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:16px;flex-wrap:wrap;">
+            <% if (pagination.currentPage > 1) { %>
+              <a class="btn btn-secondary" href="/admin/manage?page=<%= pagination.currentPage - 1 %><%= _q %>"><%= adminLocale === 'ar' ? '‹ السابق' : '‹ Prev' %></a>
+            <% } %>
+            <span style="font-weight:600;">
+              <%= adminLocale === 'ar'
+                ? ('صفحة ' + pagination.currentPage + ' من ' + pagination.totalPages)
+                : ('Page ' + pagination.currentPage + ' of ' + pagination.totalPages) %>
+            </span>
+            <% if (pagination.currentPage < pagination.totalPages) { %>
+              <a class="btn btn-secondary" href="/admin/manage?page=<%= pagination.currentPage + 1 %><%= _q %>"><%= adminLocale === 'ar' ? 'التالي ›' : 'Next ›' %></a>
+            <% } %>
+          </div>
+        <% } %>
       <% } else { %>
         <div class="empty-state">
-          <p><%= t('admin_no_lectures') %></p>
+          <p><%= searchQuery ? (adminLocale === 'ar' ? 'لا توجد نتائج مطابقة للبحث.' : 'No lectures match your search.') : t('admin_no_lectures') %></p>
         </div>
       <% } %>
     </section>

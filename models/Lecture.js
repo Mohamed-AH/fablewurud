@@ -150,6 +150,13 @@ lectureSchema.index({ published: 1, createdAt: -1 });
 lectureSchema.index({ sheikhId: 1, seriesId: 1, lectureNumber: 1 });
 lectureSchema.index({ featured: 1, published: 1 });
 
+// Admin /manage listing: newest-first, optionally scoped by realm (sheikhId).
+// { createdAt: -1 } lets the Hasan realm ($ne najmi) and the unscoped view scan
+// in sort order instead of doing a COLLSCAN + in-memory blocking sort;
+// { sheikhId: 1, createdAt: -1 } serves the Najmi realm (equality + sort).
+lectureSchema.index({ createdAt: -1 });
+lectureSchema.index({ sheikhId: 1, createdAt: -1 });
+
 // Optimized index for series lecture sorting (eliminates in-memory blocking sort)
 lectureSchema.index({
   seriesId: 1,

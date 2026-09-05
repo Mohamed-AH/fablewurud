@@ -93,37 +93,52 @@ router.get('/dashboard', isAdmin, async (req, res) => {
     const { Lecture, Sheikh, Series, Article, Publication } = require('../../models');
     const { getNajmiSheikh } = require('../../utils/najmiSheikh');
 
-    // Get statistics
-    const stats = {
-      totalLectures: await Lecture.countDocuments(),
-      publishedLectures: await Lecture.countDocuments({ published: true }),
-      totalSheikhs: await Sheikh.countDocuments(),
-      totalSeries: await Series.countDocuments(),
-      totalArticles: await Article.countDocuments(),
-      totalPublications: await Publication.countDocuments(),
-      totalPlays: await Lecture.aggregate([
-        { $group: { _id: null, total: { $sum: '$playCount' } } }
-      ]).then(result => result[0]?.total || 0),
-      totalDownloads: await Lecture.aggregate([
-        { $group: { _id: null, total: { $sum: '$downloadCount' } } }
-      ]).then(result => result[0]?.total || 0)
-    };
-
-    // Per-realm breakdown (Najmi vs default Hasan)
-    const najmi = await getNajmiSheikh();
-    let realmStats = null;
-    if (najmi) {
-      const [nLect, nSeries, nPubs] = await Promise.all([
-        Lecture.countDocuments({ sheikhId: najmi._id }),
-        Series.countDocuments({ sheikhId: najmi._id }),
-        Publication.countDocuments({ sheikhId: najmi._id })
+    // Get statistics. These are expensive collection-wide scans/aggregations
+    // that ran sequentially on every dashboard view; cache them briefly (60s)
+    // and compute them in parallel on a miss.
+    const stats = await cache.getOrSet('admin:dashboard:stats', async () => {
+      const [
+        totalLectures, publishedLectures, totalSheikhs, totalSeries,
+        totalArticles, totalPublications, playsAgg, downloadsAgg
+      ] = await Promise.all([
+        Lecture.countDocuments(),
+        Lecture.countDocuments({ published: true }),
+        Sheikh.countDocuments(),
+        Series.countDocuments(),
+        Article.countDocuments(),
+        Publication.countDocuments(),
+        Lecture.aggregate([{ $group: { _id: null, total: { $sum: '$playCount' } } }]),
+        Lecture.aggregate([{ $group: { _id: null, total: { $sum: '$downloadCount' } } }])
       ]);
-      realmStats = {
-        najmi: { lectures: nLect, series: nSeries, publications: nPubs },
-        hasan: { lectures: stats.totalLectures - nLect, series: stats.totalSeries - nSeries }
+
+      const s = {
+        totalLectures,
+        publishedLectures,
+        totalSheikhs,
+        totalSeries,
+        totalArticles,
+        totalPublications,
+        totalPlays: playsAgg[0]?.total || 0,
+        totalDownloads: downloadsAgg[0]?.total || 0
       };
-    }
-    stats.realmStats = realmStats;
+
+      // Per-realm breakdown (Najmi vs default Hasan)
+      const najmi = await getNajmiSheikh();
+      let realmStats = null;
+      if (najmi) {
+        const [nLect, nSeries, nPubs] = await Promise.all([
+          Lecture.countDocuments({ sheikhId: najmi._id }),
+          Series.countDocuments({ sheikhId: najmi._id }),
+          Publication.countDocuments({ sheikhId: najmi._id })
+        ]);
+        realmStats = {
+          najmi: { lectures: nLect, series: nSeries, publications: nPubs },
+          hasan: { lectures: s.totalLectures - nLect, series: s.totalSeries - nSeries }
+        };
+      }
+      s.realmStats = realmStats;
+      return s;
+    }, 60);
 
     // Get recent lectures
     const recentLectures = await Lecture.find()
@@ -223,7 +238,7 @@ router.get('/duration-status', isAdmin, async (req, res) => {
 // @access  Private (Admin only)
 router.get('/manage', isAdmin, async (req, res) => {
   try {
-    const { Lecture, Series } = require('../../models');
+    const { Lecture, Series, Schedule } = require('../../models');
 
     // Scope to the active realm: Najmi → only the Najmi sheikh; Hasan → everyone else
     const najmiSheikh = await require('../../utils/najmiSheikh').getNajmiSheikh();
@@ -234,15 +249,54 @@ router.get('/manage', isAdmin, async (req, res) => {
         : { sheikhId: { $ne: najmiSheikh._id } };
     }
 
-    const lectures = await Lecture.find(realmFilter)
-      .sort({ createdAt: -1 })
-      .populate('sheikhId', 'nameArabic nameEnglish')
-      .populate('seriesId', 'titleArabic titleEnglish')
-      .lean();
-
+    // --- Series list (all for the realm) ---
     const series = await Series.find(realmFilter)
       .sort({ createdAt: -1 })
       .populate('sheikhId', 'nameArabic nameEnglish')
+      .lean();
+
+    // Float series that are in the weekly schedule to the top for quick access
+    // when adding new lessons (they keep newest-first order within each group).
+    const scheduledIds = new Set(
+      (await Schedule.find().select('seriesId').lean())
+        .map(s => s.seriesId && String(s.seriesId))
+        .filter(Boolean)
+    );
+    series.forEach(s => { s.isScheduled = scheduledIds.has(String(s._id)); });
+    series.sort((a, b) => (b.isScheduled === true) - (a.isScheduled === true));
+
+    // --- Lectures: server-side pagination + search (was: load all ~1.7k rows) ---
+    const PAGE_SIZE = 50;
+    const requestedPage = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const searchQuery = (req.query.q || '').trim();
+
+    const lectureQuery = { ...realmFilter };
+    if (searchQuery) {
+      const safe = escapeRegex(searchQuery);
+      const rx = { $regex: safe, $options: 'i' };
+      const jsRx = new RegExp(safe, 'i');
+      // Also match lectures whose series title matches the term (series already
+      // fetched + realm-scoped above, so no extra DB round-trip).
+      const matchingSeriesIds = series
+        .filter(s => (s.titleArabic && jsRx.test(s.titleArabic)) ||
+                     (s.titleEnglish && jsRx.test(s.titleEnglish)))
+        .map(s => s._id);
+      lectureQuery.$or = [{ titleArabic: rx }, { titleEnglish: rx }];
+      if (matchingSeriesIds.length) {
+        lectureQuery.$or.push({ seriesId: { $in: matchingSeriesIds } });
+      }
+    }
+
+    const totalLectures = await Lecture.countDocuments(lectureQuery);
+    const totalPages = Math.max(1, Math.ceil(totalLectures / PAGE_SIZE));
+    const currentPage = Math.min(requestedPage, totalPages);
+
+    const lectures = await Lecture.find(lectureQuery)
+      .sort({ createdAt: -1 })
+      .skip((currentPage - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE)
+      .populate('sheikhId', 'nameArabic nameEnglish')
+      .populate('seriesId', 'titleArabic titleEnglish')
       .lean();
 
     res.render('admin/manage', {
@@ -250,7 +304,9 @@ router.get('/manage', isAdmin, async (req, res) => {
       user: req.user,
       lectures,
       series,
-      adminRealm: res.locals.adminRealm
+      adminRealm: res.locals.adminRealm,
+      searchQuery,
+      pagination: { currentPage, totalPages, totalLectures, pageSize: PAGE_SIZE }
     });
   } catch (error) {
     console.error('Manage error:', error);
@@ -672,7 +728,7 @@ router.post('/series/:id/reorder-lectures', isAdmin, async (req, res) => {
 // @access  Private (Admin only)
 router.get('/series/:id/quick-add-lecture', isAdmin, async (req, res) => {
   try {
-    const { Series, Lecture } = require('../../models');
+    const { Series, Lecture, Schedule } = require('../../models');
 
     const series = await Series.findById(req.params.id)
       .populate('sheikhId', 'nameArabic nameEnglish')
@@ -693,12 +749,21 @@ router.get('/series/:id/quick-add-lecture', isAdmin, async (req, res) => {
     // Get total lecture count for sortOrder
     const lectureCount = await Lecture.countDocuments({ seriesId: series._id });
 
+    // Inherit the default location from the series' schedule entry (if any),
+    // falling back to the Masjid Al-Wurud default. Admin can override per lecture.
+    const sched = await Schedule.findOne({ seriesId: series._id })
+      .sort({ isActive: -1, sortOrder: 1 })
+      .select('location')
+      .lean();
+    const defaultLocation = (sched && sched.location) || 'جامع الورود';
+
     res.render('admin/quick-add-lecture', {
       title: 'إضافة درس سريع',
       user: req.user,
       series,
       nextLectureNumber,
       nextSortOrder: lectureCount,
+      defaultLocation,
       today: new Date().toISOString().split('T')[0]
     });
   } catch (error) {
@@ -713,8 +778,9 @@ router.get('/series/:id/quick-add-lecture', isAdmin, async (req, res) => {
 // @access  Private (Admin only)
 router.post('/series/:id/quick-add-lecture', isAdmin, async (req, res) => {
   try {
-    const { Series, Lecture } = require('../../models');
+    const { Series, Lecture, Schedule } = require('../../models');
     const { generateSlug } = require('../../utils/slugify');
+    const { arabicOrdinalMasculine } = require('../../utils/arabicOrdinal');
 
     const series = await Series.findById(req.params.id)
       .populate('sheikhId')
@@ -726,10 +792,26 @@ router.post('/series/:id/quick-add-lecture', isAdmin, async (req, res) => {
 
     const { lectureNumber, dateRecorded, titleSuffix, notes } = req.body;
 
-    // Build title: Series Title - الدرس X (or with suffix)
-    let titleArabic = `${series.titleArabic} - الدرس ${lectureNumber}`;
+    // Build title: "Series Title - <Arabic ordinal>" (e.g. "… - الخامس عشر").
+    // For numbers outside the ordinal range (1-300), fall back to a plain numeral.
+    const lectureNumInt = parseInt(lectureNumber, 10);
+    const ordinal = arabicOrdinalMasculine(lectureNumInt);
+    let titleArabic = ordinal
+      ? `${series.titleArabic} - ${ordinal}`
+      : `${series.titleArabic} - ${lectureNumber}`;
     if (titleSuffix && titleSuffix.trim()) {
       titleArabic += ` - ${titleSuffix.trim()}`;
+    }
+
+    // Location: admin override wins; otherwise inherit from the series' schedule
+    // entry, falling back to the Masjid Al-Wurud default.
+    let location = (req.body.location && req.body.location.trim()) || '';
+    if (!location) {
+      const sched = await Schedule.findOne({ seriesId: series._id })
+        .sort({ isActive: -1, sortOrder: 1 })
+        .select('location')
+        .lean();
+      location = (sched && sched.location) || 'جامع الورود';
     }
 
     // Generate slug and ensure uniqueness
@@ -761,6 +843,7 @@ router.post('/series/:id/quick-add-lecture', isAdmin, async (req, res) => {
       sortOrder: parseInt(req.body.sortOrder) || 0,
       dateRecorded: recordedDate,
       dateRecordedHijri: hijriDate,
+      location,
       notes: notes || '',
       slug,
       // Store suggested filename in metadata for later audio upload
@@ -2078,7 +2161,17 @@ router.get('/schedule/add', isAdmin, async (req, res) => {
   try {
     const { Series } = require('../../models');
 
-    const seriesList = await Series.find()
+    // Scope the series dropdown to the active admin realm so the two scholars'
+    // series never mix (matches /admin/manage behaviour).
+    const najmiSheikh = await require('../../utils/najmiSheikh').getNajmiSheikh();
+    let realmFilter = {};
+    if (najmiSheikh) {
+      realmFilter = res.locals.adminRealm === 'najmi'
+        ? { sheikhId: najmiSheikh._id }
+        : { sheikhId: { $ne: najmiSheikh._id } };
+    }
+
+    const seriesList = await Series.find(realmFilter)
       .sort({ titleArabic: 1 })
       .lean();
 
@@ -2154,7 +2247,20 @@ router.get('/schedule/:id/edit', isAdmin, async (req, res) => {
       return res.redirect('/admin/schedule?error=not_found');
     }
 
-    const seriesList = await Series.find()
+    // Scope to the active realm, but always keep the item's current series in the
+    // list so an existing cross-realm assignment doesn't silently disappear.
+    const najmiSheikh = await require('../../utils/najmiSheikh').getNajmiSheikh();
+    let realmFilter = {};
+    if (najmiSheikh) {
+      realmFilter = res.locals.adminRealm === 'najmi'
+        ? { sheikhId: najmiSheikh._id }
+        : { sheikhId: { $ne: najmiSheikh._id } };
+    }
+    const seriesQuery = scheduleItem.seriesId
+      ? { $or: [realmFilter, { _id: scheduleItem.seriesId }] }
+      : realmFilter;
+
+    const seriesList = await Series.find(seriesQuery)
       .sort({ titleArabic: 1 })
       .lean();
 
