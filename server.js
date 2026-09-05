@@ -253,12 +253,33 @@ app.use((req, res, next) => {
       // stopped Cloudflare from caching any path not covered by an explicit rule
       // — legacy slug URLs, homepage param variants, etc.). Browsers revalidate
       // each navigation (max-age=0); the CDN caches for s-maxage and may serve
-      // stale while revalidating. Cloudflare cache rules can still override with a
-      // longer edge TTL for the main content paths.
-      // Browsers revalidate each navigation (max-age=0); the CDN holds it 7 days
-      // (s-maxage) and may serve stale while revalidating. Error responses (404/5xx)
-      // override this with no-store in their handlers, so they never cache.
-      res.set('Cache-Control', 'public, max-age=0, s-maxage=604800, stale-while-revalidate=86400');
+      // stale while revalidating. Error responses (404/5xx) override this with
+      // no-store in their handlers, so they never cache.
+      //
+      // Tiered edge TTL (Cloudflare rule #2 respects origin cache-control):
+      //   - FRESH pages change whenever a lecture is published — homepage, browse,
+      //     the series LIST and every series DETAIL (a new lecture joins its list),
+      //     sheikh pages (lecture counts/recent), the articles list, and the
+      //     sitemap. Short TTL so daily updates surface within minutes without a
+      //     manual purge.
+      //   - EVERYTHING ELSE (individual lecture/article detail pages, the static
+      //     Najmi archive) is effectively immutable once published and is what
+      //     crawlers request in bulk, so it keeps a long edge TTL to protect
+      //     origin bandwidth.
+      const freshExact = ['/', '/articles', '/sitemap.xml'];
+      const freshPrefixes = ['/browse', '/series', '/sheikhs'];
+      const isFresh = freshExact.includes(req.path) ||
+        freshPrefixes.some(p => req.path === p || req.path.startsWith(p + '/'));
+
+      if (isFresh) {
+        // ~5 min fresh at the edge, may serve stale up to 10 min while it
+        // revalidates in the background — new lectures appear quickly.
+        res.set('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=600');
+      } else {
+        // Immutable/long-tail — hold 7 days at the edge, serve stale while
+        // revalidating. This is where the bandwidth savings live.
+        res.set('Cache-Control', 'public, max-age=0, s-maxage=604800, stale-while-revalidate=86400');
+      }
     }
   }
   next();
