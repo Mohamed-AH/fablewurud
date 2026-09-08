@@ -162,7 +162,14 @@ Sheikh resumed daily classes; admin adds lectures every day. Five changes (all a
 4. **Location inherit** — `quick-add-lecture` GET computes a `defaultLocation` from the series' `Schedule` entry (fallback `جامع الورود`); POST uses admin override else re-derives. Editable field in the form. NOTE: implemented for the **quick-add** flow (the add-to-existing-series path); the main `/admin/upload` + `/api/lectures` create path was left unchanged.
 5. **Arabic ordinal titles** — `utils/arabicOrdinal.js` (`arabicOrdinalMasculine`, 1–300, else `null`). quick-add title = `${series.titleArabic} - ${ordinal}` (e.g. "… - الخامس عشر"), numeral fallback >300; drops "الدرس". English stays `Lesson N`. A compact copy of the fn is mirrored in `views/admin/quick-add-lecture.ejs` for the live preview — **keep the two in sync**. Only affects NEW lectures.
 
-**Verify in dev/E2E before relying on prod:** node -c clean on all touched files; EJS couldn't be compiled here (no node_modules) — smoke-test `/admin/manage` (pagination + search), `/admin/schedule/add` (realm), and a quick-add (location + ordinal preview + saved title).
+**Status: ✅ CI passed + DEPLOYED to prod (2026-09).** The quick-add integration test (`adminExtended.test.js`) was updated for the new ordinal title (`الثالث` instead of `الدرس 3`) — commit `3d8e788`. Regression check for the manage-pagination render shape (1 lecture → page 1) confirmed green.
+
+### 📊 Realm-specific /admin/analytics (2026-09, commit `0663b5c`)
+Analytics now follows the top-bar scholar toggle (`res.locals.adminRealm`), like `/admin/manage`. No schema change / migration — both splits run on existing data:
+- **Lecture stats** (total plays/downloads, top lectures, top downloads) filtered by `sheikhId` via a `realmFilter` threaded into the `middleware/analytics.js` helpers (`getAnalyticsSummary(realmFilter, pathFilter)`, `getTopLectures(limit, realmFilter)`, `getTopDownloads(limit, realmFilter)`).
+- **Page-view stats** (summary totals, top pages, 30-day chart) filtered by **path prefix** — Najmi = `page` matches `/^\/najmi/`, Hasan = `$not` of it. `PageView` statics `getSummary`/`getTopPages`/`getViewsInRange` gained an optional trailing `pathFilter = {}` (backward-compatible; existing callers/tests unchanged).
+- Route `/admin/analytics` builds `realmFilter` + `pathFilter` from `adminRealm` + `getNajmiSheikh()` and passes them through; view got a realm banner + a note that the **public-visibility Settings stay site-wide** (only the figures are per-realm).
+- **Known limitation (accepted):** `trackPageView` classifies `pageType` only for Hasan routes, so a Najmi "views by type" breakdown reads mostly `other`. Fixing that (classify `/najmi/*` subtypes + stamp a realm field) is a separate forward-only follow-up — not done.
 
 ### Known / open
 - **Cached-error cleanup:** after switching rule #2 to respect-origin, do a one-time **Purge Everything** (cached errors from the boot DB-hiccup don't self-heal). Owner had declined purge for the encoding issue (self-heals) — errors are the exception.

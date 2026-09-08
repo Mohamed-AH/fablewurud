@@ -163,6 +163,13 @@
   <main class="admin-container">
     <h1 class="page-title"><%= t('admin_analytics') %></h1>
 
+    <% var _aRealm = (typeof adminRealm !== 'undefined') ? adminRealm : 'hasan'; %>
+    <div style="padding:9px 16px;border-radius:8px;margin-bottom:18px;font-weight:600;font-size:13px;<%= _aRealm === 'najmi' ? 'background:#14231D;color:#A8CFC2;' : 'background:#2C1508;color:#DEC99A;' %>">
+      <%= _aRealm === 'najmi'
+        ? (adminLocale === 'ar' ? '🟢 إحصاءات الشيخ أحمد النجمي فقط — بدِّل العالِم من الأعلى.' : '🟢 Sheikh Ahmad al-Najmi statistics only — switch scholar from the top bar.')
+        : (adminLocale === 'ar' ? '🟡 إحصاءات الشيخ حسن فقط — بدِّل العالِم من الأعلى.' : '🟡 Sheikh Hasan statistics only — switch scholar from the top bar.') %>
+    </div>
+
     <!-- Overview Stats -->
     <div class="stats-grid">
       <div class="stat-card">
@@ -291,6 +298,9 @@
     <!-- Visibility Settings -->
     <div class="section">
       <h2><%= adminLocale === 'ar' ? '⚙️ إعدادات ظهور الإحصائيات العامة' : '⚙️ Public Stats Visibility' %></h2>
+      <p style="margin-bottom: 8px; color: #999; font-size: 12px;">
+        <%= adminLocale === 'ar' ? 'ℹ️ هذه الإعدادات عامة للموقع كله (ليست خاصة بعالِم)؛ الأرقام أعلاه فقط تتبع العالِم المحدد.' : 'ℹ️ These settings are site-wide (not per-scholar); only the figures above follow the selected scholar.' %>
+      </p>
       <p style="margin-bottom: 16px; color: #666;">
         <%= adminLocale === 'ar' ? 'التحكم في ظهور الإحصائيات للعامة على الموقع.' : 'Control whether analytics stats are displayed publicly on the website.' %>
         <%= adminLocale === 'ar' ? 'الحالة الحالية:' : 'Current status:' %>
