@@ -95,9 +95,10 @@ pageViewSchema.statics.getViewsByType = async function(pageType) {
 /**
  * Get views for date range
  */
-pageViewSchema.statics.getViewsInRange = async function(startDate, endDate, pageType = null) {
+pageViewSchema.statics.getViewsInRange = async function(startDate, endDate, pageType = null, pathFilter = {}) {
   const match = {
-    date: { $gte: startDate, $lte: endDate }
+    date: { $gte: startDate, $lte: endDate },
+    ...pathFilter
   };
   if (pageType) {
     match.pageType = pageType;
@@ -119,8 +120,11 @@ pageViewSchema.statics.getViewsInRange = async function(startDate, endDate, page
 /**
  * Get top pages by views
  */
-pageViewSchema.statics.getTopPages = async function(limit = 10, pageType = null) {
-  const match = pageType ? { pageType } : {};
+pageViewSchema.statics.getTopPages = async function(limit = 10, pageType = null, pathFilter = {}) {
+  const match = { ...pathFilter };
+  if (pageType) {
+    match.pageType = pageType;
+  }
 
   return this.aggregate([
     { $match: match },
@@ -140,17 +144,20 @@ pageViewSchema.statics.getTopPages = async function(limit = 10, pageType = null)
 /**
  * Get summary stats
  */
-pageViewSchema.statics.getSummary = async function() {
+pageViewSchema.statics.getSummary = async function(pathFilter = {}) {
   const [total, byType, last7Days, last30Days] = await Promise.all([
     this.aggregate([
+      { $match: pathFilter },
       { $group: { _id: null, total: { $sum: '$count' } } }
     ]),
     this.aggregate([
+      { $match: pathFilter },
       { $group: { _id: '$pageType', total: { $sum: '$count' } } }
     ]),
     this.aggregate([
       {
         $match: {
+          ...pathFilter,
           date: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
         }
       },
@@ -159,6 +166,7 @@ pageViewSchema.statics.getSummary = async function() {
     this.aggregate([
       {
         $match: {
+          ...pathFilter,
           date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
         }
       },

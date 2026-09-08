@@ -2354,18 +2354,34 @@ router.get('/analytics', isAdmin, async (req, res) => {
     const { getAnalyticsSummary, getTopLectures, getTopDownloads } = require('../../middleware/analytics');
     const { PageView, SiteSettings } = require('../../models');
 
+    // Scope stats to the active admin realm. Lectures scope by sheikhId; page
+    // views scope by path (Najmi pages live under /najmi/*, everything else is
+    // Hasan). Both work on existing data — no schema change / migration.
+    const najmiSheikh = await require('../../utils/najmiSheikh').getNajmiSheikh();
+    let realmFilter = {};
+    let pathFilter = {};
+    if (najmiSheikh) {
+      if (res.locals.adminRealm === 'najmi') {
+        realmFilter = { sheikhId: najmiSheikh._id };
+        pathFilter = { page: /^\/najmi/ };
+      } else {
+        realmFilter = { sheikhId: { $ne: najmiSheikh._id } };
+        pathFilter = { page: { $not: /^\/najmi/ } };
+      }
+    }
+
     const [summary, topLectures, topDownloads, topPages, settings] = await Promise.all([
-      getAnalyticsSummary(),
-      getTopLectures(10),
-      getTopDownloads(10),
-      PageView.getTopPages(10),
+      getAnalyticsSummary(realmFilter, pathFilter),
+      getTopLectures(10, realmFilter),
+      getTopDownloads(10, realmFilter),
+      PageView.getTopPages(10, null, pathFilter),
       SiteSettings.getSettings()
     ]);
 
     // Get last 30 days of page views for chart
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const dailyViews = await PageView.getViewsInRange(thirtyDaysAgo, new Date());
+    const dailyViews = await PageView.getViewsInRange(thirtyDaysAgo, new Date(), null, pathFilter);
 
     res.render('admin/analytics', {
       title: 'Analytics',
@@ -2376,7 +2392,8 @@ router.get('/analytics', isAdmin, async (req, res) => {
       topPages,
       dailyViews,
       settings: settings.analytics,
-      shouldShowPublic: settings.shouldShowPublicStats()
+      shouldShowPublic: settings.shouldShowPublicStats(),
+      adminRealm: res.locals.adminRealm
     });
   } catch (error) {
     console.error('Analytics error:', error);

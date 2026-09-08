@@ -62,15 +62,17 @@ const trackPageView = (req, res, next) => {
 };
 
 /**
- * Helper to get analytics summary for admin dashboard
+ * Helper to get analytics summary for admin dashboard.
+ * @param {Object} realmFilter - Mongo filter scoping lectures to a realm (e.g. { sheikhId } / { sheikhId: { $ne } }). Default {} = all.
+ * @param {Object} pathFilter  - Mongo filter scoping page views by path (e.g. { page: /^\/najmi/ }). Default {} = all.
  */
-const getAnalyticsSummary = async () => {
+const getAnalyticsSummary = async (realmFilter = {}, pathFilter = {}) => {
   const { Lecture, SiteSettings } = require('../models');
 
   const [pageViewSummary, lectureStats, settings] = await Promise.all([
-    PageView.getSummary(),
+    PageView.getSummary(pathFilter),
     Lecture.aggregate([
-      { $match: { published: true } },
+      { $match: { published: true, ...realmFilter } },
       {
         $group: {
           _id: null,
@@ -105,12 +107,12 @@ const getAnalyticsSummary = async () => {
 };
 
 /**
- * Get top lectures by plays
+ * Get top lectures by plays (optionally scoped to a realm via realmFilter).
  */
-const getTopLectures = async (limit = 10) => {
+const getTopLectures = async (limit = 10, realmFilter = {}) => {
   const { Lecture } = require('../models');
 
-  return Lecture.find({ published: true })
+  return Lecture.find({ published: true, ...realmFilter })
     .sort({ playCount: -1 })
     .limit(limit)
     .select('titleArabic titleEnglish playCount downloadCount slug')
@@ -118,12 +120,12 @@ const getTopLectures = async (limit = 10) => {
 };
 
 /**
- * Get top lectures by downloads
+ * Get top lectures by downloads (optionally scoped to a realm via realmFilter).
  */
-const getTopDownloads = async (limit = 10) => {
+const getTopDownloads = async (limit = 10, realmFilter = {}) => {
   const { Lecture } = require('../models');
 
-  return Lecture.find({ published: true })
+  return Lecture.find({ published: true, ...realmFilter })
     .sort({ downloadCount: -1 })
     .limit(limit)
     .select('titleArabic titleEnglish playCount downloadCount slug')
