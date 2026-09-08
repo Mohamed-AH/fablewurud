@@ -164,6 +164,13 @@ Sheikh resumed daily classes; admin adds lectures every day. Five changes (all a
 
 **Status: ✅ CI passed + DEPLOYED to prod (2026-09).** The quick-add integration test (`adminExtended.test.js`) was updated for the new ordinal title (`الثالث` instead of `الدرس 3`) — commit `3d8e788`. Regression check for the manage-pagination render shape (1 lecture → page 1) confirmed green.
 
+### 📊 Realm-specific /admin/analytics (2026-09, commit `0663b5c`)
+Analytics now follows the top-bar scholar toggle (`res.locals.adminRealm`), like `/admin/manage`. No schema change / migration — both splits run on existing data:
+- **Lecture stats** (total plays/downloads, top lectures, top downloads) filtered by `sheikhId` via a `realmFilter` threaded into the `middleware/analytics.js` helpers (`getAnalyticsSummary(realmFilter, pathFilter)`, `getTopLectures(limit, realmFilter)`, `getTopDownloads(limit, realmFilter)`).
+- **Page-view stats** (summary totals, top pages, 30-day chart) filtered by **path prefix** — Najmi = `page` matches `/^\/najmi/`, Hasan = `$not` of it. `PageView` statics `getSummary`/`getTopPages`/`getViewsInRange` gained an optional trailing `pathFilter = {}` (backward-compatible; existing callers/tests unchanged).
+- Route `/admin/analytics` builds `realmFilter` + `pathFilter` from `adminRealm` + `getNajmiSheikh()` and passes them through; view got a realm banner + a note that the **public-visibility Settings stay site-wide** (only the figures are per-realm).
+- **Known limitation (accepted):** `trackPageView` classifies `pageType` only for Hasan routes, so a Najmi "views by type" breakdown reads mostly `other`. Fixing that (classify `/najmi/*` subtypes + stamp a realm field) is a separate forward-only follow-up — not done.
+
 ### Known / open
 - **Cached-error cleanup:** after switching rule #2 to respect-origin, do a one-time **Purge Everything** (cached errors from the boot DB-hiccup don't self-heal). Owner had declined purge for the encoding issue (self-heals) — errors are the exception.
 - **Dead legacy root-slug URLs** (`/sayl-yqwl-218`, `/adaa-slah-almwmn-69`, `/jdydalmqalat-306`…, form `<slug>-<number>`) have **no route** → 404. If they're old indexed URLs where `<number>`=shortId, an optional `/<slug>-<shortId>` → 301 `/lectures/<shortId>` route would recover SEO. Owner decision pending.
