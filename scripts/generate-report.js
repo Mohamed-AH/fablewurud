@@ -7,7 +7,9 @@
  *
  * Options:
  *   --env FILE        Path to .env file (default: .env)
- *   --output FILE     Output HTML file (default: report.html)
+ *   --output FILE     Output HTML file (default: report.html, or report-<realm>.html with --realm)
+ *   --realm NAME      Scope the whole report to one scholar: "najmi" or "hasan"
+ *                     (default: both realms in one report)
  */
 
 const argsForEnv = process.argv.slice(2);
@@ -20,8 +22,16 @@ const fs = require('fs');
 const mongoose = require('mongoose');
 
 const args = process.argv.slice(2);
+const realmIndex = args.indexOf('--realm');
+const realmFilterArg = realmIndex !== -1 ? String(args[realmIndex + 1] || '').toLowerCase() : null;
+if (realmFilterArg && !['najmi', 'hasan'].includes(realmFilterArg)) {
+  console.error('Error: --realm must be "najmi" or "hasan"');
+  process.exit(1);
+}
 const outputIndex = args.indexOf('--output');
-const OUTPUT = outputIndex !== -1 ? args[outputIndex + 1] : 'report.html';
+const OUTPUT = outputIndex !== -1
+  ? args[outputIndex + 1]
+  : (realmFilterArg ? `report-${realmFilterArg}.html` : 'report.html');
 
 async function main() {
   if (!process.env.MONGODB_URI) {
@@ -60,7 +70,7 @@ async function main() {
 
   console.log('Fetching data...');
 
-  const [allSeries, allLectures, allSections, allSheikhs] = await Promise.all([
+  let [allSeries, allLectures, allSections, allSheikhs] = await Promise.all([
     Series.find({}).sort({ titleArabic: 1 }).lean(),
     Lecture.find({}).sort({ seriesId: 1, sortOrder: 1, lectureNumber: 1, createdAt: 1 }).lean(),
     Section.find({}).sort({ displayOrder: 1 }).lean(),
@@ -77,6 +87,19 @@ async function main() {
   const najmiSheikh = allSheikhs.find(s => /النجمي/.test(s.nameArabic || ''));
   const najmiId = najmiSheikh ? najmiSheikh._id.toString() : null;
   const realmOf = (sheikhId) => (najmiId && sheikhId && sheikhId.toString() === najmiId) ? 'النجمي' : 'حسن';
+
+  // Arabic-indic digits for section headings (١، ٢، ٣ …)
+  const toArabicDigits = (n) => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+
+  // Optional single-realm scope: keep only that scholar's series + lectures so
+  // every downstream count/table reflects one realm. Sections (a Hasan homepage
+  // concept) are omitted for the Najmi report below.
+  if (realmFilterArg) {
+    const want = realmFilterArg === 'najmi' ? 'النجمي' : 'حسن';
+    allSeries = allSeries.filter(s => realmOf(s.sheikhId) === want);
+    allLectures = allLectures.filter(l => realmOf(l.sheikhId) === want);
+    console.log(`Realm filter: ${realmFilterArg} → ${allSeries.length} series, ${allLectures.length} lectures`);
+  }
 
   const sectionMap = {};
   allSections.forEach(s => { sectionMap[s._id.toString()] = s; });
@@ -103,6 +126,12 @@ async function main() {
 
   const now = new Date();
   const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  const reportTitle = realmFilterArg === 'najmi'
+    ? 'تقرير محتوى أرشيف الشيخ العلامة أحمد بن يحيى النجمي رحمه الله'
+    : realmFilterArg === 'hasan'
+      ? 'تقرير محتوى موقع الشيخ حسن بن محمد منصور الدغريري'
+      : 'تقرير محتوى موقع الشيخ حسن بن محمد منصور الدغريري';
 
   function formatDuration(seconds) {
     if (!seconds) return '';
@@ -164,7 +193,7 @@ async function main() {
 </head>
 <body>
 
-<h1>تقرير محتوى موقع الشيخ حسن بن محمد منصور الدغريري</h1>
+<h1>${reportTitle}</h1>
 <p class="subtitle">تاريخ التقرير: ${dateStr}</p>
 
 <div class="stats-row">
@@ -177,8 +206,11 @@ async function main() {
 </div>
 `;
 
-  // --- Section 1: Sections ---
-  html += `<h2>١. أقسام الصفحة الرئيسية (${allSections.length} أقسام)</h2>\n`;
+  let sec = 0;
+
+  // --- Section 1: Homepage sections (a Hasan homepage concept — skipped for the Najmi report) ---
+  if (realmFilterArg !== 'najmi') {
+  html += `<h2>${toArabicDigits(++sec)}. أقسام الصفحة الرئيسية (${allSections.length} أقسام)</h2>\n`;
 
   for (const section of allSections) {
     const seriesInSection = allSeries.filter(s => s.sectionId && s.sectionId.toString() === section._id.toString())
@@ -219,8 +251,10 @@ async function main() {
 </div>\n`;
   }
 
+  } // end Section 1 (homepage sections)
+
   // --- Section 2: Series Summary ---
-  html += `<h2>٢. ملخص السلاسل (${allSeries.length} سلسلة)</h2>
+  html += `<h2>${toArabicDigits(++sec)}. ملخص السلاسل (${allSeries.length} سلسلة)</h2>
 <table>
 <tr><th>#</th><th>اسم السلسلة</th><th>العالِم</th><th>التصنيف</th><th>القسم</th><th>المحاضرات</th><th>الحالة</th></tr>\n`;
 
@@ -244,17 +278,20 @@ async function main() {
 
   html += `</table>\n`;
 
-  // Per-realm breakdown (each series/lecture attributed once — no double counting)
-  const najmiSeriesCount = allSeries.filter(s => realmOf(s.sheikhId) === 'النجمي').length;
-  const najmiLectureCount = allLectures.filter(l => realmOf(l.sheikhId) === 'النجمي').length;
-  html += `<p style="font-size:14px;color:#555;margin:6px 0 18px;">
+  // Per-realm breakdown (only meaningful in the combined report; a single-realm
+  // report is already scoped, so the split line would be redundant).
+  if (!realmFilterArg) {
+    const najmiSeriesCount = allSeries.filter(s => realmOf(s.sheikhId) === 'النجمي').length;
+    const najmiLectureCount = allLectures.filter(l => realmOf(l.sheikhId) === 'النجمي').length;
+    html += `<p style="font-size:14px;color:#555;margin:6px 0 18px;">
   <strong>حسب العالِم:</strong>
   الشيخ حسن — ${allSeries.length - najmiSeriesCount} سلسلة / ${allLectures.length - najmiLectureCount} محاضرة &nbsp;·&nbsp;
   الشيخ النجمي — ${najmiSeriesCount} سلسلة / ${najmiLectureCount} محاضرة
 </p>\n`;
+  }
 
   // --- Section 3: All Lectures by Series ---
-  html += `<h2>٣. تفصيل المحاضرات حسب السلسلة</h2>\n`;
+  html += `<h2>${toArabicDigits(++sec)}. تفصيل المحاضرات حسب السلسلة</h2>\n`;
 
   const sortedSeries = [...allSeries].sort((a, b) => (a.titleArabic || '').localeCompare(b.titleArabic || '', 'ar'));
 
@@ -310,7 +347,7 @@ async function main() {
 
   html += `
 <div style="text-align: center; margin-top: 30px; padding-top: 16px; border-top: 1px solid #ddd; color: #999; font-size: 10px;">
-  تم إنشاء هذا التقرير تلقائياً بتاريخ ${dateStr} — موقع الشيخ حسن بن محمد منصور الدغريري
+  تم إنشاء هذا التقرير تلقائياً بتاريخ ${dateStr} — ${realmFilterArg === 'najmi' ? 'أرشيف الشيخ العلامة أحمد بن يحيى النجمي رحمه الله' : 'موقع الشيخ حسن بن محمد منصور الدغريري'}
 </div>
 </body>
 </html>`;
