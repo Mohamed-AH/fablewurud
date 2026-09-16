@@ -171,6 +171,9 @@ Analytics now follows the top-bar scholar toggle (`res.locals.adminRealm`), like
 - Route `/admin/analytics` builds `realmFilter` + `pathFilter` from `adminRealm` + `getNajmiSheikh()` and passes them through; view got a realm banner + a note that the **public-visibility Settings stay site-wide** (only the figures are per-realm).
 - **Known limitation (accepted):** `trackPageView` classifies `pageType` only for Hasan routes, so a Najmi "views by type" breakdown reads mostly `other`. Fixing that (classify `/najmi/*` subtypes + stamp a realm field) is a separate forward-only follow-up — not done.
 
+### 🗂️ export-db-data.js realm-aware (2026-09, commit `c9cc4a1`)
+`scripts/export-db-data.js` (READ-ONLY prod export) previously mixed both scholars flat. Now derives each record's realm from `sheikhId` (Najmi via `getNajmiSheikh()`, else Hasan) and: adds `--realm najmi|hasan` to export one realm to its own file; prints a per-realm breakdown; labels every sheikh/series/lecture (`Realm: …`); orders series + lectures-by-series blocks Hasan-first then Najmi; JSON tags each doc with `realm` + `stats.byRealm`. Handles all three `sheikhId` shapes (raw ObjectId / populated doc / string).
+
 ### Known / open
 - **Cached-error cleanup:** after switching rule #2 to respect-origin, do a one-time **Purge Everything** (cached errors from the boot DB-hiccup don't self-heal). Owner had declined purge for the encoding issue (self-heals) — errors are the exception.
 - **Dead legacy root-slug URLs** (`/sayl-yqwl-218`, `/adaa-slah-almwmn-69`, `/jdydalmqalat-306`…, form `<slug>-<number>`) have **no route** → 404. If they're old indexed URLs where `<number>`=shortId, an optional `/<slug>-<shortId>` → 301 `/lectures/<shortId>` route would recover SEO. Owner decision pending.
