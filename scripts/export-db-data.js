@@ -12,6 +12,8 @@
  *   --output FILE  Output file path (required)
  *   --format       Output format: txt (default) or json
  *   --all          Export all fields (default: only essential fields)
+ *   --realm NAME   Export only one realm: "najmi" or "hasan" (default: both,
+ *                  labelled per-entity with a per-realm breakdown)
  */
 
 const fs = require('fs');
@@ -25,6 +27,13 @@ const outputFile = outputIndex !== -1 ? args[outputIndex + 1] : null;
 const formatIndex = args.indexOf('--format');
 const format = formatIndex !== -1 ? args[formatIndex + 1] : 'txt';
 const exportAll = args.includes('--all');
+const realmIndex = args.indexOf('--realm');
+const realmFilterArg = realmIndex !== -1 ? String(args[realmIndex + 1] || '').toLowerCase() : null;
+
+if (realmFilterArg && !['najmi', 'hasan'].includes(realmFilterArg)) {
+  console.error('❌ Error: --realm must be "najmi" or "hasan"');
+  process.exit(1);
+}
 
 if (!outputFile) {
   console.error('❌ Error: --output FILE is required');
@@ -57,36 +66,81 @@ async function exportData() {
   // Fetch all data
   console.log('📥 Fetching data...');
 
-  const [series, lectures, sheikhs, sections] = await Promise.all([
+  let [series, lectures, sheikhs, sections] = await Promise.all([
     Series.find().populate('sectionId').lean(),
     Lecture.find().populate('seriesId', 'titleArabic slug').populate('sheikhId', 'nameArabic slug').lean(),
     Sheikh.find().lean(),
     Section.find().lean()
   ]);
 
+  // Resolve the Najmi realm so every record can be labelled by scholar. Realm is
+  // derived from sheikhId: the Najmi sheikh → "najmi", everyone else → "hasan".
+  const { getNajmiSheikh } = require('../utils/najmiSheikh');
+  const najmi = await getNajmiSheikh();
+  const najmiId = najmi ? String(najmi._id) : null;
+
+  const sheikhIdStr = (val) => {
+    if (!val) return null;
+    if (typeof val === 'object' && val._id) return String(val._id);
+    return String(val);
+  };
+  const realmOf = (sheikhIdVal) => (najmiId && sheikhIdStr(sheikhIdVal) === najmiId ? 'najmi' : 'hasan');
+
+  if (!najmiId) {
+    console.warn('⚠️  Najmi sheikh not found (no name matching /النجمي/); everything will be labelled "hasan".');
+  }
+
+  // Optional single-realm export.
+  if (realmFilterArg) {
+    sheikhs = sheikhs.filter(s => realmOf(s._id) === realmFilterArg);
+    series = series.filter(s => realmOf(s.sheikhId) === realmFilterArg);
+    lectures = lectures.filter(l => realmOf(l.sheikhId) === realmFilterArg);
+  }
+
+  // Per-realm breakdown of what is being exported.
+  const countByRealm = (arr, getSid) => arr.reduce((acc, x) => {
+    acc[realmOf(getSid(x))]++;
+    return acc;
+  }, { hasan: 0, najmi: 0 });
+  const sheikhsByRealm = countByRealm(sheikhs, s => s._id);
+  const seriesByRealm = countByRealm(series, s => s.sheikhId);
+  const lecturesByRealm = countByRealm(lectures, l => l.sheikhId);
+
   console.log(`   Series: ${series.length}`);
   console.log(`   Lectures: ${lectures.length}`);
   console.log(`   Sheikhs: ${sheikhs.length}`);
   console.log(`   Sections: ${sections.length}`);
+  if (realmFilterArg) {
+    console.log(`   Realm filter: ${realmFilterArg} only`);
+  } else {
+    console.log(`   By realm — Hasan: ${seriesByRealm.hasan} series / ${lecturesByRealm.hasan} lectures; ` +
+      `Najmi: ${seriesByRealm.najmi} series / ${lecturesByRealm.najmi} lectures`);
+  }
   if (exportAll) {
     console.log('   Mode: Exporting ALL fields');
   }
 
   if (format === 'json') {
-    // JSON format - always exports all fields
+    // JSON format - always exports all fields. Tag every scholar-owned doc with
+    // its realm so consumers can split/group without re-deriving it.
     const data = {
       exportDate: new Date().toISOString(),
       exportAll: true,
+      realmFilter: realmFilterArg || 'both',
       stats: {
         series: series.length,
         lectures: lectures.length,
         sheikhs: sheikhs.length,
-        sections: sections.length
+        sections: sections.length,
+        byRealm: {
+          hasan: { sheikhs: sheikhsByRealm.hasan, series: seriesByRealm.hasan, lectures: lecturesByRealm.hasan },
+          najmi: { sheikhs: sheikhsByRealm.najmi, series: seriesByRealm.najmi, lectures: lecturesByRealm.najmi }
+        }
       },
       sections,
-      sheikhs,
-      series,
-      lectures
+      sheikhs: sheikhs.map(s => ({ realm: realmOf(s._id), ...s })),
+      series: series.map(s => ({ realm: realmOf(s.sheikhId), ...s })),
+      lectures: lectures.map(l => ({ realm: realmOf(l.sheikhId), ...l }))
     };
     fs.writeFileSync(outputFile, JSON.stringify(data, null, 2), 'utf8');
   } else {
@@ -96,7 +150,16 @@ async function exportData() {
     output.push('='.repeat(80));
     output.push('DATABASE EXPORT - ' + new Date().toISOString());
     output.push('Mode: ' + (exportAll ? 'FULL EXPORT (all fields)' : 'Essential fields only'));
+    output.push('Realm: ' + (realmFilterArg ? realmFilterArg.toUpperCase() + ' only' : 'BOTH (Hasan + Najmi)'));
     output.push('='.repeat(80));
+    output.push('');
+
+    // ========== REALM BREAKDOWN ==========
+    output.push('█'.repeat(80));
+    output.push('REALM BREAKDOWN' + (najmiId ? '' : '  (⚠️ Najmi sheikh not found — all counted as Hasan)'));
+    output.push('█'.repeat(80));
+    output.push(`  Hasan  → ${sheikhsByRealm.hasan} sheikh(s), ${seriesByRealm.hasan} series, ${lecturesByRealm.hasan} lectures`);
+    output.push(`  Najmi  → ${sheikhsByRealm.najmi} sheikh(s), ${seriesByRealm.najmi} series, ${lecturesByRealm.najmi} lectures`);
     output.push('');
 
     // ========== SHEIKHS ==========
@@ -108,6 +171,7 @@ async function exportData() {
 
     for (const sheikh of sheikhs) {
       output.push(`ID: ${sheikh._id}`);
+      output.push(`Realm: ${realmOf(sheikh._id)}`);
       if (exportAll) output.push(`Short ID: ${sheikh.shortId || '-'}`);
       output.push(`Name (AR): ${sheikh.nameArabic}`);
       output.push(`Name (EN): ${sheikh.nameEnglish || '-'}`);
@@ -165,13 +229,16 @@ async function exportData() {
     output.push('█'.repeat(80));
     output.push('');
 
-    // Group series by similarity for easier comparison
-    const seriesSorted = [...series].sort((a, b) =>
-      (a.titleArabic || '').localeCompare(b.titleArabic || '', 'ar')
-    );
+    // Group series by realm (Hasan first, then Najmi), then by title for easy comparison
+    const seriesSorted = [...series].sort((a, b) => {
+      const ra = realmOf(a.sheikhId), rb = realmOf(b.sheikhId);
+      if (ra !== rb) return ra === 'hasan' ? -1 : 1;
+      return (a.titleArabic || '').localeCompare(b.titleArabic || '', 'ar');
+    });
 
     for (const s of seriesSorted) {
       output.push(`ID: ${s._id}`);
+      output.push(`Realm: ${realmOf(s.sheikhId)}`);
       if (exportAll) output.push(`Short ID: ${s.shortId || '-'}`);
       output.push(`Title (AR): ${s.titleArabic}`);
       output.push(`Title (EN): ${s.titleEnglish || '-'}`);
@@ -226,12 +293,22 @@ async function exportData() {
     // Create series lookup
     const seriesLookup = new Map(series.map(s => [s._id.toString(), s]));
 
-    // Output lectures by series
-    for (const [seriesId, seriesLectures] of lecturesBySeries) {
+    // Output lectures by series — ordered by realm (Hasan first, then Najmi),
+    // then by series title, so the two scholars' lectures are contiguous blocks.
+    const orderedSeriesIds = [...lecturesBySeries.keys()].sort((a, b) => {
+      const ia = seriesLookup.get(a), ib = seriesLookup.get(b);
+      const ra = realmOf(ia?.sheikhId), rb = realmOf(ib?.sheikhId);
+      if (ra !== rb) return ra === 'hasan' ? -1 : 1;
+      return (ia?.titleArabic || '').localeCompare(ib?.titleArabic || '', 'ar');
+    });
+
+    for (const seriesId of orderedSeriesIds) {
+      const seriesLectures = lecturesBySeries.get(seriesId);
       const seriesInfo = seriesLookup.get(seriesId);
       output.push('');
       output.push('═'.repeat(80));
       output.push(`SERIES: ${seriesInfo?.titleArabic || 'Unknown'}`);
+      output.push(`Realm: ${realmOf(seriesInfo?.sheikhId)}`);
       output.push(`Series Slug: ${seriesInfo?.slug || 'Unknown'}`);
       output.push(`Series ID: ${seriesId}`);
       output.push('═'.repeat(80));
@@ -389,6 +466,9 @@ async function exportData() {
 
     // Lectures without series
     output.push(`📊 Lectures without series: ${noSeriesLectures.length}`);
+
+    // Per-realm breakdown
+    output.push(`📊 By realm — Hasan: ${seriesByRealm.hasan} series / ${lecturesByRealm.hasan} lectures | Najmi: ${seriesByRealm.najmi} series / ${lecturesByRealm.najmi} lectures`);
 
     if (exportAll) {
       // Additional stats when exporting all
