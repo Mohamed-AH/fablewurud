@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /**
- * Generate a print-ready HTML report of all series, lectures, and sections
+ * Generate a print-ready HTML report of all content — series, lectures,
+ * homepage sections, articles, and the PDF library (books) — with Hijri dates
+ * shown wherever a date is available.
  *
  * Usage:
  *   node scripts/generate-report.js [options]
@@ -68,17 +70,29 @@ async function main() {
     nameArabic: String, nameEnglish: String
   }, { collection: 'sheikhs', strict: false }));
 
+  const Article = mongoose.model('Article', new mongoose.Schema({
+    title: String, type: String, publishedAt: Date, isPublished: Boolean, summary: String
+  }, { collection: 'articles', strict: false }));
+
+  const Publication = mongoose.model('Publication', new mongoose.Schema({
+    title: String, titleEnglish: String, category: String,
+    sheikhId: mongoose.Schema.Types.ObjectId, pageCount: Number, volumeCount: Number,
+    fileSize: Number, downloadCount: Number, isPublished: Boolean
+  }, { collection: 'publications', strict: false }));
+
   console.log('Fetching data...');
 
-  let [allSeries, allLectures, allSections, allSheikhs] = await Promise.all([
+  let [allSeries, allLectures, allSections, allSheikhs, allArticles, allPublications] = await Promise.all([
     Series.find({}).sort({ titleArabic: 1 }).lean(),
     Lecture.find({}).sort({ seriesId: 1, sortOrder: 1, lectureNumber: 1, createdAt: 1 }).lean(),
     Section.find({}).sort({ displayOrder: 1 }).lean(),
-    Sheikh.find({}).lean()
+    Sheikh.find({}).lean(),
+    Article.find({}).sort({ publishedAt: -1 }).lean(),
+    Publication.find({}).sort({ category: 1, title: 1 }).lean()
   ]);
 
   await mongoose.disconnect();
-  console.log(`Fetched: ${allSeries.length} series, ${allLectures.length} lectures, ${allSections.length} sections`);
+  console.log(`Fetched: ${allSeries.length} series, ${allLectures.length} lectures, ${allSections.length} sections, ${allArticles.length} articles, ${allPublications.length} publications`);
 
   const sheikhMap = {};
   allSheikhs.forEach(s => { sheikhMap[s._id.toString()] = s.nameArabic || s.nameEnglish; });
@@ -91,6 +105,10 @@ async function main() {
   // Arabic-indic digits for section headings (١، ٢، ٣ …)
   const toArabicDigits = (n) => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 
+  // Hijri date helper (moment-hijri) — shown wherever a date is available.
+  const { convertToHijri } = require('../utils/dateUtils');
+  const hijri = (d) => convertToHijri(d) || '—';
+
   // Optional single-realm scope: keep only that scholar's series + lectures so
   // every downstream count/table reflects one realm. Sections (a Hasan homepage
   // concept) are omitted for the Najmi report below.
@@ -98,7 +116,11 @@ async function main() {
     const want = realmFilterArg === 'najmi' ? 'النجمي' : 'حسن';
     allSeries = allSeries.filter(s => realmOf(s.sheikhId) === want);
     allLectures = allLectures.filter(l => realmOf(l.sheikhId) === want);
-    console.log(`Realm filter: ${realmFilterArg} → ${allSeries.length} series, ${allLectures.length} lectures`);
+    allPublications = allPublications.filter(p => realmOf(p.sheikhId) === want);
+    // Articles are Hasan-side content (the Najmi realm shows a Library, not
+    // Articles), so a Najmi report carries no articles.
+    if (realmFilterArg === 'najmi') allArticles = [];
+    console.log(`Realm filter: ${realmFilterArg} → ${allSeries.length} series, ${allLectures.length} lectures, ${allArticles.length} articles, ${allPublications.length} publications`);
   }
 
   const sectionMap = {};
@@ -203,6 +225,8 @@ async function main() {
   <div class="stat-box"><div class="stat-num">${unpublishedCount}</div><div class="stat-label">مسودة</div></div>
   <div class="stat-box"><div class="stat-num">${withAudio}</div><div class="stat-label">بصوت</div></div>
   <div class="stat-box"><div class="stat-num">${withoutAudio}</div><div class="stat-label">بدون صوت</div></div>
+  ${allArticles.length ? `<div class="stat-box"><div class="stat-num">${allArticles.length}</div><div class="stat-label">مقالة</div></div>` : ''}
+  ${allPublications.length ? `<div class="stat-box"><div class="stat-num">${allPublications.length}</div><div class="stat-label">كتاب PDF</div></div>` : ''}
 </div>
 `;
 
@@ -256,7 +280,7 @@ async function main() {
   // --- Section 2: Series Summary ---
   html += `<h2>${toArabicDigits(++sec)}. ملخص السلاسل (${allSeries.length} سلسلة)</h2>
 <table>
-<tr><th>#</th><th>اسم السلسلة</th><th>العالِم</th><th>التصنيف</th><th>القسم</th><th>المحاضرات</th><th>الحالة</th></tr>\n`;
+<tr><th>#</th><th>اسم السلسلة</th><th>العالِم</th><th>التصنيف</th><th>القسم</th><th>المحاضرات</th><th>أضيفت (هجري)</th><th>الحالة</th></tr>\n`;
 
   allSeries.sort((a, b) => (a.titleArabic || '').localeCompare(b.titleArabic || '', 'ar'));
   allSeries.forEach((s, i) => {
@@ -272,6 +296,7 @@ async function main() {
   <td>${esc(s.category || 'Other')}</td>
   <td>${esc(sectionName)}</td>
   <td style="text-align:center">${count}</td>
+  <td class="mono">${hijri(s.createdAt)}</td>
   <td>${visibility}</td>
 </tr>\n`;
   });
@@ -290,7 +315,58 @@ async function main() {
 </p>\n`;
   }
 
-  // --- Section 3: All Lectures by Series ---
+  // --- Section: Articles (Hasan-side content; the Najmi realm has none) ---
+  if (allArticles.length) {
+    const artPublished = allArticles.filter(a => a.isPublished !== false).length;
+    const typeAr = { Asdaa: 'أصداء', TelegramArticle: 'تيليجرام' };
+    html += `<h2>${toArabicDigits(++sec)}. المقالات (${allArticles.length} مقالة · ${artPublished} منشورة)</h2>
+<table>
+<tr><th>#</th><th>العنوان</th><th>النوع</th><th>تاريخ النشر (هجري)</th><th>تاريخ النشر (ميلادي)</th><th>الحالة</th></tr>\n`;
+    allArticles.forEach((a, i) => {
+      const g = a.publishedAt ? new Date(a.publishedAt).toISOString().slice(0, 10) : '—';
+      const status = a.isPublished !== false
+        ? '<span class="badge badge-published">منشور</span>'
+        : '<span class="badge badge-draft">مسودة</span>';
+      html += `<tr>
+  <td>${i + 1}</td>
+  <td>${esc(a.title)}</td>
+  <td>${esc(typeAr[a.type] || a.type || '—')}</td>
+  <td class="mono">${hijri(a.publishedAt)}</td>
+  <td class="mono">${g}</td>
+  <td>${status}</td>
+</tr>\n`;
+    });
+    html += `</table>\n`;
+  }
+
+  // --- Section: PDF Library (publications / books) ---
+  if (allPublications.length) {
+    const byCat = {};
+    allPublications.forEach(p => { const c = p.category || 'أخرى'; byCat[c] = (byCat[c] || 0) + 1; });
+    const catSummary = Object.entries(byCat).map(([c, n]) => `${esc(c)}: ${n}`).join(' · ');
+    html += `<h2>${toArabicDigits(++sec)}. المكتبة — الكتب (${allPublications.length} كتاب PDF)</h2>
+<p style="font-size:13px;color:#555;margin:-6px 0 10px;">${catSummary}</p>
+<table>
+<tr><th>#</th><th>العنوان</th><th>التصنيف</th><th>الصفحات</th><th>المجلدات</th><th>التحميلات</th><th>أضيف (هجري)</th><th>الحالة</th></tr>\n`;
+    allPublications.forEach((p, i) => {
+      const status = p.isPublished !== false
+        ? '<span class="badge badge-published">منشور</span>'
+        : '<span class="badge badge-draft">مسودة</span>';
+      html += `<tr>
+  <td>${i + 1}</td>
+  <td>${esc(p.title)}</td>
+  <td>${esc(p.category || '—')}</td>
+  <td style="text-align:center">${p.pageCount || '—'}</td>
+  <td style="text-align:center">${p.volumeCount || 1}</td>
+  <td style="text-align:center">${p.downloadCount || 0}</td>
+  <td class="mono">${hijri(p.createdAt)}</td>
+  <td>${status}</td>
+</tr>\n`;
+    });
+    html += `</table>\n`;
+  }
+
+  // --- Section: All Lectures by Series ---
   html += `<h2>${toArabicDigits(++sec)}. تفصيل المحاضرات حسب السلسلة</h2>\n`;
 
   const sortedSeries = [...allSeries].sort((a, b) => (a.titleArabic || '').localeCompare(b.titleArabic || '', 'ar'));
@@ -301,7 +377,7 @@ async function main() {
 
     html += `<h3>${esc(series.titleArabic)} [${lectures.length} محاضرة]</h3>
 <table>
-<tr><th>#</th><th>عنوان المحاضرة</th><th>اسم الملف</th><th>المدة</th><th>الحالة</th></tr>\n`;
+<tr><th>#</th><th>عنوان المحاضرة</th><th>اسم الملف</th><th>المدة</th><th>التاريخ (هجري)</th><th>الحالة</th></tr>\n`;
 
     lectures.forEach((l, i) => {
       const status = [];
@@ -314,6 +390,7 @@ async function main() {
   <td>${esc(l.titleArabic)}</td>
   <td class="mono">${esc(l.audioFileName || '—')}</td>
   <td>${formatDuration(l.duration)}</td>
+  <td class="mono">${l.dateRecordedHijri || hijri(l.dateRecorded)}</td>
   <td>${status.join(' ')}</td>
 </tr>\n`;
     });
@@ -325,7 +402,7 @@ async function main() {
   if (standaloneLectures.length > 0) {
     html += `<h3>محاضرات بدون سلسلة [${standaloneLectures.length} محاضرة]</h3>
 <table>
-<tr><th>#</th><th>عنوان المحاضرة</th><th>اسم الملف</th><th>المدة</th><th>الحالة</th></tr>\n`;
+<tr><th>#</th><th>عنوان المحاضرة</th><th>اسم الملف</th><th>المدة</th><th>التاريخ (هجري)</th><th>الحالة</th></tr>\n`;
 
     standaloneLectures.forEach((l, i) => {
       const status = [];
@@ -338,6 +415,7 @@ async function main() {
   <td>${esc(l.titleArabic)}</td>
   <td class="mono">${esc(l.audioFileName || '—')}</td>
   <td>${formatDuration(l.duration)}</td>
+  <td class="mono">${l.dateRecordedHijri || hijri(l.dateRecorded)}</td>
   <td>${status.join(' ')}</td>
 </tr>\n`;
     });
