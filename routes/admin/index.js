@@ -315,6 +315,50 @@ router.get('/manage', isAdmin, async (req, res) => {
   }
 });
 
+// @route   GET /admin/reports/:realm
+// @desc    Print-ready content report (najmi | hasan | combined). Opens in a new
+//          tab; with ?print=1 the browser's Save-as-PDF dialog opens on load.
+// @access  Private (Admin only)
+router.get('/reports/:realm', isAdmin, async (req, res) => {
+  try {
+    const realmParam = String(req.params.realm || '').toLowerCase();
+    if (!['najmi', 'hasan', 'combined'].includes(realmParam)) {
+      return res.status(404).send('Unknown report');
+    }
+    const realm = realmParam === 'combined' ? null : realmParam;
+
+    const { buildReportHtml } = require('../../utils/contentReport');
+    const { Series, Lecture, Section, Sheikh, Article, Publication } = require('../../models');
+
+    // Cache the built HTML briefly so the 3 buttons / repeat clicks don't
+    // re-scan the whole DB each time (report is a heavy, full-collection read).
+    const html = await cache.getOrSet(`admin:report:${realmParam}`, async () => {
+      const [series, lectures, sections, sheikhs, articles, publications] = await Promise.all([
+        Series.find({}).sort({ titleArabic: 1 }).lean(),
+        Lecture.find({}).sort({ seriesId: 1, sortOrder: 1, lectureNumber: 1, createdAt: 1 }).lean(),
+        Section.find({}).sort({ displayOrder: 1 }).lean(),
+        Sheikh.find({}).lean(),
+        Article.find({}).sort({ publishedAt: -1 }).lean(),
+        Publication.find({}).sort({ category: 1, title: 1 }).lean()
+      ]);
+      return buildReportHtml({ series, lectures, sections, sheikhs, articles, publications, realm });
+    }, 300);
+
+    // Optionally open the print dialog automatically (one click → Save as PDF).
+    let out = html;
+    if (req.query.print === '1') {
+      out = out.replace('</body>', '<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},400);});</script>\n</body>');
+    }
+
+    res.set('Cache-Control', 'no-store');
+    res.type('html').send(out);
+  } catch (error) {
+    console.error('Report error:', error);
+    captureException(error, req);
+    res.status(500).send('Error generating report');
+  }
+});
+
 // @route   GET /admin/lectures
 // @desc    Search and list all lectures
 // @access  Private (Admin only)
