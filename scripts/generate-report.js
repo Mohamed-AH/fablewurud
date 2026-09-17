@@ -148,6 +148,9 @@ async function main() {
 
   const now = new Date();
   const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  // Hijri is the primary date (Arabic-indic digits); Gregorian shown alongside.
+  const hijriDateStr = toArabicDigits(convertToHijri(now) || '');
+  const dateLine = hijriDateStr ? `${hijriDateStr} هـ (${dateStr} م)` : dateStr;
 
   const reportTitle = realmFilterArg === 'najmi'
     ? 'تقرير محتوى أرشيف الشيخ العلامة أحمد بن يحيى النجمي رحمه الله'
@@ -216,7 +219,7 @@ async function main() {
 <body>
 
 <h1>${reportTitle}</h1>
-<p class="subtitle">تاريخ التقرير: ${dateStr}</p>
+<p class="subtitle">تاريخ التقرير: ${dateLine}</p>
 
 <div class="stats-row">
   <div class="stat-box"><div class="stat-num">${allSeries.length}</div><div class="stat-label">سلسلة</div></div>
@@ -425,7 +428,7 @@ async function main() {
 
   html += `
 <div style="text-align: center; margin-top: 30px; padding-top: 16px; border-top: 1px solid #ddd; color: #999; font-size: 10px;">
-  تم إنشاء هذا التقرير تلقائياً بتاريخ ${dateStr} — ${realmFilterArg === 'najmi' ? 'أرشيف الشيخ العلامة أحمد بن يحيى النجمي رحمه الله' : 'موقع الشيخ حسن بن محمد منصور الدغريري'}
+  تم إنشاء هذا التقرير تلقائياً بتاريخ ${dateLine} — ${realmFilterArg === 'najmi' ? 'أرشيف الشيخ العلامة أحمد بن يحيى النجمي رحمه الله' : 'موقع الشيخ حسن بن محمد منصور الدغريري'}
 </div>
 </body>
 </html>`;
