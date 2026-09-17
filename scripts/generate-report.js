@@ -4,6 +4,10 @@
  * homepage sections, articles, and the PDF library (books) — with Hijri dates
  * shown wherever a date is available.
  *
+ * The HTML is built by the shared, DB-free utils/contentReport.js (also used by
+ * the admin panel's report buttons); this script only handles the DB fetch and
+ * writing the file.
+ *
  * Usage:
  *   node scripts/generate-report.js [options]
  *
@@ -22,6 +26,7 @@ require('dotenv').config({ path: envPath });
 
 const fs = require('fs');
 const mongoose = require('mongoose');
+const { buildReportHtml } = require('../utils/contentReport');
 
 const args = process.argv.slice(2);
 const realmIndex = args.indexOf('--realm');
@@ -44,45 +49,16 @@ async function main() {
   console.log('Connecting to database...');
   await mongoose.connect(process.env.MONGODB_URI);
 
-  const Series = mongoose.model('Series', new mongoose.Schema({
-    titleArabic: String, titleEnglish: String, category: String,
-    lectureCount: Number, isVisible: Boolean, tags: [String],
-    sectionId: mongoose.Schema.Types.ObjectId, sectionOrder: Number,
-    parentSeriesId: mongoose.Schema.Types.ObjectId,
-    sheikhId: mongoose.Schema.Types.ObjectId
-  }, { collection: 'series', strict: false }));
-
-  const Lecture = mongoose.model('Lecture', new mongoose.Schema({
-    titleArabic: String, titleEnglish: String, audioFileName: String,
-    audioUrl: String, seriesId: mongoose.Schema.Types.ObjectId,
-    published: Boolean, category: String, sortOrder: Number,
-    lectureNumber: Number, duration: Number, dateRecorded: Date,
-    sheikhId: mongoose.Schema.Types.ObjectId
-  }, { collection: 'lectures', strict: false }));
-
-  const Section = mongoose.model('Section', new mongoose.Schema({
-    title: { ar: String, en: String }, slug: String,
-    displayOrder: Number, isVisible: Boolean, icon: String,
-    collapsedByDefault: Boolean, maxVisible: Number
-  }, { collection: 'sections', strict: false }));
-
-  const Sheikh = mongoose.model('Sheikh', new mongoose.Schema({
-    nameArabic: String, nameEnglish: String
-  }, { collection: 'sheikhs', strict: false }));
-
-  const Article = mongoose.model('Article', new mongoose.Schema({
-    title: String, type: String, publishedAt: Date, isPublished: Boolean, summary: String
-  }, { collection: 'articles', strict: false }));
-
-  const Publication = mongoose.model('Publication', new mongoose.Schema({
-    title: String, titleEnglish: String, category: String,
-    sheikhId: mongoose.Schema.Types.ObjectId, pageCount: Number, volumeCount: Number,
-    fileSize: Number, downloadCount: Number, isPublished: Boolean
-  }, { collection: 'publications', strict: false }));
+  const Series = mongoose.model('Series', new mongoose.Schema({}, { collection: 'series', strict: false }));
+  const Lecture = mongoose.model('Lecture', new mongoose.Schema({}, { collection: 'lectures', strict: false }));
+  const Section = mongoose.model('Section', new mongoose.Schema({}, { collection: 'sections', strict: false }));
+  const Sheikh = mongoose.model('Sheikh', new mongoose.Schema({}, { collection: 'sheikhs', strict: false }));
+  const Article = mongoose.model('Article', new mongoose.Schema({}, { collection: 'articles', strict: false }));
+  const Publication = mongoose.model('Publication', new mongoose.Schema({}, { collection: 'publications', strict: false }));
 
   console.log('Fetching data...');
 
-  let [allSeries, allLectures, allSections, allSheikhs, allArticles, allPublications] = await Promise.all([
+  const [series, lectures, sections, sheikhs, articles, publications] = await Promise.all([
     Series.find({}).sort({ titleArabic: 1 }).lean(),
     Lecture.find({}).sort({ seriesId: 1, sortOrder: 1, lectureNumber: 1, createdAt: 1 }).lean(),
     Section.find({}).sort({ displayOrder: 1 }).lean(),
@@ -92,346 +68,9 @@ async function main() {
   ]);
 
   await mongoose.disconnect();
-  console.log(`Fetched: ${allSeries.length} series, ${allLectures.length} lectures, ${allSections.length} sections, ${allArticles.length} articles, ${allPublications.length} publications`);
+  console.log(`Fetched: ${series.length} series, ${lectures.length} lectures, ${sections.length} sections, ${articles.length} articles, ${publications.length} publications`);
 
-  const sheikhMap = {};
-  allSheikhs.forEach(s => { sheikhMap[s._id.toString()] = s.nameArabic || s.nameEnglish; });
-
-  // Realm attribution (Najmi vs Hasan) by sheikh — each series/lecture counted once.
-  const najmiSheikh = allSheikhs.find(s => /النجمي/.test(s.nameArabic || ''));
-  const najmiId = najmiSheikh ? najmiSheikh._id.toString() : null;
-  const realmOf = (sheikhId) => (najmiId && sheikhId && sheikhId.toString() === najmiId) ? 'النجمي' : 'حسن';
-
-  // Arabic-indic digits for section headings (١، ٢، ٣ …)
-  const toArabicDigits = (n) => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
-
-  // Hijri date helper (moment-hijri) — shown wherever a date is available.
-  const { convertToHijri } = require('../utils/dateUtils');
-  const hijri = (d) => convertToHijri(d) || '—';
-
-  // Optional single-realm scope: keep only that scholar's series + lectures so
-  // every downstream count/table reflects one realm. Sections (a Hasan homepage
-  // concept) are omitted for the Najmi report below.
-  if (realmFilterArg) {
-    const want = realmFilterArg === 'najmi' ? 'النجمي' : 'حسن';
-    allSeries = allSeries.filter(s => realmOf(s.sheikhId) === want);
-    allLectures = allLectures.filter(l => realmOf(l.sheikhId) === want);
-    allPublications = allPublications.filter(p => realmOf(p.sheikhId) === want);
-    // Articles are Hasan-side content (the Najmi realm shows a Library, not
-    // Articles), so a Najmi report carries no articles.
-    if (realmFilterArg === 'najmi') allArticles = [];
-    console.log(`Realm filter: ${realmFilterArg} → ${allSeries.length} series, ${allLectures.length} lectures, ${allArticles.length} articles, ${allPublications.length} publications`);
-  }
-
-  const sectionMap = {};
-  allSections.forEach(s => { sectionMap[s._id.toString()] = s; });
-
-  const seriesMap = {};
-  allSeries.forEach(s => { seriesMap[s._id.toString()] = s; });
-
-  const lecturesBySeries = {};
-  const standaloneLectures = [];
-  allLectures.forEach(l => {
-    if (l.seriesId) {
-      const key = l.seriesId.toString();
-      if (!lecturesBySeries[key]) lecturesBySeries[key] = [];
-      lecturesBySeries[key].push(l);
-    } else {
-      standaloneLectures.push(l);
-    }
-  });
-
-  const publishedCount = allLectures.filter(l => l.published).length;
-  const unpublishedCount = allLectures.length - publishedCount;
-  const withAudio = allLectures.filter(l => l.audioUrl).length;
-  const withoutAudio = allLectures.length - withAudio;
-
-  const now = new Date();
-  const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  // Hijri is the primary date (Arabic-indic digits); Gregorian shown alongside.
-  const hijriDateStr = toArabicDigits(convertToHijri(now) || '');
-  const dateLine = hijriDateStr ? `${hijriDateStr} هـ (${dateStr} م)` : dateStr;
-
-  const reportTitle = realmFilterArg === 'najmi'
-    ? 'تقرير محتوى أرشيف الشيخ العلامة أحمد بن يحيى النجمي رحمه الله'
-    : realmFilterArg === 'hasan'
-      ? 'تقرير محتوى موقع الشيخ حسن بن محمد منصور الدغريري'
-      : 'تقرير محتوى موقع الشيخ حسن بن محمد منصور الدغريري';
-
-  function formatDuration(seconds) {
-    if (!seconds) return '';
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${String(s).padStart(2, '0')}`;
-  }
-
-  function esc(str) {
-    if (!str) return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  // Build HTML
-  let html = `<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<title>تقرير المحتوى - ${dateStr}</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Cairo', sans-serif; font-size: 14px; color: #222; background: #fff; padding: 20px; line-height: 1.6; }
-  h1 { font-size: 26px; text-align: center; margin-bottom: 4px; color: #2C1508; }
-  .subtitle { text-align: center; color: #666; font-size: 15px; margin-bottom: 20px; }
-  h2 { font-size: 20px; color: #2C1508; border-bottom: 2px solid #C49A3C; padding-bottom: 4px; margin: 24px 0 12px; page-break-after: avoid; }
-  h3 { font-size: 16px; color: #5A6944; margin: 16px 0 6px; page-break-after: avoid; }
-
-  .stats-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
-  .stat-box { background: #FDF8F2; border: 1px solid #DEC99A; border-radius: 8px; padding: 10px 18px; text-align: center; min-width: 100px; }
-  .stat-num { font-size: 24px; font-weight: 700; color: #C49A3C; }
-  .stat-label { font-size: 13px; color: #7A5C3A; }
-
-  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 11px; }
-  th { background: #2C1508; color: #fff; padding: 6px 8px; text-align: right; font-weight: 600; }
-  td { padding: 5px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
-  tr:nth-child(even) { background: #FDFAF5; }
-  tr.series-header { background: #F5EDE0; font-weight: 600; }
-  .mono { font-family: 'Courier New', monospace; font-size: 10px; direction: ltr; text-align: left; word-break: break-all; }
-  .badge { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; }
-  .badge-published { background: #d4edda; color: #155724; }
-  .badge-draft { background: #fff3cd; color: #856404; }
-  .badge-no-audio { background: #f8d7da; color: #721c24; }
-  .section-box { background: #FDF8F2; border: 1px solid #DEC99A; border-radius: 8px; padding: 16px; margin-bottom: 14px; font-size: 16px; }
-  .section-series { margin: 6px 0 0 16px; font-size: 14px; color: #555; line-height: 1.8; }
-  .notes-box { border: 1px dashed #C49A3C; border-radius: 8px; padding: 16px; margin-top: 10px; min-height: 60px; }
-  .notes-label { font-size: 13px; color: #999; }
-
-  @media print {
-    body { padding: 10px; font-size: 11px; }
-    .no-print { display: none; }
-    h2 { break-after: avoid; }
-    table { break-inside: auto; }
-    tr { break-inside: avoid; }
-    .section-box { break-inside: avoid; }
-  }
-  @page { margin: 15mm 10mm; size: A4; }
-</style>
-</head>
-<body>
-
-<h1>${reportTitle}</h1>
-<p class="subtitle">تاريخ التقرير: ${dateLine}</p>
-
-<div class="stats-row">
-  <div class="stat-box"><div class="stat-num">${allSeries.length}</div><div class="stat-label">سلسلة</div></div>
-  <div class="stat-box"><div class="stat-num">${allLectures.length}</div><div class="stat-label">محاضرة</div></div>
-  <div class="stat-box"><div class="stat-num">${publishedCount}</div><div class="stat-label">منشورة</div></div>
-  <div class="stat-box"><div class="stat-num">${unpublishedCount}</div><div class="stat-label">مسودة</div></div>
-  <div class="stat-box"><div class="stat-num">${withAudio}</div><div class="stat-label">بصوت</div></div>
-  <div class="stat-box"><div class="stat-num">${withoutAudio}</div><div class="stat-label">بدون صوت</div></div>
-  ${allArticles.length ? `<div class="stat-box"><div class="stat-num">${allArticles.length}</div><div class="stat-label">مقالة</div></div>` : ''}
-  ${allPublications.length ? `<div class="stat-box"><div class="stat-num">${allPublications.length}</div><div class="stat-label">كتاب PDF</div></div>` : ''}
-</div>
-`;
-
-  let sec = 0;
-
-  // --- Section 1: Homepage sections (a Hasan homepage concept — skipped for the Najmi report) ---
-  if (realmFilterArg !== 'najmi') {
-  html += `<h2>${toArabicDigits(++sec)}. أقسام الصفحة الرئيسية (${allSections.length} أقسام)</h2>\n`;
-
-  for (const section of allSections) {
-    const seriesInSection = allSeries.filter(s => s.sectionId && s.sectionId.toString() === section._id.toString())
-      .sort((a, b) => (a.sectionOrder || 0) - (b.sectionOrder || 0));
-
-    html += `<div class="section-box">
-  <strong>${esc(section.title.ar)}</strong> (${esc(section.title.en)})
-  — ${section.isVisible ? 'ظاهر' : 'مخفي'} | ترتيب: ${section.displayOrder} | الحد الأقصى: ${section.maxVisible}
-  ${section.collapsedByDefault ? '| مطوي افتراضياً' : ''}
-  <div class="section-series">`;
-
-    if (seriesInSection.length === 0) {
-      html += `<em>لا توجد سلاسل مضافة</em>`;
-    } else {
-      for (const s of seriesInSection) {
-        const count = (lecturesBySeries[s._id.toString()] || []).length;
-        html += `${esc(s.titleArabic)} [${count}]<br>`;
-      }
-    }
-
-    html += `</div>
-  <div class="notes-box"><span class="notes-label">ملاحظات / تعديلات مطلوبة:</span></div>
-</div>\n`;
-  }
-
-  // Unassigned series
-  const unassigned = allSeries.filter(s => !s.sectionId);
-  if (unassigned.length > 0) {
-    html += `<div class="section-box" style="border-color: #f8d7da;">
-  <strong>سلاسل بدون قسم (${unassigned.length})</strong>
-  <div class="section-series">`;
-    for (const s of unassigned) {
-      const count = (lecturesBySeries[s._id.toString()] || []).length;
-      html += `${esc(s.titleArabic)} [${count}]<br>`;
-    }
-    html += `</div>
-  <div class="notes-box"><span class="notes-label">ملاحظات / تعديلات مطلوبة:</span></div>
-</div>\n`;
-  }
-
-  } // end Section 1 (homepage sections)
-
-  // --- Section 2: Series Summary ---
-  html += `<h2>${toArabicDigits(++sec)}. ملخص السلاسل (${allSeries.length} سلسلة)</h2>
-<table>
-<tr><th>#</th><th>اسم السلسلة</th><th>العالِم</th><th>التصنيف</th><th>القسم</th><th>المحاضرات</th><th>أضيفت (هجري)</th><th>الحالة</th></tr>\n`;
-
-  allSeries.sort((a, b) => (a.titleArabic || '').localeCompare(b.titleArabic || '', 'ar'));
-  allSeries.forEach((s, i) => {
-    const count = (lecturesBySeries[s._id.toString()] || []).length;
-    const section = s.sectionId ? sectionMap[s.sectionId.toString()] : null;
-    const sectionName = section ? section.title.ar : '—';
-    const visibility = s.isVisible === false ? 'مخفي' : 'ظاهر';
-
-    html += `<tr>
-  <td>${i + 1}</td>
-  <td>${esc(s.titleArabic)}</td>
-  <td>${esc(realmOf(s.sheikhId))}</td>
-  <td>${esc(s.category || 'Other')}</td>
-  <td>${esc(sectionName)}</td>
-  <td style="text-align:center">${count}</td>
-  <td class="mono">${hijri(s.createdAt)}</td>
-  <td>${visibility}</td>
-</tr>\n`;
-  });
-
-  html += `</table>\n`;
-
-  // Per-realm breakdown (only meaningful in the combined report; a single-realm
-  // report is already scoped, so the split line would be redundant).
-  if (!realmFilterArg) {
-    const najmiSeriesCount = allSeries.filter(s => realmOf(s.sheikhId) === 'النجمي').length;
-    const najmiLectureCount = allLectures.filter(l => realmOf(l.sheikhId) === 'النجمي').length;
-    html += `<p style="font-size:14px;color:#555;margin:6px 0 18px;">
-  <strong>حسب العالِم:</strong>
-  الشيخ حسن — ${allSeries.length - najmiSeriesCount} سلسلة / ${allLectures.length - najmiLectureCount} محاضرة &nbsp;·&nbsp;
-  الشيخ النجمي — ${najmiSeriesCount} سلسلة / ${najmiLectureCount} محاضرة
-</p>\n`;
-  }
-
-  // --- Section: Articles (Hasan-side content; the Najmi realm has none) ---
-  if (allArticles.length) {
-    const artPublished = allArticles.filter(a => a.isPublished !== false).length;
-    const typeAr = { Asdaa: 'أصداء', TelegramArticle: 'تيليجرام' };
-    html += `<h2>${toArabicDigits(++sec)}. المقالات (${allArticles.length} مقالة · ${artPublished} منشورة)</h2>
-<table>
-<tr><th>#</th><th>العنوان</th><th>النوع</th><th>تاريخ النشر (هجري)</th><th>تاريخ النشر (ميلادي)</th><th>الحالة</th></tr>\n`;
-    allArticles.forEach((a, i) => {
-      const g = a.publishedAt ? new Date(a.publishedAt).toISOString().slice(0, 10) : '—';
-      const status = a.isPublished !== false
-        ? '<span class="badge badge-published">منشور</span>'
-        : '<span class="badge badge-draft">مسودة</span>';
-      html += `<tr>
-  <td>${i + 1}</td>
-  <td>${esc(a.title)}</td>
-  <td>${esc(typeAr[a.type] || a.type || '—')}</td>
-  <td class="mono">${hijri(a.publishedAt)}</td>
-  <td class="mono">${g}</td>
-  <td>${status}</td>
-</tr>\n`;
-    });
-    html += `</table>\n`;
-  }
-
-  // --- Section: PDF Library (publications / books) ---
-  if (allPublications.length) {
-    const byCat = {};
-    allPublications.forEach(p => { const c = p.category || 'أخرى'; byCat[c] = (byCat[c] || 0) + 1; });
-    const catSummary = Object.entries(byCat).map(([c, n]) => `${esc(c)}: ${n}`).join(' · ');
-    html += `<h2>${toArabicDigits(++sec)}. المكتبة — الكتب (${allPublications.length} كتاب PDF)</h2>
-<p style="font-size:13px;color:#555;margin:-6px 0 10px;">${catSummary}</p>
-<table>
-<tr><th>#</th><th>العنوان</th><th>التصنيف</th><th>الصفحات</th><th>المجلدات</th><th>التحميلات</th><th>أضيف (هجري)</th><th>الحالة</th></tr>\n`;
-    allPublications.forEach((p, i) => {
-      const status = p.isPublished !== false
-        ? '<span class="badge badge-published">منشور</span>'
-        : '<span class="badge badge-draft">مسودة</span>';
-      html += `<tr>
-  <td>${i + 1}</td>
-  <td>${esc(p.title)}</td>
-  <td>${esc(p.category || '—')}</td>
-  <td style="text-align:center">${p.pageCount || '—'}</td>
-  <td style="text-align:center">${p.volumeCount || 1}</td>
-  <td style="text-align:center">${p.downloadCount || 0}</td>
-  <td class="mono">${hijri(p.createdAt)}</td>
-  <td>${status}</td>
-</tr>\n`;
-    });
-    html += `</table>\n`;
-  }
-
-  // --- Section: All Lectures by Series ---
-  html += `<h2>${toArabicDigits(++sec)}. تفصيل المحاضرات حسب السلسلة</h2>\n`;
-
-  const sortedSeries = [...allSeries].sort((a, b) => (a.titleArabic || '').localeCompare(b.titleArabic || '', 'ar'));
-
-  for (const series of sortedSeries) {
-    const lectures = lecturesBySeries[series._id.toString()] || [];
-    if (lectures.length === 0) continue;
-
-    html += `<h3>${esc(series.titleArabic)} [${lectures.length} محاضرة]</h3>
-<table>
-<tr><th>#</th><th>عنوان المحاضرة</th><th>اسم الملف</th><th>المدة</th><th>التاريخ (هجري)</th><th>الحالة</th></tr>\n`;
-
-    lectures.forEach((l, i) => {
-      const status = [];
-      if (l.published) status.push('<span class="badge badge-published">منشور</span>');
-      else status.push('<span class="badge badge-draft">مسودة</span>');
-      if (!l.audioUrl) status.push('<span class="badge badge-no-audio">بدون صوت</span>');
-
-      html += `<tr>
-  <td>${i + 1}</td>
-  <td>${esc(l.titleArabic)}</td>
-  <td class="mono">${esc(l.audioFileName || '—')}</td>
-  <td>${formatDuration(l.duration)}</td>
-  <td class="mono">${l.dateRecordedHijri || hijri(l.dateRecorded)}</td>
-  <td>${status.join(' ')}</td>
-</tr>\n`;
-    });
-
-    html += `</table>\n`;
-  }
-
-  // Standalone lectures
-  if (standaloneLectures.length > 0) {
-    html += `<h3>محاضرات بدون سلسلة [${standaloneLectures.length} محاضرة]</h3>
-<table>
-<tr><th>#</th><th>عنوان المحاضرة</th><th>اسم الملف</th><th>المدة</th><th>التاريخ (هجري)</th><th>الحالة</th></tr>\n`;
-
-    standaloneLectures.forEach((l, i) => {
-      const status = [];
-      if (l.published) status.push('<span class="badge badge-published">منشور</span>');
-      else status.push('<span class="badge badge-draft">مسودة</span>');
-      if (!l.audioUrl) status.push('<span class="badge badge-no-audio">بدون صوت</span>');
-
-      html += `<tr>
-  <td>${i + 1}</td>
-  <td>${esc(l.titleArabic)}</td>
-  <td class="mono">${esc(l.audioFileName || '—')}</td>
-  <td>${formatDuration(l.duration)}</td>
-  <td class="mono">${l.dateRecordedHijri || hijri(l.dateRecorded)}</td>
-  <td>${status.join(' ')}</td>
-</tr>\n`;
-    });
-
-    html += `</table>\n`;
-  }
-
-  html += `
-<div style="text-align: center; margin-top: 30px; padding-top: 16px; border-top: 1px solid #ddd; color: #999; font-size: 10px;">
-  تم إنشاء هذا التقرير تلقائياً بتاريخ ${dateLine} — ${realmFilterArg === 'najmi' ? 'أرشيف الشيخ العلامة أحمد بن يحيى النجمي رحمه الله' : 'موقع الشيخ حسن بن محمد منصور الدغريري'}
-</div>
-</body>
-</html>`;
+  const html = buildReportHtml({ series, lectures, sections, sheikhs, articles, publications, realm: realmFilterArg });
 
   fs.writeFileSync(OUTPUT, html, 'utf-8');
   console.log(`\nReport saved: ${OUTPUT}`);
