@@ -184,6 +184,12 @@ Print-ready Arabic (RTL, Cairo) content report. HTML → print to PDF in the bro
 - **Hijri everywhere a date exists** (`utils/dateUtils.convertToHijri`, moment-hijri): report date subtitle+footer **lead with Hijri** (Arabic-indic) + Gregorian in parens; lectures `التاريخ (هجري)` (stored `dateRecordedHijri` else converted); series `أضيفت (هجري)` (createdAt); articles published date; publications added date.
 - **Note:** combined report pulls ALL lectures (~4,800+) into one page — large tab / multi-page PDF (expected). 5-min cache means freshly-added content can lag up to 5 min in the report.
 
+### 📨 Manage page: Telegram reposting aids (2026-10, commit `25625df`)
+Owner reposts each new lecture to the Telegram channel (`قناة الشيخ حسن الدغريري`) and uses `/admin/manage` as the reference. Added:
+- **Columns** on the lectures table: Date (Hijri, `dateRecordedHijri`), Duration (`mm:ss` from `duration`), Location. Table wrapped in `overflow-x:auto`.
+- **Per-row "📋 TG" button** copies a ready-to-paste caption in the channel's exact format (verified against the owner's export). `utils/telegramCaption.js` `buildTelegramCaption(lecture, series)` builds it: book title (`series.bookTitle`→`titleArabic`), author (`series.bookAuthor` **verbatim**, `{المؤلف}` placeholder when empty), lesson ordinal (`arabicOrdinalMasculine(lectureNumber)`), location (`بـ…`), Hijri date, fixed sheikh block, duration (`{المدة}` when 0), + channel/WhatsApp footer (self-link omitted — only exists post-publish). Manage route populates `seriesId` `bookTitle bookAuthor` and attaches `_tgCaption`; view emits a JSON `window.__tgCaptions` map (`<`-escaped) and copies via `navigator.clipboard` (execCommand fallback).
+- **Depends on real data:** duration must be saved on the lecture, and `series.bookAuthor` should hold the full author phrase (e.g. `للعلامة صالح الفوزان حفظه الله`) for a complete caption.
+
 ### Known / open
 - **Cached-error cleanup:** after switching rule #2 to respect-origin, do a one-time **Purge Everything** (cached errors from the boot DB-hiccup don't self-heal). Owner had declined purge for the encoding issue (self-heals) — errors are the exception.
 - **Dead legacy root-slug URLs** (`/sayl-yqwl-218`, `/adaa-slah-almwmn-69`, `/jdydalmqalat-306`…, form `<slug>-<number>`) have **no route** → 404. If they're old indexed URLs where `<number>`=shortId, an optional `/<slug>-<shortId>` → 301 `/lectures/<shortId>` route would recover SEO. Owner decision pending.
