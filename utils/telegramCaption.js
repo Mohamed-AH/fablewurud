@@ -19,16 +19,13 @@ const { arabicOrdinalMasculine } = require('./arabicOrdinal');
 const SITE_BASE = 'https://www.rasmihassan.com';
 
 /**
- * Full series page URL (deep link), or the site homepage when the series has no
- * canonical shortId. Mirrors buildCanonicalUrl('series', …) in
- * utils/findByIdOrSlug.js (inlined to keep this util free of the mongoose dep).
+ * Series page deep link using just the shortId (the slug segments are SEO-only;
+ * /series/<shortId> resolves and 301s to the canonical URL). Falls back to the
+ * site homepage when the series has no shortId.
  */
 function seriesUrl(series) {
   if (!series || !series.shortId) return SITE_BASE;
-  const parts = ['/series', series.shortId];
-  if (series.slug_en) parts.push(series.slug_en);
-  if (series.slug_ar) parts.push(encodeURIComponent(series.slug_ar));
-  return `${SITE_BASE}${parts.join('/')}`;
+  return `${SITE_BASE}/series/${series.shortId}`;
 }
 
 /** Western digits → Arabic-indic (١٢٣…). */
