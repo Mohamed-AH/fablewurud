@@ -38,10 +38,14 @@ function isKhutba(series) {
 // Fixed footer for lesson posts (self-link omitted — only exists post-publish).
 const LESSON_FOOTER = [
   '📌 للاستماع عبر التلجرام:',
+  '╭─═┅┅┅┅┅┅┅═─╮',
   'https://t.me/daririhasan',
+  '╰─═┅┅┅┅┅┅┅═─╯',
   '',
   '📌 رابط القناة على الواتساب:',
+  '╭─═┅┅┅┅┅┅┅═─╮',
   'https://chat.whatsapp.com/DUvpoPZFcBk22nVL1nIrVg',
+  '╰─═┅┅┅┅┅┅┅═─╯',
   '',
   '↩️ أسهم في إعادة نشر هذه الرسالة',
   '✅ "فالدال على الخير كفاعله"'
