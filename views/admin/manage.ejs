@@ -122,12 +122,16 @@
       </form>
 
       <% if (lectures.length > 0) { %>
+        <div style="overflow-x:auto;">
         <table class="admin-table">
           <thead>
             <tr>
               <th><%= t('admin_th_title_ar') %></th>
               <th><%= t('admin_th_sheikh') %></th>
               <th><%= t('admin_th_series') %></th>
+              <th><%= adminLocale === 'ar' ? 'التاريخ (هجري)' : 'Date (Hijri)' %></th>
+              <th><%= adminLocale === 'ar' ? 'المدة' : 'Duration' %></th>
+              <th><%= adminLocale === 'ar' ? 'المكان' : 'Location' %></th>
               <th><%= t('admin_th_status') %></th>
               <th><%= t('admin_th_plays') %></th>
               <th><%= t('admin_th_actions') %></th>
@@ -135,10 +139,15 @@
           </thead>
           <tbody>
             <% lectures.forEach(lecture => { %>
+              <% var _d = lecture.duration || 0; var _dur = _d > 0 ? (Math.floor(_d/60) + ':' + String(_d%60).padStart(2,'0')) : '—'; %>
+              <% var _loc = (lecture.location && lecture.location !== 'غير محدد') ? lecture.location : '—'; %>
               <tr id="lecture-<%= lecture._id %>">
                 <td><%= lecture.titleArabic %></td>
                 <td><%= lecture.sheikhId?.nameArabic || '-' %></td>
                 <td><%= lecture.seriesId?.titleArabic || '-' %></td>
+                <td style="white-space:nowrap;direction:ltr;text-align:right;"><%= lecture.dateRecordedHijri || '—' %></td>
+                <td style="white-space:nowrap;direction:ltr;text-align:right;"><%= _dur %></td>
+                <td><%= _loc %></td>
                 <td>
                   <span class="badge <%= lecture.published ? 'badge-success' : 'badge-warning' %>" id="status-badge-<%= lecture._id %>">
                     <%= lecture.published ? t('admin_status_published') : t('admin_status_draft') %>
@@ -146,6 +155,7 @@
                 </td>
                 <td><%= lecture.playCount %></td>
                 <td class="action-links">
+                  <a href="#" onclick="copyCaption('<%= lecture._id %>', this); return false;" title="<%= adminLocale === 'ar' ? 'نسخ نص تلجرام' : 'Copy Telegram caption' %>">📋 <%= adminLocale === 'ar' ? 'تلجرام' : 'TG' %></a>
                   <a href="/admin/lectures/<%= lecture._id %>/edit">✏️ <%= t('admin_btn_edit') %></a>
                   <a href="#" onclick="togglePublished('<%= lecture._id %>', <%= lecture.published %>); return false;">
                     <%= lecture.published ? '🔒 ' + t('admin_btn_unpublish') : '✅ ' + t('admin_btn_publish') %>
@@ -158,6 +168,10 @@
             <% }) %>
           </tbody>
         </table>
+        </div>
+
+        <% var _caps = {}; lectures.forEach(function(l){ _caps[l._id] = l._tgCaption; }); %>
+        <script>window.__tgCaptions = <%- JSON.stringify(_caps).replace(/</g, '\\u003c') %>;</script>
 
         <!-- Pagination -->
         <% if (pagination.totalPages > 1) { %>
@@ -190,6 +204,34 @@
     const successMsg = '<%= t("admin_msg_saved") %>';
     const deletedMsg = '<%= t("admin_msg_deleted") %>';
     const errorMsg = '<%= t("admin_msg_error") %>';
+
+    // Copy the ready Telegram caption for a lecture to the clipboard.
+    function legacyCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    function copyCaption(id, el) {
+      const text = (window.__tgCaptions && window.__tgCaptions[id]) || '';
+      if (!text) return;
+      const flash = function () {
+        if (!el.dataset.label) el.dataset.label = el.innerHTML;
+        el.innerHTML = '✓';
+        setTimeout(function () { el.innerHTML = el.dataset.label; }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(flash, function () { legacyCopy(text); flash(); });
+      } else {
+        legacyCopy(text);
+        flash();
+      }
+    }
 
     async function togglePublished(id, currentlyPublished) {
       try {
