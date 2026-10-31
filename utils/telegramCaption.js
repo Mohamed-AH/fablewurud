@@ -16,6 +16,21 @@
 
 const { arabicOrdinalMasculine } = require('./arabicOrdinal');
 
+const SITE_BASE = 'https://www.rasmihassan.com';
+
+/**
+ * Full series page URL (deep link), or the site homepage when the series has no
+ * canonical shortId. Mirrors buildCanonicalUrl('series', …) in
+ * utils/findByIdOrSlug.js (inlined to keep this util free of the mongoose dep).
+ */
+function seriesUrl(series) {
+  if (!series || !series.shortId) return SITE_BASE;
+  const parts = ['/series', series.shortId];
+  if (series.slug_en) parts.push(series.slug_en);
+  if (series.slug_ar) parts.push(encodeURIComponent(series.slug_ar));
+  return `${SITE_BASE}${parts.join('/')}`;
+}
+
 /** Western digits → Arabic-indic (١٢٣…). */
 const toArabicDigits = (n) => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 
@@ -37,48 +52,55 @@ function isKhutba(series) {
   return title.includes('خطب') || title.includes('خطبة');
 }
 
-// Website box shown in every post (owner request). Dotted frame.
-const SITE_BOX = [
-  '📌 للاستماع إلى المحاضرات السابقة تفضل بزيارة الموقع:',
-  '╭─═┅┅┅┅┅┅┅═─╮',
-  'https://www.rasmihassan.com',
-  '╰─═┅┅┅┅┅┅┅═─╯'
-];
+// Website box shown in every post (owner request) — deep-links to the series
+// page when available, else the homepage. Dotted frame.
+function siteBox(series) {
+  return [
+    '📌 للاستماع إلى المحاضرات السابقة تفضل بزيارة الموقع:',
+    '╭─═┅┅┅┅┅┅┅═─╮',
+    seriesUrl(series),
+    '╰─═┅┅┅┅┅┅┅═─╯'
+  ];
+}
 
-// Fixed footer for lesson posts (self-link omitted — only exists post-publish).
-const LESSON_FOOTER = [
-  '📌 للاستماع عبر التلجرام:',
-  '╭─═┅┅┅┅┅┅┅═─╮',
-  'https://t.me/daririhasan',
-  '╰─═┅┅┅┅┅┅┅═─╯',
-  '',
-  '📌 رابط القناة على الواتساب:',
-  '╭─═┅┅┅┅┅┅┅═─╮',
-  'https://chat.whatsapp.com/DUvpoPZFcBk22nVL1nIrVg',
-  '╰─═┅┅┅┅┅┅┅═─╯',
-  '',
-  ...SITE_BOX,
-  '',
-  '↩️ أسهم في إعادة نشر هذه الرسالة',
-  '✅ "فالدال على الخير كفاعله"'
-].join('\n');
+// Footer for lesson posts (self-link omitted — only exists post-publish).
+function lessonFooter(series) {
+  return [
+    '📌 للاستماع عبر التلجرام:',
+    '╭─═┅┅┅┅┅┅┅═─╮',
+    'https://t.me/daririhasan',
+    '╰─═┅┅┅┅┅┅┅═─╯',
+    '',
+    '📌 رابط القناة على الواتساب:',
+    '╭─═┅┅┅┅┅┅┅═─╮',
+    'https://chat.whatsapp.com/DUvpoPZFcBk22nVL1nIrVg',
+    '╰─═┅┅┅┅┅┅┅═─╯',
+    '',
+    ...siteBox(series),
+    '',
+    '↩️ أسهم في إعادة نشر هذه الرسالة',
+    '✅ "فالدال على الخير كفاعله"'
+  ].join('\n');
+}
 
 // Framed footer for khutba posts (self-link id omitted).
-const KHUTBA_FOOTER = [
-  '🔗 للاستماع عبر تيليجرام:',
-  '╭─═━─━─━─━─━─━═─╮',
-  '📥 https://t.me/daririhasan',
-  '╰─═━─━─━─━─━─━═─╯',
-  '',
-  '🔗 رابط القناة على واتساب:',
-  '╭─═━─━─━─━─━─━═─╮',
-  '📲 https://chat.whatsapp.com/DUvpoPZFcBk22nVL1nIrVg',
-  '╰─═━─━─━─━─━─━═─╯',
-  '',
-  ...SITE_BOX,
-  '',
-  '📤 ساهم في نشر الخير، فالدال على الخير كفاعله ✅'
-].join('\n');
+function khutbaFooter(series) {
+  return [
+    '🔗 للاستماع عبر تيليجرام:',
+    '╭─═━─━─━─━─━─━═─╮',
+    '📥 https://t.me/daririhasan',
+    '╰─═━─━─━─━─━─━═─╯',
+    '',
+    '🔗 رابط القناة على واتساب:',
+    '╭─═━─━─━─━─━─━═─╮',
+    '📲 https://chat.whatsapp.com/DUvpoPZFcBk22nVL1nIrVg',
+    '╰─═━─━─━─━─━─━═─╯',
+    '',
+    ...siteBox(series),
+    '',
+    '📤 ساهم في نشر الخير، فالدال على الخير كفاعله ✅'
+  ].join('\n');
+}
 
 /**
  * Sermon title for a khutba post. Prefers the LECTURE title (each Friday sermon
@@ -113,7 +135,7 @@ function buildKhutbaCaption(lecture, series) {
     '',
     `⏱️ مدة الصوتية: ${dur} دقيقة`,
     '',
-    KHUTBA_FOOTER
+    khutbaFooter(series)
   ].join('\n');
 }
 
@@ -141,7 +163,7 @@ function buildLessonCaption(lecture, series) {
     '',
     `🎙 مدة الصوتية: ${dur} دقيقة`,
     '',
-    LESSON_FOOTER
+    lessonFooter(series)
   ].join('\n');
 }
 
