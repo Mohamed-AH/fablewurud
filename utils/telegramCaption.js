@@ -5,14 +5,28 @@
  * templates:
  *   - Lesson (default): book title, author, lesson ordinal + Hijri, location,
  *     sheikh block, duration, footer.
- *   - Khutba (Friday sermon series): #خطبة_الجمعة header, sermon title + number,
- *     preacher line, dated Friday, duration, framed footer. No author / no الدرس.
+ *   - Khutba (Friday sermon): #خطبة_الجمعة header, the sermon title (taken from
+ *     the LECTURE, not the catch-all series), location line, preacher line, dated
+ *     Friday, duration, framed footer + "previous lectures" box. No author / no
+ *     الدرس / no lesson number (each sermon is identified by its own title).
  *
  * Used by /admin/manage so the admin can one-click copy a ready caption while
  * posting to Telegram.
  */
 
 const { arabicOrdinalMasculine } = require('./arabicOrdinal');
+
+const SITE_BASE = 'https://www.rasmihassan.com';
+
+/**
+ * Series page deep link using just the shortId (the slug segments are SEO-only;
+ * /series/<shortId> resolves and 301s to the canonical URL). Falls back to the
+ * site homepage when the series has no shortId.
+ */
+function seriesUrl(series) {
+  if (!series || !series.shortId) return SITE_BASE;
+  return `${SITE_BASE}/series/${series.shortId}`;
+}
 
 /** Western digits → Arabic-indic (١٢٣…). */
 const toArabicDigits = (n) => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
@@ -35,63 +49,90 @@ function isKhutba(series) {
   return title.includes('خطب') || title.includes('خطبة');
 }
 
-// Fixed footer for lesson posts (self-link omitted — only exists post-publish).
-const LESSON_FOOTER = [
-  '📌 للاستماع عبر التلجرام:',
-  '╭─═┅┅┅┅┅┅┅═─╮',
-  'https://t.me/daririhasan',
-  '╰─═┅┅┅┅┅┅┅═─╯',
-  '',
-  '📌 رابط القناة على الواتساب:',
-  '╭─═┅┅┅┅┅┅┅═─╮',
-  'https://chat.whatsapp.com/DUvpoPZFcBk22nVL1nIrVg',
-  '╰─═┅┅┅┅┅┅┅═─╯',
-  '',
-  '↩️ أسهم في إعادة نشر هذه الرسالة',
-  '✅ "فالدال على الخير كفاعله"'
-].join('\n');
+// Website box shown in every post (owner request) — deep-links to the series
+// page when available, else the homepage. Dotted frame.
+function siteBox(series) {
+  return [
+    '📌 للاستماع إلى المحاضرات السابقة تفضل بزيارة الموقع:',
+    '╭─═┅┅┅┅┅┅┅═─╮',
+    seriesUrl(series),
+    '╰─═┅┅┅┅┅┅┅═─╯'
+  ];
+}
+
+// Footer for lesson posts (self-link omitted — only exists post-publish).
+function lessonFooter(series) {
+  return [
+    '📌 للاستماع عبر التلجرام:',
+    '╭─═┅┅┅┅┅┅┅═─╮',
+    'https://t.me/daririhasan',
+    '╰─═┅┅┅┅┅┅┅═─╯',
+    '',
+    '📌 رابط القناة على الواتساب:',
+    '╭─═┅┅┅┅┅┅┅═─╮',
+    'https://chat.whatsapp.com/DUvpoPZFcBk22nVL1nIrVg',
+    '╰─═┅┅┅┅┅┅┅═─╯',
+    '',
+    ...siteBox(series),
+    '',
+    '↩️ أسهم في إعادة نشر هذه الرسالة',
+    '✅ "فالدال على الخير كفاعله"'
+  ].join('\n');
+}
 
 // Framed footer for khutba posts (self-link id omitted).
-const KHUTBA_FOOTER = [
-  '🔗 للاستماع عبر تيليجرام:',
-  '╭─═━─━─━─━─━─━═─╮',
-  '📥 https://t.me/daririhasan',
-  '╰─═━─━─━─━─━─━═─╯',
-  '',
-  '🔗 رابط القناة على واتساب:',
-  '╭─═━─━─━─━─━─━═─╮',
-  '📲 https://chat.whatsapp.com/DUvpoPZFcBk22nVL1nIrVg',
-  '╰─═━─━─━─━─━─━═─╯',
-  '',
-  '📤 ساهم في نشر الخير، فالدال على الخير كفاعله ✅'
-].join('\n');
+function khutbaFooter(series) {
+  return [
+    '🔗 للاستماع عبر تيليجرام:',
+    '╭─═━─━─━─━─━─━═─╮',
+    '📥 https://t.me/daririhasan',
+    '╰─═━─━─━─━─━─━═─╯',
+    '',
+    '🔗 رابط القناة على واتساب:',
+    '╭─═━─━─━─━─━─━═─╮',
+    '📲 https://chat.whatsapp.com/DUvpoPZFcBk22nVL1nIrVg',
+    '╰─═━─━─━─━─━─━═─╯',
+    '',
+    ...siteBox(series),
+    '',
+    '📤 ساهم في نشر الخير، فالدال على الخير كفاعله ✅'
+  ].join('\n');
+}
 
-/** Strip a leading "خطب[ة] [الجمعة] -/:" from a series title to get the sermon title. */
-function khutbaTitle(series, lecture) {
-  const raw = (series && series.titleArabic) || (lecture && lecture.titleArabic) || '';
-  const stripped = raw.replace(/^\s*خطب(?:ة)?\s*(?:الجمعة)?\s*[-–—:]*\s*/, '').trim();
-  return stripped || raw;
+/**
+ * Sermon title for a khutba post. Prefers the LECTURE title (each Friday sermon
+ * has its own title, e.g. "خطب الجمعة - الدفاع عن بلادنا السعودية"), stripping a
+ * leading "خطب[ة] [الجمعة] -/:" prefix. Falls back to the series title only when
+ * the lecture has no distinct sermon title.
+ */
+function khutbaTitle(lecture, series) {
+  const strip = (s) => (s || '').replace(/^\s*خطب(?:ة)?\s*(?:الجمعة)?\s*[-–—:]*\s*/, '').trim();
+  const fromLecture = strip(lecture && lecture.titleArabic);
+  if (fromLecture) return fromLecture;
+  const fromSeries = strip(series && series.titleArabic);
+  return fromSeries || (lecture && lecture.titleArabic) || (series && series.titleArabic) || '';
 }
 
 function buildKhutbaCaption(lecture, series) {
-  const title = khutbaTitle(series, lecture);
-  const num = lecture.lectureNumber ? ` (${toArabicDigits(lecture.lectureNumber)})` : '';
+  const title = khutbaTitle(lecture, series);
   const hijri = lecture.dateRecordedHijri || '{التاريخ}';
   const dur = fmtDuration(lecture.duration) || '{المدة}';
+  const location = (lecture.location && lecture.location !== 'غير محدد') ? lecture.location : 'جامع الورود';
 
   return [
     '🔹 #خطبة_الجمعة 🔹',
     '',
-    '🎙 عنوان الخطبة: ',
-    `          ${title}${num}`,
+    '🎙 عنوان الخطبة:',
+    ` ${title}`,
+    `ب${location} حي الورود جدة`,
     '',
-    'لفضيلة الشيخ: حسن بن محمد منصور الدغريري - حفظه الله -',
+    'لفضيلة الشيخ: حسن بن محمد منصور الدغريري – حفظه الله –',
     '',
-    `🗓 التاريخ: الجمعة ${hijri}هـ`,
+    `🗓 التاريخ: الجمعة ${hijri}`,
     '',
     `⏱️ مدة الصوتية: ${dur} دقيقة`,
     '',
-    KHUTBA_FOOTER
+    khutbaFooter(series)
   ].join('\n');
 }
 
@@ -119,7 +160,7 @@ function buildLessonCaption(lecture, series) {
     '',
     `🎙 مدة الصوتية: ${dur} دقيقة`,
     '',
-    LESSON_FOOTER
+    lessonFooter(series)
   ].join('\n');
 }
 

@@ -296,11 +296,12 @@ router.get('/manage', isAdmin, async (req, res) => {
       .skip((currentPage - 1) * PAGE_SIZE)
       .limit(PAGE_SIZE)
       .populate('sheikhId', 'nameArabic nameEnglish')
-      .populate('seriesId', 'titleArabic titleEnglish bookTitle bookAuthor')
+      .populate('seriesId', 'titleArabic titleEnglish bookTitle bookAuthor shortId tags category')
       .lean();
 
     // Attach a ready-to-paste Telegram caption to each lecture (for the
-    // one-click copy button on the manage page).
+    // one-click copy button on the manage page). The site box deep-links to
+    // the lecture's series page when it has a canonical URL.
     const { buildTelegramCaption } = require('../../utils/telegramCaption');
     lectures.forEach(l => { l._tgCaption = buildTelegramCaption(l, l.seriesId); });
 
