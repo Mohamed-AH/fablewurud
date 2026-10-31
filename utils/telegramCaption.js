@@ -31,11 +31,18 @@ function seriesUrl(series) {
 /** Western digits → Arabic-indic (١٢٣…). */
 const toArabicDigits = (n) => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 
-/** Seconds → "mm:ss" (Telegram style, e.g. 7:43). Empty when unknown. */
+/**
+ * Seconds → "mm:ss" (e.g. 7:43), or "h:mm:ss" once it reaches an hour
+ * (e.g. 4717 → 1:18:37). Empty when unknown.
+ */
 function fmtDuration(sec) {
   if (!sec || sec <= 0) return '';
-  const m = Math.floor(sec / 60);
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
   const s = sec % 60;
+  if (h > 0) {
+    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
