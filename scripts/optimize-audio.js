@@ -12,14 +12,18 @@
  *   the savings on the large files (net ~4% reduction). Now each file is probed
  *   first and handled on its merits.
  *
+ * Output is ALWAYS .m4a (AAC) — we do not keep .ogg/.opus, because the archive
+ * needs broad device/Safari compatibility. (Pass --opus only if you explicitly
+ * want Opus output.)
+ *
  * Per-file decision:
  *   1. ffprobe the audio: codec, bitrate, channels, duration, has-video.
- *   2. If the audio is already at/under the "keep" threshold (default 40 kbps)
- *      AND the file has no video track  -> KEEP the original untouched
- *      (re-encoding lossy->lossy here would only add artefacts and/or bytes).
- *   3. Otherwise encode to the target (default 32 kbps mono). If the result is
- *      not actually smaller than the source, throw it away and KEEP the original.
- *   => The output is never larger than the input.
+ *   2. If it is ALREADY .m4a/.aac and already small (<= keep threshold, default
+ *      40 kbps) with no video -> KEEP it untouched (same format, no quality loss).
+ *   3. Otherwise convert to .m4a, encoding at min(target, source) kbps so a
+ *      low-bitrate source (e.g. a 16 kbps .ogg) is converted without being
+ *      inflated. For files that are already .m4a, if the re-encode isn't smaller
+ *      the original is kept.
  *
  * Encoder: prefers HE-AAC (libfdk_aac, best at low bitrate); falls back to the
  * native `aac` (AAC-LC) encoder when libfdk isn't compiled in, so it runs on any
@@ -70,6 +74,10 @@ const CONFIG = {
   inputFormats: ['.wav', '.mp3', '.m4a', '.aac', '.ogg', '.opus', '.flac',
                  '.wma', '.mp4', '.m4v', '.mpeg', '.mpg', '.mkv', '.webm']
 };
+
+// Formats we're willing to leave untouched (already the target container).
+// Anything else (.ogg, .mp3, .wav, video, ...) is always converted to .m4a.
+const ACCEPTABLE_KEEP_EXTS = ['.m4a', '.aac'];
 
 // ---------- helpers ----------
 function checkBin(bin) {
@@ -133,7 +141,7 @@ function probe(file) {
   }
 }
 
-function encode(inputPath, outputPath, enc) {
+function encode(inputPath, outputPath, enc, bitrateK) {
   return new Promise((resolve, reject) => {
     const args = ['-hide_banner', '-loglevel', 'error', '-i', inputPath, '-vn', '-map_metadata', '-1'];
 
@@ -147,7 +155,7 @@ function encode(inputPath, outputPath, enc) {
     args.push('-c:a', enc.name, '-ac', String(CONFIG.channels), '-ar', String(CONFIG.sampleRate));
     if (enc.name === 'libfdk_aac' && enc.he) args.push('-profile:a', 'aac_he');
     if (enc.name === 'libopus') args.push('-vbr', 'on', '-application', 'voip');
-    args.push('-b:a', `${CONFIG.targetBitrateK}k`);
+    args.push('-b:a', `${bitrateK}k`);
     if (enc.ext === 'm4a') args.push('-movflags', '+faststart');
     args.push('-y', outputPath);
 
@@ -174,8 +182,9 @@ async function processDirectory(inputDir, outputDir, enc) {
   console.log(`\nFound ${files.length} files\n`);
   console.log('Configuration:');
   console.log(`  Encoder:        ${enc.label}`);
-  console.log(`  Target bitrate: ${CONFIG.targetBitrateK}k, mono, ${CONFIG.sampleRate} Hz`);
-  console.log(`  Keep original if already <= ${CONFIG.keepUnderK}k (and no video)`);
+  console.log(`  Output format:  .${enc.ext} (all sources converted; low-bitrate ones capped at source so they don't grow)`);
+  console.log(`  Target bitrate: up to ${CONFIG.targetBitrateK}k, mono, ${CONFIG.sampleRate} Hz`);
+  console.log(`  Keep as-is only if already .${enc.ext} and <= ${CONFIG.keepUnderK}k (and no video)`);
   console.log(`  Trim silence:   ${CONFIG.trim ? 'yes' : 'no'}   Normalize: ${CONFIG.normalize ? 'yes' : 'no'}   Dry-run: ${CONFIG.dryRun ? 'yes' : 'no'}`);
   console.log('');
 
@@ -191,38 +200,49 @@ async function processDirectory(inputDir, outputDir, enc) {
     const info = probe(inputPath);
     const br = info && info.audioBitrateK ? `${info.audioBitrateK}k` : '?';
 
-    // Decision 1: already small enough -> keep original as-is
+    const ext = path.extname(file).toLowerCase();
+    // We only ever KEEP a file that is ALREADY the target format (.m4a/.aac);
+    // .ogg/.opus/.mp3/.wav/video are always converted to .m4a.
+    const keepableFormat = enc.ext === 'm4a' && ACCEPTABLE_KEEP_EXTS.includes(ext);
     const alreadySmall = info && info.audioBitrateK != null &&
       info.audioBitrateK <= CONFIG.keepUnderK && !info.hasVideo;
+    // Cap the encode bitrate at the source so a low-bitrate file (e.g. 16k .ogg)
+    // is converted to .m4a without being inflated.
+    const effBitrateK = (info && info.audioBitrateK)
+      ? Math.min(CONFIG.targetBitrateK, info.audioBitrateK)
+      : CONFIG.targetBitrateK;
 
-    if (alreadySmall) {
-      const dest = path.join(outputDir, file); // keep original name + extension
+    // Decision 1: already the target format AND already small -> keep as-is.
+    if (alreadySmall && keepableFormat) {
+      const dest = path.join(outResolved, file);
       if (!CONFIG.dryRun && path.resolve(dest) !== path.resolve(inputPath)) fs.copyFileSync(inputPath, dest);
       newTotal += originalSize; kept++;
-      console.log(`KEPT (already ${br}) ${formatBytes(originalSize)}`);
+      console.log(`KEPT (already .${enc.ext}, ${br}) ${formatBytes(originalSize)}`);
       continue;
     }
 
-    // Decision 2: re-encode, then keep whichever is smaller
+    // Decision 2: convert to .m4a at the effective (capped) bitrate.
     const outName = path.basename(file, path.extname(file)) + '.' + enc.ext;
     const outputPath = path.join(outResolved, outName);
     if (CONFIG.dryRun) {
       newTotal += originalSize; // unknown; count as-is for the estimate
-      console.log(`would encode (src ${br}) -> ${enc.ext} @ ${CONFIG.targetBitrateK}k`);
+      console.log(`would convert (src ${br}) -> .${enc.ext} @ ${effBitrateK}k`);
       continue;
     }
     try {
-      await encode(inputPath, outputPath, enc);
+      await encode(inputPath, outputPath, enc, effBitrateK);
       const encSize = fs.statSync(outputPath).size;
-      if (encSize >= originalSize) {
+      if (encSize >= originalSize && keepableFormat) {
+        // Already .m4a and the re-encode didn't help -> keep the original.
         fs.rmSync(outputPath, { force: true });
         const dest = path.join(outResolved, file);
         if (path.resolve(dest) !== path.resolve(inputPath)) fs.copyFileSync(inputPath, dest);
         newTotal += originalSize; kept++;
-        console.log(`KEPT (encode was larger) ${formatBytes(originalSize)}`);
+        console.log(`KEPT (encode not smaller) ${formatBytes(originalSize)}`);
       } else {
         newTotal += encSize; encoded++;
-        console.log(`OK (src ${br}) ${formatBytes(originalSize)} -> ${formatBytes(encSize)} (${pct(originalSize, encSize)})`);
+        const tag = encSize >= originalSize ? '  (converted to .m4a)' : '';
+        console.log(`OK (src ${br} -> ${effBitrateK}k) ${formatBytes(originalSize)} -> ${formatBytes(encSize)} (${pct(originalSize, encSize)})${tag}`);
       }
     } catch (err) {
       failed++;
